@@ -1,0 +1,1199 @@
+/* TruckBhai — styles ported from the Figma file (1440px canvas) */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: #fff;
+  color: #0f0f0f;
+  font-family: "Montserrat", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+img {
+  display: block;
+  max-width: none;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* The design is a fixed 1440px canvas. On narrower screens the whole canvas is
+   scaled down proportionally so every element stays exactly as in Figma. */
+.canvas {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+
+.page {
+  position: relative;
+  width: 1440px;
+  margin: 0 auto;
+  overflow: hidden;
+  background: #fff;
+  transform-origin: top left;
+}
+
+.abs {
+  position: absolute;
+}
+
+.fit {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.cover {
+  object-fit: cover;
+}
+
+.contain {
+  object-fit: contain;
+}
+
+.bottom {
+  object-position: bottom;
+}
+
+/* ---------- Nav bar ---------- */
+.nav {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1440px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 80px;
+  z-index: 10;
+}
+
+.logo {
+  position: relative;
+}
+
+.logo p {
+  font-family: "Poppins", sans-serif;
+  font-weight: 600;
+  font-size: 24px;
+  white-space: nowrap;
+  margin-left: 3.62px;
+  color: #fff;
+}
+
+.nav--dark .logo p {
+  color: #1e1e1e;
+}
+
+.logo p span {
+  color: #f3494a;
+}
+
+.logo .underline {
+  position: absolute;
+  left: 0;
+  top: 32.5px;
+  width: 50px;
+  height: 6px;
+  background: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='50' height='6' viewBox='0 -3 50 6'%3E%3Cpath fill='%23f14648' d='M5 -0.5L0 -2.88675L0 2.88675L5 0.5L5 -0.5ZM50 0L45 -2.88675L45 2.88675L50 0ZM4.5 0L4.5 0.5L45.5 0.5L45.5 0L45.5 -0.5L4.5 -0.5L4.5 0Z'/%3E%3C/svg%3E")
+    no-repeat center/50px 6px;
+}
+
+.nav-links {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+  font-family: "Lato", sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: 0.16px;
+  text-transform: capitalize;
+  white-space: nowrap;
+  color: #fff;
+  width: 799px;
+  justify-content: center;
+}
+
+.nav--dark .nav-links {
+  color: #1e1e1e;
+}
+
+/* ---------- Home hero ---------- */
+.hero-truck {
+  left: 627px;
+  top: 129px;
+  width: 852px;
+  height: 575px;
+  object-fit: fill;
+}
+
+.hero-title {
+  position: absolute;
+  left: 111px;
+  top: 229px;
+  width: 662px;
+  font-family: "Poppins", sans-serif;
+  font-weight: 600;
+  font-size: 64px;
+  line-height: 67.5px;
+  color: #fff;
+}
+
+.hero-sub {
+  position: absolute;
+  left: 112px;
+  top: 449px;
+  width: 541px;
+  font-size: 18px;
+  line-height: 1.6;
+  color: #fff;
+}
+
+.hero-cta {
+  position: absolute;
+  left: 112px;
+  top: 560px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.hero-cta .line {
+  width: 528px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.hero-cta .row {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  color: #fff;
+  font-size: 18px;
+  line-height: 1.6;
+}
+
+.hero-cta .pill {
+  background: #fff;
+  border-radius: 24px;
+  padding: 6px;
+  display: flex;
+}
+
+/* ---------- Booking card ---------- */
+.cta-card {
+  position: absolute;
+  left: 112px;
+  top: 760px;
+  width: 1216px;
+  height: 145px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 20px 24px -4px rgba(16, 24, 40, 0.08), 0 8px 8px -4px rgba(16, 24, 40, 0.03);
+  backdrop-filter: blur(14px);
+}
+
+.cta-fields {
+  position: absolute;
+  left: 136px;
+  top: 790px;
+  width: 1168px;
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+}
+
+.cta-fields .group {
+  display: flex;
+  gap: 16px;
+  flex: 1;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.field > label {
+  font-size: 16px;
+  color: #000;
+  opacity: 0.8;
+  white-space: nowrap;
+}
+
+.field .box {
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  background: #fff;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 16px;
+  line-height: 24px;
+  color: #000;
+}
+
+.field .box span {
+  opacity: 0.8;
+}
+
+.field .box.between {
+  justify-content: space-between;
+}
+
+.btn-dark {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #0f0f0f;
+  color: #fff;
+  border: 0;
+  border-radius: 64px;
+  padding: 16px 24px;
+  font-family: "Montserrat", sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 24px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+/* ---------- Section headings ---------- */
+.h-24 {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.48px;
+  color: #000;
+  white-space: nowrap;
+}
+
+.section-head {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  color: #0f0f0f;
+  transform: translateX(-50%);
+}
+
+.section-head .title-48 {
+  font-size: 48px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.96px;
+  white-space: nowrap;
+}
+
+.section-head .title-40 {
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.8px;
+  white-space: nowrap;
+}
+
+.section-head .label-24 {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.48px;
+  color: #000;
+  white-space: nowrap;
+}
+
+.section-head .body-18 {
+  width: 773px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.6;
+  letter-spacing: -0.36px;
+}
+
+/* ---------- Rent by tiles ---------- */
+.tile {
+  position: absolute;
+  width: 186px;
+  height: 120px;
+  border-radius: 8px;
+  background: rgba(15, 15, 15, 0.05);
+  transform: translateX(-50%);
+}
+
+.tile-content {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  transform: translateX(-50%);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  color: #0f0f0f;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* ---------- Filter chips ---------- */
+.chips {
+  position: absolute;
+  display: flex;
+  gap: 45px;
+  width: 726px;
+}
+
+.chip {
+  border-radius: 58px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  background: #fff;
+  padding: 12px 19px;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 26px;
+  letter-spacing: -0.36px;
+  color: #000;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.chip--active {
+  background: #0f0f0f;
+  color: #fff;
+  border-color: #0f0f0f;
+  width: 140px;
+}
+
+/* ---------- Truck card ---------- */
+.truck-card {
+  position: absolute;
+  width: 384px;
+  height: 538px;
+  border-radius: 24px;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.truck-card--featured {
+  border: 2px solid #0f0f0f;
+}
+
+.truck-card .image {
+  position: absolute;
+  overflow: hidden;
+}
+
+.truck-card .image img {
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+}
+
+.truck-card .name {
+  position: absolute;
+  left: 24px;
+  top: 292px;
+  width: 336px;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: #0f0f0f;
+}
+
+.truck-card .price {
+  position: absolute;
+  left: 24px;
+  top: 334px;
+  width: 336px;
+  font-size: 32px;
+  font-weight: 800;
+  line-height: 38.4px;
+  color: #0f0f0f;
+}
+
+.truck-card .price small {
+  font-size: 16px;
+  font-weight: 600;
+  opacity: 0.5;
+}
+
+.truck-card .specs {
+  position: absolute;
+  left: 24px;
+  top: 388px;
+  width: 336px;
+  height: 63px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  border-radius: 8px;
+  background: rgba(15, 15, 15, 0.025);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 21px;
+  color: #0f0f0f;
+}
+
+.truck-card .spec {
+  display: flex;
+  width: 62px;
+  height: 47px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.truck-card .book {
+  position: absolute;
+  left: 24px;
+  top: 471px;
+  bottom: auto;
+  width: 336px;
+  height: 44px;
+  justify-content: center;
+  border: 1px solid #0f0f0f;
+  background: #fff;
+  color: #0f0f0f;
+  border-radius: 64px;
+  padding: 12px 24px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.truck-card--featured .book {
+  background: #0f0f0f;
+  color: #fff;
+}
+
+/* ---------- How it works / steps ---------- */
+.step-card {
+  position: absolute;
+  width: 592px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 24px;
+  background: #fff;
+}
+
+.step-icon {
+  position: absolute;
+  left: 32px;
+  width: 54px;
+  height: 106px;
+  border-radius: 16px;
+  background: #f5f5f5;
+}
+
+.step-title {
+  position: absolute;
+  left: 106px;
+  width: 454px;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 36px;
+  color: #000;
+}
+
+.step-text {
+  position: absolute;
+  left: 106px;
+  width: 454px;
+  font-family: "Montserrat", sans-serif;
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 28.8px;
+  letter-spacing: -0.36px;
+  color: #000;
+}
+
+/* ---------- Services & benefits ---------- */
+.services {
+  position: absolute;
+  left: 0;
+  width: 1440px;
+  height: 586px;
+  background: #2947a9 url("../images/services-bg.png") center/cover no-repeat;
+  overflow: hidden;
+  color: #fff;
+}
+
+.services .title {
+  position: absolute;
+  left: 112px;
+  top: 80px;
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.8px;
+}
+
+.services .body {
+  position: absolute;
+  left: 112px;
+  top: 160px;
+  width: 540px;
+  font-size: 18px;
+  line-height: 1.6;
+  letter-spacing: -0.36px;
+}
+
+.services .feature {
+  position: absolute;
+  left: 112px;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  width: 540px;
+}
+
+.services .feature h4 {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.services .feature p {
+  font-size: 16px;
+  line-height: 1.6;
+  opacity: 0.9;
+}
+
+/* ---------- Testimonials ---------- */
+.testimonials {
+  position: absolute;
+  overflow: hidden;
+  background: #fff;
+}
+
+.testimonial {
+  position: absolute;
+  width: 451px;
+  height: 327px;
+}
+
+.testimonial .card {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 451px;
+  height: 254px;
+  border-radius: 8px;
+  background: #f6f6f6;
+}
+
+.testimonial .card img {
+  position: absolute;
+  left: 213px;
+  top: 50px;
+}
+
+.testimonial .card p {
+  position: absolute;
+  left: 40px;
+  top: 98px;
+  width: 371px;
+  font-family: "Inter", sans-serif;
+  font-size: 16px;
+  line-height: 22px;
+  color: #2d2e2e;
+  text-align: center;
+}
+
+.testimonial--center {
+  z-index: 2;
+}
+
+.testimonial--center .card {
+  background: #f8d254;
+}
+
+.testimonial--center .card p {
+  left: 24px;
+  width: 403px;
+}
+
+.testimonial .face {
+  position: absolute;
+  left: 180.5px;
+  top: 210px;
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  object-fit: cover;
+  z-index: 3;
+}
+
+.testimonial .who {
+  position: absolute;
+  left: 0;
+  top: 305px;
+  width: 451px;
+  text-align: center;
+  font-family: "Inter", sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 19.36px;
+  color: #2d2e2e;
+  white-space: nowrap;
+}
+
+/* ---------- Page hero (inner pages) ---------- */
+.page-hero {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1440px;
+  height: 297.825px;
+  overflow: hidden;
+}
+
+.page-hero .shade {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.page-hero .wash {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.32), rgba(255, 255, 255, 0.63));
+}
+
+.page-title {
+  position: absolute;
+  left: 86.62px;
+  top: 117.11px;
+  font-family: "Poppins", sans-serif;
+  font-weight: 700;
+  font-size: 32px;
+  color: #000;
+}
+
+.page-crumb {
+  position: absolute;
+  left: 86.62px;
+  top: 162.89px;
+  font-family: "Poppins", sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  color: #000;
+}
+
+/* ---------- Download app ---------- */
+.download-app {
+  position: absolute;
+  left: 0;
+  width: 1440px;
+  height: 288px;
+  background: #007EC0;
+  overflow: hidden;
+  color: #fff;
+  font-family: "Montserrat", sans-serif;
+}
+
+.download-app h2 {
+  position: absolute;
+  left: 216px;
+  top: 84px;
+  width: 537px;
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 46px;
+}
+
+.download-app p {
+  position: absolute;
+  left: 216px;
+  top: 150px;
+  width: 488px;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 26px;
+}
+
+.download-app .store {
+  position: absolute;
+  top: 112px;
+  height: 60px;
+  border-radius: 73px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+}
+
+.download-app .store--apple {
+  left: 806px;
+  width: 193px;
+  padding-left: 27px;
+}
+
+.download-app .store--google {
+  left: 1022px;
+  width: 202px;
+  padding-left: 22px;
+}
+
+.download-app .store img {
+  height: 35px;
+  width: auto;
+}
+
+/* ---------- Footer ---------- */
+.footer {
+  position: absolute;
+  left: 0;
+  width: 1440px;
+  height: 374.715px;
+  background: #0f0f0f;
+  color: #fff;
+  font-family: "Cabin", sans-serif;
+}
+
+.footer .logo p {
+  color: #fff;
+}
+
+.footer > .logo {
+  position: absolute;
+  left: 139.4px;
+  top: 88px;
+}
+
+.footer .tagline {
+  position: absolute;
+  left: 140px;
+  top: 144px;
+  width: 148px;
+  font-size: 15px;
+  line-height: 21.87px;
+  opacity: 0.6;
+}
+
+.footer .copyright {
+  position: absolute;
+  left: 139.4px;
+  top: 327.5px;
+  font-size: 13px;
+  line-height: 120%;
+  opacity: 0.4;
+}
+
+.footer .col {
+  position: absolute;
+  top: 93px;
+}
+
+.footer .col h4 {
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 85%;
+  margin-bottom: 24px;
+}
+
+.footer .col a,
+.footer .col p {
+  display: block;
+  font-size: 13px;
+  line-height: 140%;
+  opacity: 0.6;
+  margin-bottom: 12px;
+}
+
+.footer .col a {
+  text-decoration: none;
+}
+
+.footer .col--company {
+  left: 437px;
+}
+
+.footer .col--contact {
+  left: 835px;
+}
+
+.footer .col--news {
+  left: 1033px;
+}
+
+.footer .newsletter-input {
+  position: absolute;
+  left: 1033px;
+  top: 175px;
+  width: 320px;
+  height: 55px;
+  border: 2px solid #bbc8d4;
+  border-radius: 4px;
+  background: #fff;
+  padding: 0 16px;
+  font-family: "Mulish", sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  color: #bbc8d4;
+}
+
+/* ---------- About page ---------- */
+.about-wrap {
+  position: absolute;
+  left: -9.5px;
+  top: 336.93px;
+  width: 1440px;
+  height: 945px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.about-photo {
+  position: absolute;
+  left: 114px;
+  top: 74px;
+  width: 902px;
+  height: 669px;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.about-photo .tint {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.58);
+}
+
+.about-card {
+  position: absolute;
+  left: 840px;
+  top: 147px;
+  width: 489px;
+  height: 558px;
+  background: #2947a9;
+  border-radius: 2px;
+  overflow: hidden;
+  box-shadow: 0 12px 16px -8px rgba(17, 24, 39, 0.18);
+  font-family: "Work Sans", sans-serif;
+  color: #fff;
+}
+
+.about-card h2 {
+  position: absolute;
+  left: 40px;
+  top: 50px;
+  font-size: 36px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.about-card .copy {
+  position: absolute;
+  left: 40px;
+  top: 129px;
+  width: 388px;
+  font-size: 20px;
+}
+
+.about-card .copy p + p {
+  margin-top: 20px;
+}
+
+.about-card .btn {
+  position: absolute;
+  left: 40px;
+  top: 458px;
+  background: #fff;
+  border: 2px solid #2947a9;
+  border-radius: 6px;
+  padding: 16px 20px;
+  color: #2947a9;
+  font-family: "Work Sans", sans-serif;
+  font-weight: 600;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+/* ---------- Contact page ---------- */
+.contact-wrap {
+  position: absolute;
+  left: 137px;
+  top: 361px;
+  width: 1110px;
+  height: 650px;
+  font-family: "DM Sans", sans-serif;
+}
+
+.contact-wrap h1 {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1013px;
+  font-size: 38px;
+  font-weight: 700;
+  line-height: 52px;
+  color: #1e0e62;
+}
+
+.contact-wrap .lead {
+  position: absolute;
+  left: 4px;
+  top: 55px;
+  width: 520px;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 32px;
+  color: rgba(21, 20, 57, 0.4);
+}
+
+.contact-wrap .phone {
+  position: absolute;
+  left: 5px;
+  top: 126px;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 26px;
+  color: #1e0e62;
+}
+
+.contact-form {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 805px;
+  height: 420px;
+}
+
+.contact-form input,
+.contact-form textarea {
+  position: absolute;
+  font-family: "DM Sans", sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 26px;
+  color: #1e0e62;
+  border: 2px solid #ebeaed;
+  background: #fff;
+}
+
+.contact-form .name {
+  left: 0;
+  top: 230px;
+  width: 389px;
+  height: 50px;
+  border-radius: 100px;
+  padding: 0 24px;
+}
+
+.contact-form .email {
+  left: 0;
+  top: 310px;
+  width: 395px;
+  height: 50px;
+  border-radius: 100px;
+  padding: 0 24px;
+}
+
+.contact-form textarea {
+  left: 0;
+  top: 390px;
+  width: 805px;
+  height: 170px;
+  border-radius: 10px;
+  padding: 13px 19px;
+  resize: none;
+}
+
+.contact-form input::placeholder,
+.contact-form textarea::placeholder {
+  color: rgba(21, 20, 57, 0.4);
+}
+
+.contact-form button {
+  position: absolute;
+  left: 591px;
+  top: 590px;
+  width: 214px;
+  height: 60px;
+  border: 0;
+  border-radius: 100px;
+  background: #25dac5;
+  color: #fff;
+  font-family: "DM Sans", sans-serif;
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 26px;
+  cursor: pointer;
+}
+
+.contact-tip {
+  position: absolute;
+  left: 845px;
+  top: 335px;
+  width: 265px;
+}
+
+.contact-tip h3 {
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 32px;
+  color: #1e0e62;
+  margin-bottom: 9px;
+}
+
+.contact-tip p {
+  font-size: 16px;
+  line-height: 26px;
+  color: rgba(21, 20, 57, 0.4);
+}
+
+/* ---------- Team page ---------- */
+.team-title {
+  position: absolute;
+  left: 499px;
+  top: 394px;
+  width: 408px;
+  text-align: center;
+  font-family: "DM Sans", sans-serif;
+  font-size: 42px;
+  font-weight: 700;
+  line-height: 52px;
+  color: #1e0e62;
+}
+
+.team-lead {
+  position: absolute;
+  left: 283px;
+  top: 488px;
+  width: 839px;
+  text-align: center;
+  font-family: "DM Sans", sans-serif;
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 32px;
+  color: rgba(21, 20, 57, 0.4);
+}
+
+.team-pill {
+  position: absolute;
+  left: 600px;
+  top: 594px;
+  width: 206px;
+  height: 47px;
+  border: 2px solid #ebeaed;
+  border-radius: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "DM Sans", sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 26px;
+  color: #1e0e62;
+}
+
+.member {
+  position: absolute;
+  top: 714px;
+  width: 381px;
+  height: 351px;
+  border: 2px solid #ebeaed;
+  border-radius: 10px;
+  font-family: "DM Sans", sans-serif;
+  text-align: center;
+}
+
+.member img {
+  position: absolute;
+  left: 129px;
+  top: 48px;
+  width: 123px;
+  height: 114px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.member h3 {
+  position: absolute;
+  left: 0;
+  top: 189px;
+  width: 381px;
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 32px;
+  color: #1e0e62;
+}
+
+.member span {
+  position: absolute;
+  left: 0;
+  top: 234px;
+  width: 381px;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 26px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(21, 20, 57, 0.4);
+}
+
+/* ---------- Services feature columns ---------- */
+.svc-col {
+  position: absolute;
+  width: 384px;
+  text-align: center;
+}
+
+.svc-col .badge {
+  position: absolute;
+  left: 168px;
+  top: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: 28px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.svc-col .badge img {
+  width: 24px;
+  height: 24px;
+}
+
+.svc-col h4 {
+  position: absolute;
+  left: 0;
+  top: 68px;
+  width: 384px;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 30px;
+  color: #fff;
+}
+
+.svc-col p {
+  position: absolute;
+  left: 0;
+  top: 106px;
+  width: 384px;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+  color: #ededed;
+}
+
+.footer--home .newsletter-input {
+  top: 119px;
+}
