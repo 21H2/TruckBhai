@@ -270,6 +270,13 @@ a {
   cursor: pointer;
 }
 
+.btn-dark:focus-visible,
+.contact-form button:focus-visible,
+.about-card .btn:focus-visible {
+  outline: 3px solid #f8d254;
+  outline-offset: 3px;
+}
+
 /* ---------- Section headings ---------- */
 .h-24 {
   font-size: 24px;
@@ -368,6 +375,7 @@ a {
   color: #000;
   text-align: center;
   white-space: nowrap;
+  cursor: pointer;
 }
 
 .chip--active {
