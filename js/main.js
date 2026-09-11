@@ -14,6 +14,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
   fitCanvas();
   window.addEventListener("resize", fitCanvas);
+  window.addEventListener("orientationchange", fitCanvas);
   window.addEventListener("load", fitCanvas);
 
 
