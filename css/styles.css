@@ -199,6 +199,11 @@ a {
   display: flex;
 }
 
+.hero-cta:focus-visible {
+  outline: 3px solid #f8d254;
+  outline-offset: 6px;
+}
+
 /* ---------- Booking card ---------- */
 .cta-card {
   position: absolute;
