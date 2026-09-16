@@ -397,6 +397,11 @@ a {
   background: #f8d254;
 }
 
+.chip:focus-visible {
+  outline: 3px solid #0f0f0f;
+  outline-offset: 3px;
+}
+
 .chip--active {
   background: #0f0f0f;
   color: #fff;
