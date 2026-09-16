@@ -149,6 +149,15 @@ a {
   color: #fff;
 }
 
+.nav-links a {
+  transition: color 160ms ease, opacity 160ms ease;
+}
+
+.nav-links a:hover,
+.nav-links a:focus-visible {
+  color: #f8d254;
+}
+
 .hero-sub {
   position: absolute;
   left: 112px;
