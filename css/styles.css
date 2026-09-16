@@ -859,6 +859,12 @@ a {
   text-decoration: none;
 }
 
+.footer .col a:hover,
+.footer .col a:focus-visible {
+  color: #f8d254;
+  opacity: 1;
+}
+
 .footer .col--company {
   left: 437px;
 }
