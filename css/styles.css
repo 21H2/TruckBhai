@@ -413,6 +413,12 @@ a {
   background: #fff;
   border: 1px solid rgba(0, 0, 0, 0.05);
   overflow: hidden;
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.truck-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 28px -18px rgba(15, 15, 15, 0.45);
 }
 
 .truck-card--featured {
