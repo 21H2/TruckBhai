@@ -114,8 +114,7 @@ a {
   top: 32.5px;
   width: 50px;
   height: 6px;
-  background: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='50' height='6' viewBox='0 -3 50 6'%3E%3Cpath fill='%23f14648' d='M5 -0.5L0 -2.88675L0 2.88675L5 0.5L5 -0.5ZM50 0L45 -2.88675L45 2.88675L50 0ZM4.5 0L4.5 0.5L45.5 0.5L45.5 0L45.5 -0.5L4.5 -0.5L4.5 0Z'/%3E%3C/svg%3E")
-    no-repeat center/50px 6px;
+  background: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='50' height='6' viewBox='0 -3 50 6'%3E%3Cpath fill='%23f14648' d='M5 -0.5L0 -2.88675L0 2.88675L5 0.5L5 -0.5ZM50 0L45 -2.88675L45 2.88675L50 0ZM4.5 0L4.5 0.5L45.5 0.5L45.5 0L45.5 -0.5L4.5 -0.5L4.5 0Z'/%3E%3C/svg%3E") no-repeat center/50px 6px;
 }
 
 .nav-links {
@@ -250,7 +249,7 @@ a {
   gap: 10px;
 }
 
-.field > label {
+.field>label {
   font-size: 16px;
   color: #000;
   opacity: 0.8;
@@ -501,6 +500,7 @@ a {
   font-weight: 500;
   line-height: 21px;
   color: #0f0f0f;
+  list-style: none;
 }
 
 .truck-card .spec {
@@ -825,7 +825,7 @@ a {
   color: #fff;
 }
 
-.footer > .logo {
+.footer>.logo {
   position: absolute;
   left: 139.4px;
   top: 88px;
@@ -967,7 +967,7 @@ a {
   font-size: 20px;
 }
 
-.about-card .copy p + p {
+.about-card .copy p+p {
   margin-top: 20px;
 }
 
