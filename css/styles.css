@@ -132,6 +132,7 @@ a {
   color: #fff;
   width: 799px;
   justify-content: center;
+  list-style: none;
 }
 
 .nav--dark .nav-links {
