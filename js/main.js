@@ -1,17 +1,7 @@
-/**
- * TruckBhai — Core client-side behaviors for static pages.
- * Handles proportional canvas scaling for responsive viewports and static form resets.
- */
-// Initialize responsive layout behaviors once DOM is fully parsed
 document.addEventListener("DOMContentLoaded", function () {
-  // Scale the fixed 1440px design down to fit narrower screens.
   var canvas = document.querySelector(".canvas");
   var page = document.querySelector(".page");
 
-  /**
-   * Proportionally scales the page container to match the viewport width
-   * while preserving the 1440px Figma layout proportions.
-   */
   function fitCanvas() {
     if (!canvas || !page) return;
     var available = document.documentElement.clientWidth;
@@ -22,13 +12,11 @@ document.addEventListener("DOMContentLoaded", function () {
     canvas.style.height = page.offsetHeight * scale + "px";
   }
 
-  // Initial calculation and viewport resize listeners
   fitCanvas();
   window.addEventListener("resize", fitCanvas);
   window.addEventListener("orientationchange", fitCanvas);
   window.addEventListener("load", fitCanvas);
 
-  // Booking and contact forms handling (static submission reset)
   document.querySelectorAll("form").forEach(function (form) {
     form.addEventListener("submit", function (event) {
       event.preventDefault();
