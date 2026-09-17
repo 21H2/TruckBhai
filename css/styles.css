@@ -864,12 +864,17 @@ a {
 }
 
 .footer .col a,
-.footer .col p {
+.footer .col p,
+.footer .col li {
   display: block;
   font-size: 13px;
   line-height: 140%;
   opacity: 0.6;
   margin-bottom: 12px;
+}
+
+.footer .col ul {
+  list-style: none;
 }
 
 .footer .col a {
