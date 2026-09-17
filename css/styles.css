@@ -658,6 +658,10 @@ a {
   top: 50px;
 }
 
+.testimonial .card blockquote {
+  margin: 0;
+}
+
 .testimonial .card p {
   position: absolute;
   left: 40px;
