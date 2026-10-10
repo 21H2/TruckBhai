@@ -180,7 +180,7 @@ test("contact submissions save to their own file and invalid requests save nothi
 });
 
 test("newsletter validation rejects malformed emails and normalizes valid addresses", () => {
-  for (const email of ["", "plain", "user@", "@example.com", "a@@example.com", "<user>@example.com", "user@-example.com", "x".repeat(255) + "@example.com"]) {
+  for (const email of ["", "plain", "user@", "@example.com", "a@@example.com", "<user>@example.com", "user@-example.com", ".user@example.com", "user.@example.com", "first..last@example.com", "x".repeat(65) + "@example.com", "user@" + "x".repeat(64) + ".com", "x".repeat(255) + "@example.com"]) {
     assert.ok(forms.subscriber({ email }).errors.email, email);
   }
   assert.deepEqual(forms.subscriber({ email: " Asha+Rentals@Example.COM " }), {

@@ -13,7 +13,12 @@
   }
 
   function validEmail(email) {
-    return email.length <= 254 && /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?)+$/.test(email);
+    var parts = email.split("@");
+    if (email.length > 254 || parts.length !== 2 || parts[0].length > 64 ||
+        parts[0].startsWith(".") || parts[0].endsWith(".") || parts[0].includes("..")) return false;
+    return /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+$/.test(parts[0]) &&
+      parts[1].split(".").every(function (label) { return label.length <= 63; }) &&
+      /^[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?)+$/.test(parts[1]);
   }
 
   function contact(input) {
