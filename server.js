@@ -110,6 +110,9 @@ function createApp({ dataDir = path.join(root, "data") } = {}) {
   };
 
   return http.createServer(async (request, response) => {
+    response.setHeader("X-Content-Type-Options", "nosniff");
+    response.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+    response.setHeader("X-Frame-Options", "DENY");
     try {
       const url = new URL(request.url, "http://localhost");
       const pathname = decodeURIComponent(url.pathname);
@@ -143,7 +146,7 @@ function createApp({ dataDir = path.join(root, "data") } = {}) {
         return sendJson(response, 404, { message: "Page not found." });
       }
       const contents = await fs.readFile(path.join(root, file));
-      response.writeHead(200, { "Content-Type": mimeType, "X-Content-Type-Options": "nosniff" });
+      response.writeHead(200, { "Content-Type": mimeType });
       response.end(request.method === "HEAD" ? undefined : contents);
     } catch (error) {
       if (response.destroyed) return;

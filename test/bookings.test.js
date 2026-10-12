@@ -145,6 +145,16 @@ test("site assets are available but data, server code and Git metadata stay priv
   assert.equal((await request("/api/bookings")).status, 405);
 });
 
+test("security headers are sent for pages and API errors", async (t) => {
+  const { request } = await setup(t);
+  for (const url of ["/", "/missing.html", "/api/bookings"]) {
+    const response = await request(url);
+    assert.equal(response.headers.get("x-content-type-options"), "nosniff");
+    assert.equal(response.headers.get("referrer-policy"), "strict-origin-when-cross-origin");
+    assert.equal(response.headers.get("x-frame-options"), "DENY");
+  }
+});
+
 test("contact validation rejects invalid values and preserves multiline messages", () => {
   const message = { name: "Asha Kumar", email: "asha@example.com", message: "Please call me.\nI need a truck." };
   assert.deepEqual(forms.contact(message).errors, {});
