@@ -155,6 +155,17 @@ test("security headers are sent for pages and API errors", async (t) => {
   }
 });
 
+test("HEAD checks public files without returning their contents", async (t) => {
+  const { request } = await setup(t);
+  for (const url of ["/", "/css/styles.css", "/images/logo.svg"]) {
+    const response = await request(url, { method: "HEAD" });
+    assert.equal(response.status, 200);
+    assert.equal(await response.text(), "");
+    assert.ok(response.headers.get("content-type"));
+  }
+  assert.equal((await request("/private.txt", { method: "HEAD" })).status, 404);
+});
+
 test("contact validation rejects invalid values and preserves multiline messages", () => {
   const message = { name: "Asha Kumar", email: "asha@example.com", message: "Please call me.\nI need a truck." };
   assert.deepEqual(forms.contact(message).errors, {});

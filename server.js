@@ -145,9 +145,15 @@ function createApp({ dataDir = path.join(root, "data") } = {}) {
       if ((!pages.has(file) && !publicAsset) || !mimeType) {
         return sendJson(response, 404, { message: "Page not found." });
       }
-      const contents = await fs.readFile(path.join(root, file));
+      const filename = path.join(root, file);
+      if (request.method === "HEAD") {
+        await fs.access(filename);
+        response.writeHead(200, { "Content-Type": mimeType });
+        return response.end();
+      }
+      const contents = await fs.readFile(filename);
       response.writeHead(200, { "Content-Type": mimeType });
-      response.end(request.method === "HEAD" ? undefined : contents);
+      response.end(contents);
     } catch (error) {
       if (response.destroyed) return;
       const status = error.status || (error.code === "ENOENT" ? 404 : error instanceof URIError ? 400 : 500);
