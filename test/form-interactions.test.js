@@ -65,6 +65,8 @@ test("invalid form values show field errors and never reach the server", async (
   page.fields.find((field) => field.name === "email").value = "asha@example.com";
   page.edit();
   assert.equal(page.errors["contact-email-error"].textContent, "");
+  assert.equal(page.status.textContent, "");
+  assert.equal(page.status.dataset.state, undefined);
 });
 
 test("repeated clicks send one request and successful saving alone clears the form", async () => {

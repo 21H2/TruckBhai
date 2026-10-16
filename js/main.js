@@ -71,6 +71,7 @@ document.addEventListener("DOMContentLoaded", function () {
     function edit() {
       if (options.update) options.update();
       if (attempted) check();
+      delete status.dataset.state;
       status.textContent = "";
     }
     form.addEventListener("input", edit);
