@@ -122,6 +122,16 @@ test("malformed, oversized, wrong-content and cross-origin requests are rejected
   }
 });
 
+test("JSON content type accepts case variants and charset parameters", async (t) => {
+  const { request } = await setup(t);
+  const response = await request("/api/bookings", {
+    method: "POST",
+    headers: { "Content-Type": "Application/JSON; charset=UTF-8" },
+    body: JSON.stringify(validBooking)
+  });
+  assert.equal(response.status, 201);
+});
+
 test("storage failure preserves the file and later submissions can recover", async (t) => {
   const { dataDir, post } = await setup(t);
   const filename = path.join(dataDir, "bookings.json");

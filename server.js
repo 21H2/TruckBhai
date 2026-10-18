@@ -37,7 +37,7 @@ function requestError(status, message) {
 }
 
 async function readJson(request) {
-  if (request.headers["content-type"]?.split(";")[0].trim() !== "application/json") {
+  if (request.headers["content-type"]?.split(";")[0].trim().toLowerCase() !== "application/json") {
     throw requestError(415, "Send form data as JSON.");
   }
   const chunks = [];
