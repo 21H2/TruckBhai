@@ -175,10 +175,9 @@ document.addEventListener("DOMContentLoaded", function () {
     pickupDate.min = bookings.localDate();
     // A return on the following day is the earliest allowed rental end.
     var date = new Date((pickupDate.value || pickupDate.min) + "T00:00:00");
-    if (Number.isFinite(date.getTime())) {
-      date.setDate(date.getDate() + 1);
-      returnDate.min = bookings.localDate(date);
-    }
+    if (!Number.isFinite(date.getTime())) date = new Date(pickupDate.min + "T00:00:00");
+    date.setDate(date.getDate() + 1);
+    returnDate.min = bookings.localDate(date);
   }
 
   updateDates();
