@@ -169,9 +169,11 @@ test("HEAD checks public files without returning their contents", async (t) => {
   const { request } = await setup(t);
   for (const url of ["/", "/css/styles.css", "/images/logo.svg"]) {
     const response = await request(url, { method: "HEAD" });
+    const get = await request(url);
     assert.equal(response.status, 200);
     assert.equal(await response.text(), "");
     assert.ok(response.headers.get("content-type"));
+    assert.equal(response.headers.get("content-length"), get.headers.get("content-length"));
   }
   assert.equal((await request("/private.txt", { method: "HEAD" })).status, 404);
 });

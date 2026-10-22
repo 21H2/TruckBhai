@@ -147,12 +147,13 @@ function createApp({ dataDir = path.join(root, "data") } = {}) {
       }
       const filename = path.join(root, file);
       if (request.method === "HEAD") {
-        await fs.access(filename);
-        response.writeHead(200, { "Content-Type": mimeType });
+        const metadata = await fs.stat(filename);
+        if (!metadata.isFile()) return sendJson(response, 404, { message: "Page not found." });
+        response.writeHead(200, { "Content-Type": mimeType, "Content-Length": metadata.size });
         return response.end();
       }
       const contents = await fs.readFile(filename);
-      response.writeHead(200, { "Content-Type": mimeType });
+      response.writeHead(200, { "Content-Type": mimeType, "Content-Length": contents.length });
       response.end(contents);
     } catch (error) {
       if (response.destroyed) return;
