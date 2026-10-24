@@ -85,6 +85,8 @@ document.addEventListener("DOMContentLoaded", function () {
       if (Object.keys(result.errors).length) {
         status.dataset.state = "error";
         status.textContent = "Check the form details above.";
+        var firstInvalid = fields.find(function (field) { return result.errors[field.name]; });
+        if (firstInvalid) firstInvalid.focus();
         return;
       }
 

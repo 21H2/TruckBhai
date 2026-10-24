@@ -14,9 +14,11 @@ function fixture(fetch, { newsletter = false, timeout } = {}) {
   const initial = newsletter
     ? { email: "asha@example.com" }
     : { name: "Asha Kumar", email: "asha@example.com", message: "Please send rental details." };
+  let focusedField;
   const fields = Object.entries(initial).map(([name, value]) => ({
     name, value, id: (newsletter ? "newsletter-" : "contact-") + name, disabled: false,
-    attributes: {}, setAttribute(key, next) { this.attributes[key] = next; }
+    attributes: {}, setAttribute(key, next) { this.attributes[key] = next; },
+    focus() { focusedField = name; }
   }));
   const errors = Object.fromEntries(fields.map((field) => [field.id + "-error", { textContent: "" }]));
   const status = { textContent: "", dataset: {} };
@@ -48,6 +50,7 @@ function fixture(fetch, { newsletter = false, timeout } = {}) {
   return {
     fields, form, status, button, errors,
     values: () => Object.fromEntries(fields.map((field) => [field.name, field.value])),
+    focusedField: () => focusedField,
     submit: () => events.submit({ preventDefault() {} }),
     edit: () => events.input()
   };
@@ -61,6 +64,7 @@ test("invalid form values show field errors and never reach the server", async (
   assert.equal(calls, 0);
   assert.ok(page.errors["contact-email-error"].textContent);
   assert.equal(page.status.dataset.state, "error");
+  assert.equal(page.focusedField(), "email");
   assert.equal(page.form.resets, 0);
   page.fields.find((field) => field.name === "email").value = "asha@example.com";
   page.edit();
