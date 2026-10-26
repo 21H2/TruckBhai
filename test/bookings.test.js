@@ -178,6 +178,13 @@ test("HEAD checks public files without returning their contents", async (t) => {
   assert.equal((await request("/private.txt", { method: "HEAD" })).status, 404);
 });
 
+test("pages revalidate while static assets can be cached briefly", async (t) => {
+  const { request } = await setup(t);
+  assert.equal((await request("/")).headers.get("cache-control"), "no-cache");
+  assert.equal((await request("/css/styles.css")).headers.get("cache-control"), "public, max-age=300");
+  assert.equal((await request("/api/bookings")).headers.get("cache-control"), "no-store");
+});
+
 test("contact validation rejects invalid values and preserves multiline messages", () => {
   const message = { name: "Asha Kumar", email: "asha@example.com", message: "Please call me.\nI need a truck." };
   assert.deepEqual(forms.contact(message).errors, {});

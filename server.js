@@ -145,6 +145,7 @@ function createApp({ dataDir = path.join(root, "data") } = {}) {
       if ((!pages.has(file) && !publicAsset) || !mimeType) {
         return sendJson(response, 404, { message: "Page not found." });
       }
+      response.setHeader("Cache-Control", pages.has(file) ? "no-cache" : "public, max-age=300");
       const filename = path.join(root, file);
       if (request.method === "HEAD") {
         const metadata = await fs.stat(filename);
