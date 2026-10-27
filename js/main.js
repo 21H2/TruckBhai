@@ -17,6 +17,30 @@ document.addEventListener("DOMContentLoaded", function () {
   window.addEventListener("orientationchange", fitCanvas);
   window.addEventListener("load", fitCanvas);
 
+  var truckCards = Array.from(document.querySelectorAll(".truck-card[data-category]"));
+  var cardSlots = truckCards.map(function (card) {
+    return { left: card.style.left, top: card.style.top };
+  });
+  var filters = Array.from(document.querySelectorAll(".chip[data-filter]"));
+  filters.forEach(function (button) {
+    button.addEventListener("click", function () {
+      filters.forEach(function (filter) {
+        var active = filter === button;
+        filter.classList.toggle("chip--active", active);
+        filter.setAttribute("aria-pressed", String(active));
+      });
+      var slot = 0;
+      truckCards.forEach(function (card) {
+        card.hidden = button.dataset.filter !== "all" && card.dataset.category !== button.dataset.filter;
+        if (!card.hidden) {
+          card.style.left = cardSlots[slot].left;
+          card.style.top = cardSlots[slot].top;
+          slot += 1;
+        }
+      });
+    });
+  });
+
   document.querySelectorAll("form:not(#booking-form)").forEach(function (form) {
     form.addEventListener("submit", function (event) {
       event.preventDefault();

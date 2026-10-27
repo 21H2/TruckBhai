@@ -43,6 +43,14 @@ page, selection happens without reloading, preserving entered location and dates
 From Vehicle Models, the link opens the home page using a `vehicle` query parameter
 and the `#booking-form` anchor. Unrecognized vehicle IDs are ignored.
 
+## Vehicle filters
+
+The home and Vehicle Models pages filter the displayed cards by size and move
+matching cards into the first available positions. Popular restores the full
+featured collection. The current sample categorization is TATA Ace (small), EICHER
+pro (medium), and EICHER 19, container and trailers (large); edit each card's
+`data-category` to adjust the catalog.
+
 ## Checks
 
 ```sh

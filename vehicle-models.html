@@ -36,12 +36,12 @@
         </p>
       </div>
       <div class="chips" style="left:calc(16.67% + 98px);top:589.83px">
-        <button type="button" class="chip chip--active">Popular</button>
-        <button type="button" class="chip">Small Truck</button>
-        <button type="button" class="chip">Large Truck</button>
-        <button type="button" class="chip">Medium Truck</button>
+        <button type="button" class="chip chip--active" data-filter="all" aria-pressed="true">Popular</button>
+        <button type="button" class="chip" data-filter="small" aria-pressed="false">Small Truck</button>
+        <button type="button" class="chip" data-filter="large" aria-pressed="false">Large Truck</button>
+        <button type="button" class="chip" data-filter="medium" aria-pressed="false">Medium Truck</button>
       </div>
-      <article data-vehicle="tata-ace" class="truck-card" style="left:113px;top:703.83px">
+      <article data-category="small" data-vehicle="tata-ace" class="truck-card" style="left:113px;top:703.83px">
         <div class="image" style="left:10px;top:37px;width:350px;height:237px"><img src="images/truck-tata-ace.png"
             alt="TATA Ace HT mini truck" loading="lazy" /></div>
         <h3 class="name">TATA Ace HT mini</h3>
@@ -55,7 +55,7 @@
         </ul>
         <a class="btn-dark book" href="index.html?vehicle=tata-ace#booking-form">Rent Now</a>
       </article>
-      <article data-vehicle="eicher-19" class="truck-card truck-card--featured" style="left:529px;top:703.83px">
+      <article data-category="large" data-vehicle="eicher-19" class="truck-card truck-card--featured" style="left:529px;top:703.83px">
         <div class="image" style="left:8px;top:8px;width:368px;height:260px"><img src="images/truck-eicher-19.png"
             alt="EICHER 19 truck" loading="lazy" /></div>
         <h3 class="name">EICHER 19</h3>
@@ -69,7 +69,7 @@
         </ul>
         <a class="btn-dark book" href="index.html?vehicle=eicher-19#booking-form">Rent Now</a>
       </article>
-      <article data-vehicle="eicher-pro" class="truck-card" style="left:945px;top:703.83px">
+      <article data-category="medium" data-vehicle="eicher-pro" class="truck-card" style="left:945px;top:703.83px">
         <div class="image" style="left:21px;top:23px;width:339px;height:257px"><img src="images/truck-eicher-pro.png"
             alt="EICHER pro truck" loading="lazy" /></div>
         <h3 class="name">EICHER pro</h3>
@@ -83,7 +83,7 @@
         </ul>
         <a class="btn-dark book" href="index.html?vehicle=eicher-pro#booking-form">Rent Now</a>
       </article>
-      <article data-vehicle="container" class="truck-card" style="left:113px;top:1273.83px">
+      <article data-category="large" data-vehicle="container" class="truck-card" style="left:113px;top:1273.83px">
         <div class="image" style="left:8px;top:12px;width:368px;height:260px"><img src="images/truck-container.png"
             alt="12 by 20 container truck" loading="lazy" /></div>
         <h3 class="name">Container 12*20</h3>
@@ -97,7 +97,7 @@
         </ul>
         <a class="btn-dark book" href="index.html?vehicle=container#booking-form">Rent Now</a>
       </article>
-      <article data-vehicle="trailer" class="truck-card" style="left:529px;top:1273.83px">
+      <article data-category="large" data-vehicle="trailer" class="truck-card" style="left:529px;top:1273.83px">
         <div class="image" style="left:-11px;top:55px;width:395px;height:178px"><img src="images/truck-trailer.png"
             alt="12 by 32 trailer" loading="lazy" /></div>
         <h3 class="name">trailer 12*32</h3>
@@ -111,7 +111,7 @@
         </ul>
         <a class="btn-dark book" href="index.html?vehicle=trailer#booking-form">Rent Now</a>
       </article>
-      <article data-vehicle="refrigerated" class="truck-card" style="left:945px;top:1273.83px">
+      <article data-category="large" data-vehicle="refrigerated" class="truck-card" style="left:945px;top:1273.83px">
         <div class="image" style="left:-7px;top:18px;width:347px;height:240px"><img src="images/truck-refrigerated.png"
             alt="Refrigerated trailer" loading="lazy" /></div>
         <h3 class="name">refrigerated trailer</h3>
