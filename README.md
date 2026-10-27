@@ -36,6 +36,13 @@ directly or using a static-only server cannot save JSON files.
 This records a booking request locally; it does not reserve inventory or take payment.
 Other interactions and forms are being implemented separately.
 
+## Rent Now buttons
+
+Every truck card links to the booking form with its vehicle selected. On the home
+page, selection happens without reloading, preserving entered location and dates.
+From Vehicle Models, the link opens the home page using a `vehicle` query parameter
+and the `#booking-form` anchor. Unrecognized vehicle IDs are ignored.
+
 ## Checks
 
 ```sh

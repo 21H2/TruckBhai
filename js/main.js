@@ -44,6 +44,22 @@ document.addEventListener("DOMContentLoaded", function () {
     vehicleSelect.appendChild(option);
   });
 
+  var requestedVehicle = new URLSearchParams(window.location.search).get("vehicle");
+  if (bookings.vehicles.some(function (vehicle) { return vehicle.id === requestedVehicle; })) {
+    vehicleSelect.value = requestedVehicle;
+  }
+
+  document.querySelectorAll(".truck-card .book").forEach(function (link) {
+    link.addEventListener("click", function (event) {
+      event.preventDefault();
+      if (pending) return;
+      vehicleSelect.value = link.closest(".truck-card").dataset.vehicle;
+      vehicleSelect.dispatchEvent(new Event("change", { bubbles: true }));
+      status.textContent = "";
+      bookingForm.scrollIntoView({ block: "center" });
+    });
+  });
+
   function updateDates() {
     pickupDate.min = bookings.localDate();
     // A return on the following day is the earliest allowed rental end.
