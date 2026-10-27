@@ -203,7 +203,7 @@ a {
   left: 112px;
   top: 760px;
   width: 1216px;
-  height: 145px;
+  height: 200px;
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.9);
   box-shadow: 0 20px 24px -4px rgba(16, 24, 40, 0.08), 0 8px 8px -4px rgba(16, 24, 40, 0.03);
@@ -227,6 +227,7 @@ a {
 }
 
 .field {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -254,6 +255,47 @@ a {
 
 .field .box span {
   opacity: 0.8;
+}
+
+.cta-fields input,
+.cta-fields select {
+  min-width: 0;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  color: #0f0f0f;
+}
+
+.cta-fields .field-error {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  width: 100%;
+  font-size: 12px;
+  line-height: 16px;
+  color: #a32121;
+}
+
+.cta-fields .form-status {
+  position: absolute;
+  top: calc(100% + 43px);
+  left: 0;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.form-status[data-state="error"] {
+  color: #a32121;
+}
+
+.form-status[data-state="success"] {
+  color: #146537;
+}
+
+.cta-fields button:disabled {
+  opacity: 0.6;
+  cursor: wait;
 }
 
 .field .box.between {

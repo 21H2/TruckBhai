@@ -15,3 +15,8 @@ Thumbs.db
 
 # Logs and temporary files
 *.log
+
+# Submitted form data stays on this machine
+data/*.json
+data/*.tmp
+node_modules/
