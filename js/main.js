@@ -92,11 +92,14 @@ document.addEventListener("DOMContentLoaded", function () {
       fields.forEach(function (field) { field.disabled = true; });
       status.dataset.state = "pending";
       status.textContent = "Saving…";
+      var controller = new AbortController();
+      var timeout = setTimeout(function () { controller.abort(); }, 15000);
       try {
         var response = await fetch(form.action, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(result.values)
+          body: JSON.stringify(result.values),
+          signal: controller.signal
         });
         var data = await response.json();
         if (!response.ok) {
@@ -111,10 +114,13 @@ document.addEventListener("DOMContentLoaded", function () {
         status.textContent = options.success + " Reference: " + data.id;
       } catch (error) {
         status.dataset.state = "error";
-        status.textContent = error instanceof TypeError || error instanceof SyntaxError
+        status.textContent = error.name === "AbortError"
+          ? "The server did not respond in time. Your details are still here."
+          : error instanceof TypeError || error instanceof SyntaxError
           ? "Could not reach the form service. Please try again."
           : error.message;
       } finally {
+        clearTimeout(timeout);
         fields.forEach(function (field) { field.disabled = false; });
         submitButton.disabled = false;
         pending = false;

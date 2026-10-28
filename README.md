@@ -70,6 +70,17 @@ including simultaneous submissions or requests after a server restart.
 
 This stores subscriptions locally; sending newsletters is not configured.
 
+## Submission feedback
+
+All three forms show field errors, saving status, and success references. Controls
+are disabled while saving to prevent repeated submissions. Details clear only
+after a successful server response and remain available after validation, server,
+or network failures. A request that takes more than 15 seconds releases the controls
+and displays a timeout message. A timeout cannot establish whether the server
+finished saving; inspect local data before retrying if that matters.
+
+Broader UX and responsive layout improvements are on hold.
+
 ## Checks
 
 ```sh
