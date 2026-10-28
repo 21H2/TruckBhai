@@ -1,0 +1,13 @@
+{
+  "name": "truckbhai",
+  "version": "1.0.0",
+  "private": true,
+  "description": "TruckBhai truck rentals with local JSON form storage",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test --test-isolation=none"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

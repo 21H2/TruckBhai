@@ -203,7 +203,7 @@ a {
   left: 112px;
   top: 760px;
   width: 1216px;
-  height: 145px;
+  height: 200px;
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.9);
   box-shadow: 0 20px 24px -4px rgba(16, 24, 40, 0.08), 0 8px 8px -4px rgba(16, 24, 40, 0.03);
@@ -227,6 +227,7 @@ a {
 }
 
 .field {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -254,6 +255,47 @@ a {
 
 .field .box span {
   opacity: 0.8;
+}
+
+.cta-fields input,
+.cta-fields select {
+  min-width: 0;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  color: #0f0f0f;
+}
+
+.cta-fields .field-error {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  width: 100%;
+  font-size: 12px;
+  line-height: 16px;
+  color: #a32121;
+}
+
+.cta-fields .form-status {
+  position: absolute;
+  top: calc(100% + 43px);
+  left: 0;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.form-status[data-state="error"] {
+  color: #a32121;
+}
+
+.form-status[data-state="success"] {
+  color: #146537;
+}
+
+.cta-fields button:disabled {
+  opacity: 0.6;
+  cursor: wait;
 }
 
 .field .box.between {
@@ -373,6 +415,7 @@ a {
 }
 
 .chip {
+  min-width: 140px;
   border-radius: 58px;
   border: 1px solid rgba(0, 0, 0, 0.05);
   background: #fff;
@@ -389,20 +432,16 @@ a {
   font-family: inherit;
 }
 
-.chip:hover {
-  background: #f8d254;
-}
-
 .chip:focus-visible {
   outline: 3px solid #0f0f0f;
   outline-offset: 3px;
 }
 
+.chip:hover,
 .chip--active {
   background: #0f0f0f;
   color: #fff;
   border-color: #0f0f0f;
-  width: 140px;
 }
 
 .truck-card {
@@ -413,16 +452,13 @@ a {
   background: #fff;
   border: 1px solid rgba(0, 0, 0, 0.05);
   overflow: hidden;
-  transition: transform 180ms ease, box-shadow 180ms ease;
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
 }
 
 .truck-card:hover {
+  border-color: #0f0f0f;
   transform: translateY(-4px);
-  box-shadow: 0 16px 28px -18px rgba(15, 15, 15, 0.45);
-}
-
-.truck-card--featured {
-  border: 2px solid #0f0f0f;
+  box-shadow: inset 0 0 0 1px #0f0f0f, 0 16px 28px -18px rgba(15, 15, 15, 0.45);
 }
 
 .truck-card .image {
@@ -511,7 +547,7 @@ a {
   line-height: 20px;
 }
 
-.truck-card--featured .book {
+.truck-card:hover .book {
   background: #0f0f0f;
   color: #fff;
 }
@@ -876,11 +912,19 @@ a {
   left: 1033px;
 }
 
-.footer .newsletter-input {
+.footer .newsletter-form {
   position: absolute;
   left: 1033px;
   top: 175px;
   width: 320px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.footer .newsletter-input {
+  min-width: 0;
+  width: 100%;
   height: 55px;
   border: 2px solid #bbc8d4;
   border-radius: 4px;
@@ -889,7 +933,46 @@ a {
   font-family: "Mulish", sans-serif;
   font-weight: 600;
   font-size: 16px;
-  color: #bbc8d4;
+  color: #0f0f0f;
+}
+
+.newsletter-button {
+  height: 55px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 4px;
+  background: #f8d254;
+  color: #0f0f0f;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.newsletter-button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.newsletter-form .field-error,
+.newsletter-form .form-status {
+  grid-column: 1 / -1;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.newsletter-form .field-error,
+.newsletter-form .form-status[data-state="error"] {
+  color: #ffb4b4;
+}
+
+.newsletter-form .form-status[data-state="success"] {
+  color: #99e8b3;
+}
+
+.newsletter-form .field-error:empty,
+.newsletter-form .form-status:empty {
+  display: none;
 }
 
 .about-wrap {
@@ -1079,6 +1162,40 @@ a {
   cursor: pointer;
 }
 
+.contact-form .field-error {
+  position: absolute;
+  left: 20px;
+  font-size: 12px;
+  line-height: 16px;
+  color: #a32121;
+}
+
+#contact-name-error {
+  top: 283px;
+}
+
+#contact-email-error {
+  top: 363px;
+}
+
+#contact-message-error {
+  top: 565px;
+}
+
+.contact-form .form-status {
+  position: absolute;
+  left: 0;
+  top: 590px;
+  width: 560px;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.contact-form button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
 .contact-tip {
   position: absolute;
   left: 845px;
@@ -1235,6 +1352,6 @@ a {
   color: #ededed;
 }
 
-.footer--home .newsletter-input {
+.footer--home .newsletter-form {
   top: 119px;
 }

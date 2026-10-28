@@ -17,6 +17,7 @@
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700;800&family=Lato:wght@400;600;700&family=Inter:wght@400;600&family=Cabin:wght@400;500&family=Mulish:wght@400;600&family=Work+Sans:wght@400;600;700&family=DM+Sans:wght@400;500;700&display=swap" />
   <link rel="stylesheet" href="css/styles.css" />
+  <script src="js/forms.js" defer></script>
   <script src="js/main.js" defer></script>
 </head>
 
@@ -28,13 +29,18 @@
         <h1>Need additional information?</h1>
         <p class="lead">Please submit your information and a Truckbhai representative will get in touch with you</p>
         <p class="phone">Call sales at +91 98765 43210</p>
-        <form class="contact-form">
-          <input class="name" name="name" type="text" autocomplete="name" placeholder="Your name" aria-label="Your name"
-            required />
-          <input class="email" name="email" type="email" autocomplete="email" placeholder="Your email"
-            aria-label="Your email" required />
-          <textarea name="message" placeholder="Your message" aria-label="Your message" required></textarea>
+        <form id="contact-form" class="contact-form" action="/api/contacts" method="post">
+          <input id="contact-name" class="name" name="name" type="text" autocomplete="name" placeholder="Your name"
+            aria-label="Your name" minlength="2" maxlength="100" required />
+          <p class="field-error" id="contact-name-error"></p>
+          <input id="contact-email" class="email" name="email" type="email" autocomplete="email" placeholder="Your email"
+            aria-label="Your email" maxlength="254" required />
+          <p class="field-error" id="contact-email-error"></p>
+          <textarea id="contact-message" name="message" placeholder="Your message" aria-label="Your message"
+            minlength="10" maxlength="5000" required></textarea>
+          <p class="field-error" id="contact-message-error"></p>
           <button type="submit">Send a Message</button>
+          <p class="form-status" role="status"></p>
         </form>
         <div class="contact-tip">
           <h3>Help</h3>
@@ -96,9 +102,12 @@
           <h4>Get deals and discounts</h4>
           <p>Subscribe to our newsletter</p>
         </div>
-        <form>
-          <input class="newsletter-input" name="newsletter-email" type="email" autocomplete="email" placeholder="Email"
-            aria-label="Email" />
+        <form id="newsletter-form" class="newsletter-form" action="/api/subscribers" method="post">
+          <input id="newsletter-email" class="newsletter-input" name="email" type="email" autocomplete="email"
+            placeholder="Email" aria-label="Newsletter email" maxlength="254" required />
+          <button class="newsletter-button" type="submit">Subscribe</button>
+          <p class="field-error" id="newsletter-email-error"></p>
+          <p class="form-status" role="status"></p>
         </form>
         <p class="copyright">© Copyright Team Inc.</p>
       </footer>
