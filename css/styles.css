@@ -455,16 +455,13 @@ a {
   background: #fff;
   border: 1px solid rgba(0, 0, 0, 0.05);
   overflow: hidden;
-  transition: transform 180ms ease, box-shadow 180ms ease;
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
 }
 
 .truck-card:hover {
+  border-color: #0f0f0f;
   transform: translateY(-4px);
-  box-shadow: 0 16px 28px -18px rgba(15, 15, 15, 0.45);
-}
-
-.truck-card--featured {
-  border: 2px solid #0f0f0f;
+  box-shadow: inset 0 0 0 1px #0f0f0f, 0 16px 28px -18px rgba(15, 15, 15, 0.45);
 }
 
 .truck-card .image {
@@ -553,7 +550,7 @@ a {
   line-height: 20px;
 }
 
-.truck-card--featured .book {
+.truck-card:hover .book {
   background: #0f0f0f;
   color: #fff;
 }
