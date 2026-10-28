@@ -918,11 +918,19 @@ a {
   left: 1033px;
 }
 
-.footer .newsletter-input {
+.footer .newsletter-form {
   position: absolute;
   left: 1033px;
   top: 175px;
   width: 320px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.footer .newsletter-input {
+  min-width: 0;
+  width: 100%;
   height: 55px;
   border: 2px solid #bbc8d4;
   border-radius: 4px;
@@ -931,7 +939,46 @@ a {
   font-family: "Mulish", sans-serif;
   font-weight: 600;
   font-size: 16px;
-  color: #bbc8d4;
+  color: #0f0f0f;
+}
+
+.newsletter-button {
+  height: 55px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 4px;
+  background: #f8d254;
+  color: #0f0f0f;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.newsletter-button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.newsletter-form .field-error,
+.newsletter-form .form-status {
+  grid-column: 1 / -1;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.newsletter-form .field-error,
+.newsletter-form .form-status[data-state="error"] {
+  color: #ffb4b4;
+}
+
+.newsletter-form .form-status[data-state="success"] {
+  color: #99e8b3;
+}
+
+.newsletter-form .field-error:empty,
+.newsletter-form .form-status:empty {
+  display: none;
 }
 
 .about-wrap {
@@ -1311,6 +1358,6 @@ a {
   color: #ededed;
 }
 
-.footer--home .newsletter-input {
+.footer--home .newsletter-form {
   top: 119px;
 }

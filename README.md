@@ -60,6 +60,16 @@ submissions retain the message; successful submissions clear the form.
 
 This saves messages locally; email delivery is not configured.
 
+## Newsletter form
+
+Every page has a newsletter email field and Subscribe button. `POST /api/subscribers`
+accepts JSON with `email`. Addresses are validated, trimmed, converted to lowercase,
+and saved with their reference ID and UTC timestamp in `data/subscribers.json`.
+Duplicate addresses return HTTP 409 with an inline error and are not saved again,
+including simultaneous submissions or requests after a server restart.
+
+This stores subscriptions locally; sending newsletters is not configured.
+
 ## Checks
 
 ```sh

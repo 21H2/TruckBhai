@@ -57,7 +57,7 @@ async function readJson(request) {
   }
 }
 
-function createJsonStore(dataDir, collection) {
+function createJsonStore(dataDir, collection, { uniqueEmail = false } = {}) {
   const filename = path.join(dataDir, collection + ".json");
   let queue = Promise.resolve();
 
@@ -72,6 +72,12 @@ function createJsonStore(dataDir, collection) {
         // Never replace an existing file if it cannot be read or parsed.
         if (error.code !== "ENOENT") throw error;
         records = [];
+      }
+      // Check inside the write queue so concurrent subscriptions cannot duplicate an email.
+      if (uniqueEmail && records.some((record) =>
+        typeof record?.email === "string" && record.email.toLowerCase() === values.email.toLowerCase())) {
+        const message = "This email address is already subscribed.";
+        throw Object.assign(requestError(409, message), { errors: { email: message } });
       }
       const record = {
         id: randomUUID(),
@@ -99,7 +105,8 @@ function createJsonStore(dataDir, collection) {
 function createApp({ dataDir = path.join(root, "data") } = {}) {
   const routes = {
     "/api/bookings": { validate: bookings.validate, save: createJsonStore(dataDir, "bookings") },
-    "/api/contacts": { validate: forms.contact, save: createJsonStore(dataDir, "contacts") }
+    "/api/contacts": { validate: forms.contact, save: createJsonStore(dataDir, "contacts") },
+    "/api/subscribers": { validate: forms.subscriber, save: createJsonStore(dataDir, "subscribers", { uniqueEmail: true }) }
   };
 
   return http.createServer(async (request, response) => {
@@ -144,7 +151,8 @@ function createApp({ dataDir = path.join(root, "data") } = {}) {
       if (status === 500) console.error("Request failed:", error.message);
       sendJson(response, status, {
         message: status === 500 ? "Could not save your request. Please try again."
-          : status === 404 ? "Page not found." : error.message
+          : status === 404 ? "Page not found." : error.message,
+        ...(error.errors ? { errors: error.errors } : {})
       });
     }
   });

@@ -41,13 +41,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
-  document.querySelectorAll("form:not(#booking-form):not(#contact-form)").forEach(function (form) {
-    form.addEventListener("submit", function (event) {
-      event.preventDefault();
-      form.reset();
-    });
-  });
-
   function connectForm(form, validate, options) {
     var status = form.querySelector(".form-status");
     var submitButton = form.querySelector('[type="submit"]');
@@ -134,6 +127,11 @@ document.addEventListener("DOMContentLoaded", function () {
   var contactForm = document.querySelector("#contact-form");
   if (contactForm) {
     connectForm(contactForm, window.TruckBhaiForms.contact, { success: "Your message was saved." });
+  }
+
+  var newsletterForm = document.querySelector("#newsletter-form");
+  if (newsletterForm) {
+    connectForm(newsletterForm, window.TruckBhaiForms.subscriber, { success: "Your subscription was saved." });
   }
 
   var bookingForm = document.querySelector("#booking-form");

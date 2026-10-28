@@ -21,6 +21,7 @@
     href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700;800&family=Lato:wght@400;600;700&family=Inter:wght@400;600&family=Cabin:wght@400;500&family=Mulish:wght@400;600&family=Work+Sans:wght@400;600;700&family=DM+Sans:wght@400;500;700&display=swap" />
   <link rel="stylesheet" href="css/styles.css" />
   <script src="js/booking.js" defer></script>
+  <script src="js/forms.js" defer></script>
   <script src="js/main.js" defer></script>
 </head>
 
@@ -389,9 +390,12 @@
           <h4>Get deals and discounts</h4>
 
         </div>
-        <form>
-          <input class="newsletter-input" name="newsletter-email" type="email" autocomplete="email" placeholder="Email"
-            aria-label="Email" />
+        <form id="newsletter-form" class="newsletter-form" action="/api/subscribers" method="post">
+          <input id="newsletter-email" class="newsletter-input" name="email" type="email" autocomplete="email"
+            placeholder="Email" aria-label="Newsletter email" maxlength="254" required />
+          <button class="newsletter-button" type="submit">Subscribe</button>
+          <p class="field-error" id="newsletter-email-error"></p>
+          <p class="form-status" role="status"></p>
         </form>
         <p class="copyright">© Copyright Team Inc.</p>
       </footer>

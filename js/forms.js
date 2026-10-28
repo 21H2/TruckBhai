@@ -31,5 +31,14 @@
     return { values: values, errors: errors };
   }
 
-  return { contact: contact };
+  function subscriber(input) {
+    var values = { email: text(input, "email").toLowerCase() };
+    var errors = {};
+    if (!validEmail(values.email)) {
+      errors.email = "Enter a valid email address (up to 254 characters).";
+    }
+    return { values: values, errors: errors };
+  }
+
+  return { contact: contact, subscriber: subscriber };
 });

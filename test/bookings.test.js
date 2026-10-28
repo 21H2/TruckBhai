@@ -178,3 +178,46 @@ test("contact submissions save to their own file and invalid requests save nothi
   assert.equal(JSON.parse(await fs.readFile(path.join(dataDir, "bookings.json"), "utf8")).length, 1);
   assert.equal((await request("/data/contacts.json")).status, 404);
 });
+
+test("newsletter validation rejects malformed emails and normalizes valid addresses", () => {
+  for (const email of ["", "plain", "user@", "@example.com", "a@@example.com", "<user>@example.com", "user@-example.com", "x".repeat(255) + "@example.com"]) {
+    assert.ok(forms.subscriber({ email }).errors.email, email);
+  }
+  assert.deepEqual(forms.subscriber({ email: " Asha+Rentals@Example.COM " }), {
+    values: { email: "asha+rentals@example.com" }, errors: {}
+  });
+});
+
+test("newsletter saves only valid subscriptions and prevents case-insensitive duplicates", async (t) => {
+  const { dataDir, request } = await setup(t);
+  const send = (email) => request("/api/subscribers", {
+    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email })
+  });
+  assert.equal((await send("wrong")).status, 422);
+  await assert.rejects(fs.readFile(path.join(dataDir, "subscribers.json")), { code: "ENOENT" });
+  const response = await send(" Asha@Example.COM ");
+  assert.equal(response.status, 201);
+  const duplicate = await send("asha@example.com");
+  assert.equal(duplicate.status, 409);
+  assert.ok((await duplicate.json()).errors.email);
+  const subscribers = JSON.parse(await fs.readFile(path.join(dataDir, "subscribers.json"), "utf8"));
+  assert.equal(subscribers.length, 1);
+  assert.equal(subscribers[0].email, "asha@example.com");
+  assert.equal(subscribers[0].id, (await response.json()).id);
+  assert.ok(Number.isFinite(Date.parse(subscribers[0].submittedAt)));
+  assert.equal((await request("/data/subscribers.json")).status, 404);
+});
+
+test("concurrent newsletter requests and server restarts cannot duplicate an address", async (t) => {
+  const { dataDir, request: send } = await setup(t);
+  const options = {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email: "same@example.com" })
+  };
+  const responses = await Promise.all(Array.from({ length: 10 }, () => send("/api/subscribers", options)));
+  assert.equal(responses.filter((response) => response.status === 201).length, 1);
+  assert.equal(responses.filter((response) => response.status === 409).length, 9);
+  const second = createApp({ dataDir });
+  assert.equal((await request(second, "/api/subscribers", options)).status, 409);
+  assert.equal(JSON.parse(await fs.readFile(path.join(dataDir, "subscribers.json"), "utf8")).length, 1);
+});
