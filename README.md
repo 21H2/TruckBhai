@@ -72,7 +72,8 @@ This stores subscriptions locally; sending newsletters is not configured.
 
 ## Submission feedback
 
-All three forms show field errors, saving status, and success references. Controls
+All three forms show field errors and saving status. Bookings and contact messages
+show a success reference; newsletter subscriptions simply show “Subscribed!”. Controls
 are disabled while saving to prevent repeated submissions. Details clear only
 after a successful server response and remain available after validation, server,
 or network failures. A request that takes more than 15 seconds releases the controls

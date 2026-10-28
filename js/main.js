@@ -111,7 +111,7 @@ document.addEventListener("DOMContentLoaded", function () {
         displayErrors({});
         if (options.update) options.update();
         status.dataset.state = "success";
-        status.textContent = options.success + " Reference: " + data.id;
+        status.textContent = options.success + (options.showReference === false ? "" : " Reference: " + data.id);
       } catch (error) {
         status.dataset.state = "error";
         status.textContent = error.name === "AbortError"
@@ -137,7 +137,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   var newsletterForm = document.querySelector("#newsletter-form");
   if (newsletterForm) {
-    connectForm(newsletterForm, window.TruckBhaiForms.subscriber, { success: "Your subscription was saved." });
+    connectForm(newsletterForm, window.TruckBhaiForms.subscriber, { success: "Subscribed!", showReference: false });
   }
 
   var bookingForm = document.querySelector("#booking-form");
