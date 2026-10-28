@@ -41,12 +41,100 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
-  document.querySelectorAll("form:not(#booking-form)").forEach(function (form) {
+  document.querySelectorAll("form:not(#booking-form):not(#contact-form)").forEach(function (form) {
     form.addEventListener("submit", function (event) {
       event.preventDefault();
       form.reset();
     });
   });
+
+  function connectForm(form, validate, options) {
+    var status = form.querySelector(".form-status");
+    var submitButton = form.querySelector('[type="submit"]');
+    var fields = Array.from(form.querySelectorAll("input, select, textarea"));
+    var pending = false;
+    var attempted = false;
+    form.noValidate = true;
+
+    function displayErrors(errors) {
+      fields.forEach(function (field) {
+        var errorId = field.id + "-error";
+        var error = document.getElementById(errorId);
+        if (error) {
+          error.textContent = errors[field.name] || "";
+          field.setAttribute("aria-describedby", errorId);
+        }
+        field.setAttribute("aria-invalid", errors[field.name] ? "true" : "false");
+      });
+    }
+
+    function check() {
+      if (options.update) options.update();
+      var result = validate(Object.fromEntries(new FormData(form)));
+      displayErrors(result.errors);
+      return result;
+    }
+
+    function edit() {
+      if (options.update) options.update();
+      if (attempted) check();
+      status.textContent = "";
+    }
+    form.addEventListener("input", edit);
+    form.addEventListener("change", edit);
+
+    form.addEventListener("submit", async function (event) {
+      event.preventDefault();
+      if (pending) return;
+      attempted = true;
+      var result = check();
+      if (Object.keys(result.errors).length) {
+        status.dataset.state = "error";
+        status.textContent = "Check the form details above.";
+        return;
+      }
+
+      pending = true;
+      submitButton.disabled = true;
+      fields.forEach(function (field) { field.disabled = true; });
+      status.dataset.state = "pending";
+      status.textContent = "Saving…";
+      try {
+        var response = await fetch(form.action, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(result.values)
+        });
+        var data = await response.json();
+        if (!response.ok) {
+          if (data.errors) displayErrors(data.errors);
+          throw new Error(data.message || "Could not save your submission. Please try again.");
+        }
+        form.reset();
+        attempted = false;
+        displayErrors({});
+        if (options.update) options.update();
+        status.dataset.state = "success";
+        status.textContent = options.success + " Reference: " + data.id;
+      } catch (error) {
+        status.dataset.state = "error";
+        status.textContent = error instanceof TypeError || error instanceof SyntaxError
+          ? "Could not reach the form service. Please try again."
+          : error.message;
+      } finally {
+        fields.forEach(function (field) { field.disabled = false; });
+        submitButton.disabled = false;
+        pending = false;
+      }
+    });
+
+    return { isPending: function () { return pending; } };
+  }
+
+  var contactForm = document.querySelector("#contact-form");
+  if (contactForm) {
+    connectForm(contactForm, window.TruckBhaiForms.contact, { success: "Your message was saved." });
+  }
 
   var bookingForm = document.querySelector("#booking-form");
   if (!bookingForm) return;
@@ -55,11 +143,6 @@ document.addEventListener("DOMContentLoaded", function () {
   var vehicleSelect = bookingForm.elements.vehicle;
   var pickupDate = bookingForm.elements.pickupDate;
   var returnDate = bookingForm.elements.returnDate;
-  var status = document.querySelector("#booking-status");
-  var submitButton = bookingForm.querySelector('[type="submit"]');
-  var pending = false;
-  var attempted = false;
-  bookingForm.noValidate = true;
 
   bookings.vehicles.forEach(function (vehicle) {
     var option = document.createElement("option");
@@ -76,10 +159,9 @@ document.addEventListener("DOMContentLoaded", function () {
   document.querySelectorAll(".truck-card .book").forEach(function (link) {
     link.addEventListener("click", function (event) {
       event.preventDefault();
-      if (pending) return;
+      if (bookingController.isPending()) return;
       vehicleSelect.value = link.closest(".truck-card").dataset.vehicle;
       vehicleSelect.dispatchEvent(new Event("change", { bubbles: true }));
-      status.textContent = "";
       bookingForm.scrollIntoView({ block: "center" });
     });
   });
@@ -94,78 +176,9 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  function displayErrors(errors) {
-    ["vehicle", "pickup", "pickupDate", "returnDate"].forEach(function (name) {
-      var field = bookingForm.elements[name];
-      var errorId = field.id + "-error";
-      document.getElementById(errorId).textContent = errors[name] || "";
-      field.setAttribute("aria-describedby", errorId);
-      field.setAttribute("aria-invalid", errors[name] ? "true" : "false");
-    });
-  }
-
-  function validateBooking() {
-    var result = bookings.validate(Object.fromEntries(new FormData(bookingForm)));
-    displayErrors(result.errors);
-    return result;
-  }
-
   updateDates();
-  bookingForm.addEventListener("input", function () {
-    updateDates();
-    if (attempted) validateBooking();
-    status.textContent = "";
-  });
-  bookingForm.addEventListener("change", function () {
-    updateDates();
-    if (attempted) validateBooking();
-  });
-
-  bookingForm.addEventListener("submit", async function (event) {
-    event.preventDefault();
-    if (pending) return;
-    attempted = true;
-    updateDates();
-    var result = validateBooking();
-    if (Object.keys(result.errors).length) {
-      status.textContent = "Check the booking details above.";
-      status.dataset.state = "error";
-      return;
-    }
-
-    pending = true;
-    submitButton.disabled = true;
-    // Keep the submitted values stable until the server finishes saving them.
-    var fields = Array.from(bookingForm.querySelectorAll("input, select"));
-    fields.forEach(function (field) { field.disabled = true; });
-    status.dataset.state = "pending";
-    status.textContent = "Saving your booking request…";
-    try {
-      var response = await fetch(bookingForm.action, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(result.values)
-      });
-      var data = await response.json();
-      if (!response.ok) {
-        if (data.errors) displayErrors(data.errors);
-        throw new Error(data.message || "Could not save your booking. Please try again.");
-      }
-      bookingForm.reset();
-      attempted = false;
-      displayErrors({});
-      updateDates();
-      status.dataset.state = "success";
-      status.textContent = "Booking request saved. Reference: " + data.id;
-    } catch (error) {
-      status.dataset.state = "error";
-      status.textContent = error instanceof TypeError || error instanceof SyntaxError
-        ? "Could not reach the booking service. Please try again."
-        : error.message;
-    } finally {
-      fields.forEach(function (field) { field.disabled = false; });
-      submitButton.disabled = false;
-      pending = false;
-    }
+  var bookingController = connectForm(bookingForm, bookings.validate, {
+    update: updateDates,
+    success: "Booking request saved."
   });
 });

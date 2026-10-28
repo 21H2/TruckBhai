@@ -1121,6 +1121,40 @@ a {
   cursor: pointer;
 }
 
+.contact-form .field-error {
+  position: absolute;
+  left: 20px;
+  font-size: 12px;
+  line-height: 16px;
+  color: #a32121;
+}
+
+#contact-name-error {
+  top: 283px;
+}
+
+#contact-email-error {
+  top: 363px;
+}
+
+#contact-message-error {
+  top: 565px;
+}
+
+.contact-form .form-status {
+  position: absolute;
+  left: 0;
+  top: 590px;
+  width: 560px;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.contact-form button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
 .contact-tip {
   position: absolute;
   left: 845px;

@@ -8,6 +8,7 @@ const path = require("node:path");
 const { Readable } = require("node:stream");
 const { createApp } = require("../server.js");
 const { validate, localDate } = require("../js/booking.js");
+const forms = require("../js/forms.js");
 
 const validBooking = {
   vehicle: "tata-ace", pickup: "Chennai warehouse", pickupDate: "2099-06-10", returnDate: "2099-06-11"
@@ -112,7 +113,7 @@ test("malformed, oversized, wrong-content and cross-origin requests are rejected
   for (const [body, headers, expected] of [
     ["{", { "Content-Type": "application/json" }, 400],
     ["[]", { "Content-Type": "application/json" }, 400],
-    ["x".repeat(17000), { "Content-Type": "application/json" }, 413],
+    ["x".repeat(33000), { "Content-Type": "application/json" }, 413],
     [JSON.stringify(validBooking), { "Content-Type": "text/plain" }, 415],
     [JSON.stringify(validBooking), { "Content-Type": "application/json", Origin: "https://example.com" }, 403]
   ]) {
@@ -142,4 +143,38 @@ test("site assets are available but data, server code and Git metadata stay priv
     assert.equal((await request(file)).status, 404, file);
   }
   assert.equal((await request("/api/bookings")).status, 405);
+});
+
+test("contact validation rejects invalid values and preserves multiline messages", () => {
+  const message = { name: "Asha Kumar", email: "asha@example.com", message: "Please call me.\nI need a truck." };
+  assert.deepEqual(forms.contact(message).errors, {});
+  assert.equal(forms.contact(message).values.message, message.message);
+  for (const [changes, field] of [
+    [{ name: " " }, "name"], [{ name: "x".repeat(101) }, "name"],
+    [{ email: "not-an-email" }, "email"], [{ email: "a@@example.com" }, "email"],
+    [{ message: " " }, "message"], [{ message: "x".repeat(5001) }, "message"]
+  ]) {
+    assert.ok(forms.contact({ ...message, ...changes }).errors[field], field);
+  }
+});
+
+test("contact submissions save to their own file and invalid requests save nothing", async (t) => {
+  const { dataDir, request, post } = await setup(t);
+  const send = (body) => request("/api/contacts", {
+    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body)
+  });
+  const bad = await send({ name: " ", email: "wrong", message: "" });
+  assert.equal(bad.status, 422);
+  assert.equal(Object.keys((await bad.json()).errors).length, 3);
+  await assert.rejects(fs.readFile(path.join(dataDir, "contacts.json")), { code: "ENOENT" });
+  const response = await send({ name: " Asha Kumar ", email: " asha@example.com ", message: " Please send rental details. " });
+  assert.equal(response.status, 201);
+  const contacts = JSON.parse(await fs.readFile(path.join(dataDir, "contacts.json"), "utf8"));
+  assert.equal(contacts.length, 1);
+  assert.equal(contacts[0].name, "Asha Kumar");
+  assert.equal(contacts[0].message, "Please send rental details.");
+  assert.equal(contacts[0].id, (await response.json()).id);
+  await post(validBooking);
+  assert.equal(JSON.parse(await fs.readFile(path.join(dataDir, "bookings.json"), "utf8")).length, 1);
+  assert.equal((await request("/data/contacts.json")).status, 404);
 });

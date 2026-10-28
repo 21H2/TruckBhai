@@ -34,7 +34,6 @@ directly or using a static-only server cannot save JSON files.
 - The form retains entered details on an error and clears them only after saving.
 
 This records a booking request locally; it does not reserve inventory or take payment.
-Other interactions and forms are being implemented separately.
 
 ## Rent Now buttons
 
@@ -50,6 +49,16 @@ matching cards into the first available positions. Popular restores the full
 featured collection. The current sample categorization is TATA Ace (small), EICHER
 pro (medium), and EICHER 19, container and trailers (large); edit each card's
 `data-category` to adjust the catalog.
+
+## Contact form
+
+The Contact page validates names (2–100 characters), email addresses (up to 254
+characters), and messages (10–5,000 characters). `POST /api/contacts` accepts JSON
+with `name`, `email`, and `message` and stores the trimmed values, reference ID,
+and UTC timestamp in `data/contacts.json`. Errors appear beside each field. Failed
+submissions retain the message; successful submissions clear the form.
+
+This saves messages locally; email delivery is not configured.
 
 ## Checks
 

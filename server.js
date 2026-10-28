@@ -5,6 +5,7 @@ const path = require("node:path");
 const fs = require("node:fs/promises");
 const { randomUUID } = require("node:crypto");
 const bookings = require("./js/booking.js");
+const forms = require("./js/forms.js");
 
 const root = __dirname;
 const pages = new Set([
@@ -44,9 +45,9 @@ async function readJson(request) {
   for await (const chunk of request) {
     size += chunk.length;
     // Drain oversized bodies without retaining them or destroying the response socket.
-    if (size <= 16384) chunks.push(chunk);
+    if (size <= 32768) chunks.push(chunk);
   }
-  if (size > 16384) throw requestError(413, "The submitted form is too large.");
+  if (size > 32768) throw requestError(413, "The submitted form is too large.");
   try {
     const body = JSON.parse(Buffer.concat(chunks).toString("utf8"));
     if (!body || typeof body !== "object" || Array.isArray(body)) throw new Error();
@@ -56,17 +57,17 @@ async function readJson(request) {
   }
 }
 
-function createBookingStore(dataDir) {
-  const filename = path.join(dataDir, "bookings.json");
+function createJsonStore(dataDir, collection) {
+  const filename = path.join(dataDir, collection + ".json");
   let queue = Promise.resolve();
 
-  return function saveBooking(values) {
+  return function saveRecord(values) {
     const operation = queue.then(async () => {
       await fs.mkdir(dataDir, { recursive: true });
       let records;
       try {
         records = JSON.parse(await fs.readFile(filename, "utf8"));
-        if (!Array.isArray(records)) throw new Error("Booking storage must contain an array.");
+        if (!Array.isArray(records)) throw new Error("Form storage must contain an array.");
       } catch (error) {
         // Never replace an existing file if it cannot be read or parsed.
         if (error.code !== "ENOENT") throw error;
@@ -96,27 +97,31 @@ function createBookingStore(dataDir) {
 }
 
 function createApp({ dataDir = path.join(root, "data") } = {}) {
-  const saveBooking = createBookingStore(dataDir);
+  const routes = {
+    "/api/bookings": { validate: bookings.validate, save: createJsonStore(dataDir, "bookings") },
+    "/api/contacts": { validate: forms.contact, save: createJsonStore(dataDir, "contacts") }
+  };
 
   return http.createServer(async (request, response) => {
     try {
       const url = new URL(request.url, "http://localhost");
       const pathname = decodeURIComponent(url.pathname);
-      if (pathname === "/api/bookings") {
+      const route = Object.hasOwn(routes, pathname) ? routes[pathname] : null;
+      if (route) {
         if (request.method !== "POST") {
           response.setHeader("Allow", "POST");
-          return sendJson(response, 405, { message: "Use POST to submit a booking." });
+          return sendJson(response, 405, { message: "Use POST to submit this form." });
         }
         if (request.headers.origin && request.headers.origin !== "http://" + request.headers.host) {
-          return sendJson(response, 403, { message: "Submit the booking from this website." });
+          return sendJson(response, 403, { message: "Submit this form from this website." });
         }
         const input = await readJson(request);
-        const { values, errors } = bookings.validate(input);
+        const { values, errors } = route.validate(input);
         if (Object.keys(errors).length) {
-          return sendJson(response, 422, { message: "Check your booking details.", errors });
+          return sendJson(response, 422, { message: "Check the form details.", errors });
         }
-        const record = await saveBooking(values);
-        return sendJson(response, 201, { message: "Booking request saved.", id: record.id });
+        const record = await route.save(values);
+        return sendJson(response, 201, { message: "Your submission was saved.", id: record.id });
       }
 
       if (request.method !== "GET" && request.method !== "HEAD") {
