@@ -46,7 +46,9 @@ and the `#booking-form` anchor. Unrecognized vehicle IDs are ignored.
 
 The home and Vehicle Models pages filter the displayed cards by size and move
 matching cards into the first available positions. Popular restores the full
-featured collection. The current sample categorization is TATA Ace (small), EICHER
+featured collection. Initially all trucks are visible and all filter buttons are
+white; hovering or selecting a button gives it a black background and white text.
+The current sample categorization is TATA Ace (small), EICHER
 pro (medium), and EICHER 19, container and trailers (large); edit each card's
 `data-category` to adjust the catalog.
 

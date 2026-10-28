@@ -415,6 +415,7 @@ a {
 }
 
 .chip {
+  min-width: 140px;
   border-radius: 58px;
   border: 1px solid rgba(0, 0, 0, 0.05);
   background: #fff;
@@ -431,20 +432,16 @@ a {
   font-family: inherit;
 }
 
-.chip:hover {
-  background: #f8d254;
-}
-
 .chip:focus-visible {
   outline: 3px solid #0f0f0f;
   outline-offset: 3px;
 }
 
+.chip:hover,
 .chip--active {
   background: #0f0f0f;
   color: #fff;
   border-color: #0f0f0f;
-  width: 140px;
 }
 
 .truck-card {
