@@ -97,6 +97,7 @@ document.addEventListener("DOMContentLoaded", function () {
       status.textContent = "Saving…";
       var controller = new AbortController();
       var timeout = setTimeout(function () { controller.abort(); }, 15000);
+      var serverInvalidField = null;
       try {
         var response = await fetch(form.action, {
           method: "POST",
@@ -106,7 +107,10 @@ document.addEventListener("DOMContentLoaded", function () {
         });
         var data = await response.json();
         if (!response.ok) {
-          if (data.errors) displayErrors(data.errors);
+          if (data.errors) {
+            displayErrors(data.errors);
+            serverInvalidField = fields.find(function (field) { return data.errors[field.name]; });
+          }
           throw new Error(data.message || "Could not save your submission. Please try again.");
         }
         form.reset();
@@ -127,6 +131,7 @@ document.addEventListener("DOMContentLoaded", function () {
         fields.forEach(function (field) { field.disabled = false; });
         submitButton.disabled = false;
         pending = false;
+        if (serverInvalidField) serverInvalidField.focus();
       }
     });
 

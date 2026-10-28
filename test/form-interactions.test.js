@@ -120,6 +120,7 @@ test("duplicate newsletter responses retain the address and show its inline erro
   assert.equal(page.values().email, "asha@example.com");
   assert.equal(page.errors["newsletter-email-error"].textContent, message);
   assert.equal(page.form.resets, 0);
+  assert.equal(page.focusedField(), "email");
 });
 
 test("a timed-out request restores controls and keeps the submitted values", async () => {
