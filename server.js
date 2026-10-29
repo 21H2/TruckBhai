@@ -37,7 +37,7 @@ function requestError(status, message) {
 }
 
 async function readJson(request) {
-  if (request.headers["content-type"]?.split(";")[0].trim() !== "application/json") {
+  if (request.headers["content-type"]?.split(";")[0].trim().toLowerCase() !== "application/json") {
     throw requestError(415, "Send form data as JSON.");
   }
   const chunks = [];
@@ -110,6 +110,9 @@ function createApp({ dataDir = path.join(root, "data") } = {}) {
   };
 
   return http.createServer(async (request, response) => {
+    response.setHeader("X-Content-Type-Options", "nosniff");
+    response.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+    response.setHeader("X-Frame-Options", "DENY");
     try {
       const url = new URL(request.url, "http://localhost");
       const pathname = decodeURIComponent(url.pathname);
@@ -142,9 +145,17 @@ function createApp({ dataDir = path.join(root, "data") } = {}) {
       if ((!pages.has(file) && !publicAsset) || !mimeType) {
         return sendJson(response, 404, { message: "Page not found." });
       }
-      const contents = await fs.readFile(path.join(root, file));
-      response.writeHead(200, { "Content-Type": mimeType, "X-Content-Type-Options": "nosniff" });
-      response.end(request.method === "HEAD" ? undefined : contents);
+      response.setHeader("Cache-Control", pages.has(file) ? "no-cache" : "public, max-age=300");
+      const filename = path.join(root, file);
+      if (request.method === "HEAD") {
+        const metadata = await fs.stat(filename);
+        if (!metadata.isFile()) return sendJson(response, 404, { message: "Page not found." });
+        response.writeHead(200, { "Content-Type": mimeType, "Content-Length": metadata.size });
+        return response.end();
+      }
+      const contents = await fs.readFile(filename);
+      response.writeHead(200, { "Content-Type": mimeType, "Content-Length": contents.length });
+      response.end(contents);
     } catch (error) {
       if (response.destroyed) return;
       const status = error.status || (error.code === "ENOENT" ? 404 : error instanceof URIError ? 400 : 500);

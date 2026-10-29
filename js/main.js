@@ -71,6 +71,7 @@ document.addEventListener("DOMContentLoaded", function () {
     function edit() {
       if (options.update) options.update();
       if (attempted) check();
+      delete status.dataset.state;
       status.textContent = "";
     }
     form.addEventListener("input", edit);
@@ -84,6 +85,8 @@ document.addEventListener("DOMContentLoaded", function () {
       if (Object.keys(result.errors).length) {
         status.dataset.state = "error";
         status.textContent = "Check the form details above.";
+        var firstInvalid = fields.find(function (field) { return result.errors[field.name]; });
+        if (firstInvalid) firstInvalid.focus();
         return;
       }
 
@@ -94,6 +97,7 @@ document.addEventListener("DOMContentLoaded", function () {
       status.textContent = "Saving…";
       var controller = new AbortController();
       var timeout = setTimeout(function () { controller.abort(); }, 15000);
+      var serverInvalidField = null;
       try {
         var response = await fetch(form.action, {
           method: "POST",
@@ -103,7 +107,10 @@ document.addEventListener("DOMContentLoaded", function () {
         });
         var data = await response.json();
         if (!response.ok) {
-          if (data.errors) displayErrors(data.errors);
+          if (data.errors) {
+            displayErrors(data.errors);
+            serverInvalidField = fields.find(function (field) { return data.errors[field.name]; });
+          }
           throw new Error(data.message || "Could not save your submission. Please try again.");
         }
         form.reset();
@@ -124,6 +131,7 @@ document.addEventListener("DOMContentLoaded", function () {
         fields.forEach(function (field) { field.disabled = false; });
         submitButton.disabled = false;
         pending = false;
+        if (serverInvalidField) serverInvalidField.focus();
       }
     });
 
@@ -174,10 +182,9 @@ document.addEventListener("DOMContentLoaded", function () {
     pickupDate.min = bookings.localDate();
     // A return on the following day is the earliest allowed rental end.
     var date = new Date((pickupDate.value || pickupDate.min) + "T00:00:00");
-    if (Number.isFinite(date.getTime())) {
-      date.setDate(date.getDate() + 1);
-      returnDate.min = bookings.localDate(date);
-    }
+    if (!Number.isFinite(date.getTime())) date = new Date(pickupDate.min + "T00:00:00");
+    date.setDate(date.getDate() + 1);
+    returnDate.min = bookings.localDate(date);
   }
 
   updateDates();

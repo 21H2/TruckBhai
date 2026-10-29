@@ -122,6 +122,16 @@ test("malformed, oversized, wrong-content and cross-origin requests are rejected
   }
 });
 
+test("JSON content type accepts case variants and charset parameters", async (t) => {
+  const { request } = await setup(t);
+  const response = await request("/api/bookings", {
+    method: "POST",
+    headers: { "Content-Type": "Application/JSON; charset=UTF-8" },
+    body: JSON.stringify(validBooking)
+  });
+  assert.equal(response.status, 201);
+});
+
 test("storage failure preserves the file and later submissions can recover", async (t) => {
   const { dataDir, post } = await setup(t);
   const filename = path.join(dataDir, "bookings.json");
@@ -143,6 +153,36 @@ test("site assets are available but data, server code and Git metadata stay priv
     assert.equal((await request(file)).status, 404, file);
   }
   assert.equal((await request("/api/bookings")).status, 405);
+});
+
+test("security headers are sent for pages and API errors", async (t) => {
+  const { request } = await setup(t);
+  for (const url of ["/", "/missing.html", "/api/bookings"]) {
+    const response = await request(url);
+    assert.equal(response.headers.get("x-content-type-options"), "nosniff");
+    assert.equal(response.headers.get("referrer-policy"), "strict-origin-when-cross-origin");
+    assert.equal(response.headers.get("x-frame-options"), "DENY");
+  }
+});
+
+test("HEAD checks public files without returning their contents", async (t) => {
+  const { request } = await setup(t);
+  for (const url of ["/", "/css/styles.css", "/images/logo.svg"]) {
+    const response = await request(url, { method: "HEAD" });
+    const get = await request(url);
+    assert.equal(response.status, 200);
+    assert.equal(await response.text(), "");
+    assert.ok(response.headers.get("content-type"));
+    assert.equal(response.headers.get("content-length"), get.headers.get("content-length"));
+  }
+  assert.equal((await request("/private.txt", { method: "HEAD" })).status, 404);
+});
+
+test("pages revalidate while static assets can be cached briefly", async (t) => {
+  const { request } = await setup(t);
+  assert.equal((await request("/")).headers.get("cache-control"), "no-cache");
+  assert.equal((await request("/css/styles.css")).headers.get("cache-control"), "public, max-age=300");
+  assert.equal((await request("/api/bookings")).headers.get("cache-control"), "no-store");
 });
 
 test("contact validation rejects invalid values and preserves multiline messages", () => {
@@ -180,7 +220,7 @@ test("contact submissions save to their own file and invalid requests save nothi
 });
 
 test("newsletter validation rejects malformed emails and normalizes valid addresses", () => {
-  for (const email of ["", "plain", "user@", "@example.com", "a@@example.com", "<user>@example.com", "user@-example.com", "x".repeat(255) + "@example.com"]) {
+  for (const email of ["", "plain", "user@", "@example.com", "a@@example.com", "<user>@example.com", "user@-example.com", ".user@example.com", "user.@example.com", "first..last@example.com", "x".repeat(65) + "@example.com", "user@" + "x".repeat(64) + ".com", "x".repeat(255) + "@example.com"]) {
     assert.ok(forms.subscriber({ email }).errors.email, email);
   }
   assert.deepEqual(forms.subscriber({ email: " Asha+Rentals@Example.COM " }), {
