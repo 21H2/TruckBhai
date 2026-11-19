@@ -1,13 +1,25 @@
 "use strict";
 
 const http = require("node:http");
+const { once } = require("node:events");
 const path = require("node:path");
 const fs = require("node:fs/promises");
 const { randomUUID } = require("node:crypto");
-const bookings = require("./js/booking.js");
-const forms = require("./js/forms.js");
+const bookings = require("../frontend/js/booking.js");
+const forms = require("../frontend/js/forms.js");
+const { loadMongoConfig, connectMongo } = require("./mongo.js");
+const { createJourneyService } = require("./journeys.js");
 
-const root = __dirname;
+const frontendDir = path.join(__dirname, "..", "frontend");
+const publicDependencies = new Map([
+  ["vendor/leaflet/leaflet.css", require.resolve("leaflet/dist/leaflet.css")],
+  ["vendor/leaflet/leaflet.js", require.resolve("leaflet/dist/leaflet.js")],
+  ["vendor/leaflet/leaflet.js.map", require.resolve("leaflet/dist/leaflet.js.map")],
+  ["vendor/leaflet/images/layers.png", require.resolve("leaflet/dist/images/layers.png")],
+  ["vendor/leaflet/images/layers-2x.png", require.resolve("leaflet/dist/images/layers-2x.png")],
+  ["vendor/leaflet/images/marker-icon.png", require.resolve("leaflet/dist/images/marker-icon.png")],
+  ["vendor/montserrat/montserrat-latin-400-normal.woff2", require.resolve("@fontsource/montserrat/files/montserrat-latin-400-normal.woff2")]
+]);
 const pages = new Set([
   "index.html", "about.html", "vehicle-models.html", "testimonials.html",
   "our-team.html", "contact.html"
@@ -16,6 +28,8 @@ const mimeTypes = {
   ".html": "text/html; charset=utf-8",
   ".css": "text/css; charset=utf-8",
   ".js": "text/javascript; charset=utf-8",
+  ".map": "application/json; charset=utf-8",
+  ".woff2": "font/woff2",
   ".png": "image/png",
   ".jpg": "image/jpeg",
   ".jpeg": "image/jpeg",
@@ -34,6 +48,11 @@ function sendJson(response, status, body) {
 
 function requestError(status, message) {
   return Object.assign(new Error(message), { status });
+}
+
+function duplicateSubscription() {
+  const message = "This email address is already subscribed.";
+  return Object.assign(requestError(409, message), { errors: { email: message } });
 }
 
 async function readJson(request) {
@@ -61,7 +80,7 @@ function createJsonStore(dataDir, collection, { uniqueEmail = false } = {}) {
   const filename = path.join(dataDir, collection + ".json");
   let queue = Promise.resolve();
 
-  return function saveRecord(values) {
+  return function saveRecord(record) {
     const operation = queue.then(async () => {
       await fs.mkdir(dataDir, { recursive: true });
       let records;
@@ -74,16 +93,10 @@ function createJsonStore(dataDir, collection, { uniqueEmail = false } = {}) {
         records = [];
       }
       // Check inside the write queue so concurrent subscriptions cannot duplicate an email.
-      if (uniqueEmail && records.some((record) =>
-        typeof record?.email === "string" && record.email.toLowerCase() === values.email.toLowerCase())) {
-        const message = "This email address is already subscribed.";
-        throw Object.assign(requestError(409, message), { errors: { email: message } });
+      if (uniqueEmail && records.some((saved) =>
+        typeof saved?.email === "string" && saved.email.toLowerCase() === record.email)) {
+        throw duplicateSubscription();
       }
-      const record = {
-        id: randomUUID(),
-        submittedAt: new Date().toISOString(),
-        ...values
-      };
       records.push(record);
       const temporary = filename + "." + randomUUID() + ".tmp";
       try {
@@ -94,7 +107,6 @@ function createJsonStore(dataDir, collection, { uniqueEmail = false } = {}) {
       } finally {
         await fs.rm(temporary, { force: true });
       }
-      return record;
     });
     // A failed write must not prevent later submissions from being retried.
     queue = operation.catch(() => {});
@@ -102,12 +114,29 @@ function createJsonStore(dataDir, collection, { uniqueEmail = false } = {}) {
   };
 }
 
-function createApp({ dataDir = path.join(root, "data") } = {}) {
-  const routes = {
-    "/api/bookings": { validate: bookings.validate, save: createJsonStore(dataDir, "bookings") },
-    "/api/contacts": { validate: forms.contact, save: createJsonStore(dataDir, "contacts") },
-    "/api/subscribers": { validate: forms.subscriber, save: createJsonStore(dataDir, "subscribers", { uniqueEmail: true }) }
+function createMongoStore(db, name, { uniqueEmail = false } = {}) {
+  const collection = db.collection(name);
+  return async function saveRecord(record) {
+    try {
+      const result = await collection.insertOne({ ...record, _id: record.id });
+      if (!result.acknowledged) throw new Error("MongoDB did not acknowledge the write.");
+    } catch (error) {
+      if (uniqueEmail && error.code === 11000 && error.keyPattern?.email === 1) {
+        throw duplicateSubscription();
+      }
+      throw error;
+    }
   };
+}
+
+function createApp({ dataDir = path.join(__dirname, "data"), db, journeys = createJourneyService() } = {}) {
+  const store = db ? createMongoStore.bind(null, db) : createJsonStore.bind(null, dataDir);
+  const routes = {
+    "/api/bookings": { validate: bookings.validate, save: store("bookings") },
+    "/api/contacts": { validate: forms.contact, save: store("contacts") },
+    "/api/subscribers": { validate: forms.subscriber, save: store("subscribers", { uniqueEmail: true }) }
+  };
+  const journeyRoutes = { "/api/places": journeys.places, "/api/journey": journeys.route };
 
   return http.createServer(async (request, response) => {
     response.setHeader("X-Content-Type-Options", "nosniff");
@@ -116,6 +145,13 @@ function createApp({ dataDir = path.join(root, "data") } = {}) {
     try {
       const url = new URL(request.url, "http://localhost");
       const pathname = decodeURIComponent(url.pathname);
+      if (Object.hasOwn(journeyRoutes, pathname)) {
+        if (request.method !== "GET") {
+          response.setHeader("Allow", "GET");
+          return sendJson(response, 405, { message: "Use GET to look up a location or route." });
+        }
+        return sendJson(response, 200, await journeyRoutes[pathname](url.searchParams));
+      }
       const route = Object.hasOwn(routes, pathname) ? routes[pathname] : null;
       if (route) {
         if (request.method !== "POST") {
@@ -130,7 +166,8 @@ function createApp({ dataDir = path.join(root, "data") } = {}) {
         if (Object.keys(errors).length) {
           return sendJson(response, 422, { message: "Check the form details.", errors });
         }
-        const record = await route.save(values);
+        const record = { id: randomUUID(), submittedAt: new Date().toISOString(), ...values };
+        await route.save(record);
         return sendJson(response, 201, { message: "Your submission was saved.", id: record.id });
       }
 
@@ -141,12 +178,13 @@ function createApp({ dataDir = path.join(root, "data") } = {}) {
       const file = pathname === "/" ? "index.html" : pathname.slice(1);
       // Only public site files are served; submissions and server files stay private.
       const publicAsset = /^(?:css|js|images)\/[a-zA-Z0-9_.-]+$/.test(file);
+      const dependency = publicDependencies.get(file);
       const mimeType = mimeTypes[path.extname(file)];
-      if ((!pages.has(file) && !publicAsset) || !mimeType) {
+      if ((!pages.has(file) && !publicAsset && !dependency) || !mimeType) {
         return sendJson(response, 404, { message: "Page not found." });
       }
       response.setHeader("Cache-Control", pages.has(file) ? "no-cache" : "public, max-age=300");
-      const filename = path.join(root, file);
+      const filename = dependency || path.join(frontendDir, file);
       if (request.method === "HEAD") {
         const metadata = await fs.stat(filename);
         if (!metadata.isFile()) return sendJson(response, 404, { message: "Page not found." });
@@ -159,25 +197,38 @@ function createApp({ dataDir = path.join(root, "data") } = {}) {
     } catch (error) {
       if (response.destroyed) return;
       const status = error.status || (error.code === "ENOENT" ? 404 : error instanceof URIError ? 400 : 500);
-      if (status === 500) console.error("Request failed:", error.message);
+      if (status === 500) console.error("Request failed:", db ? error.name : error.message);
       sendJson(response, status, {
-        message: status === 500 ? "Could not save your request. Please try again."
-          : status === 404 ? "Page not found." : error.message,
+        message: status === 500 ? "Could not process your request. Please try again."
+          : status === 404 && !error.status ? "Page not found." : error.message,
         ...(error.errors ? { errors: error.errors } : {})
       });
     }
   });
 }
 
-if (require.main === module) {
+async function start() {
+  const config = loadMongoConfig();
   const port = Number(process.env.PORT || 3000);
-  const app = createApp();
-  app.on("error", (error) => {
+  const client = config.uri ? await connectMongo(config) : null;
+  try {
+    const app = createApp({ db: client?.db(config.database) });
+    app.listen(port, "127.0.0.1");
+    await once(app, "listening");
+    console.log(`TruckBhai is running at http://127.0.0.1:${app.address().port} (${client ? "MongoDB" : "JSON"} storage)`);
+    const stop = () => app.close();
+    process.once("SIGINT", stop);
+    process.once("SIGTERM", stop);
+    await once(app, "close");
+  } finally {
+    await client?.close();
+  }
+}
+
+if (require.main === module) {
+  start().catch((error) => {
     console.error("Could not start TruckBhai:", error.message);
     process.exitCode = 1;
-  });
-  app.listen(port, "127.0.0.1", () => {
-    console.log(`TruckBhai is running at http://127.0.0.1:${port}`);
   });
 }
 

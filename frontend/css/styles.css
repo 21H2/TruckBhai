@@ -4,6 +4,11 @@
   box-sizing: border-box;
 }
 
+:root {
+  --nav-height: 64px;
+  scroll-padding-top: var(--nav-height);
+}
+
 body {
   background: #fff;
   color: #0f0f0f;
@@ -26,6 +31,7 @@ a {
   position: relative;
   width: 100%;
   overflow: hidden;
+  overflow: clip;
 }
 
 .page {
@@ -61,15 +67,21 @@ a {
 }
 
 .nav {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 1440px;
+  position: fixed;
+  inset: 0 0 auto;
+  height: var(--nav-height);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 80px;
+  gap: 16px;
+  padding-inline: max(clamp(16px, 5.556vw, 80px), calc((100% - 1280px) / 2));
   z-index: 10;
+  color: #fff;
+  transition: background-color 360ms ease-in-out, color 360ms ease-in-out;
+}
+
+.nav--dark {
+  color: #1e1e1e;
 }
 
 .logo {
@@ -85,8 +97,8 @@ a {
   color: #fff;
 }
 
-.nav--dark .logo p {
-  color: #1e1e1e;
+.nav .logo p {
+  color: inherit;
 }
 
 .logo p span {
@@ -104,23 +116,88 @@ a {
 
 .nav-links {
   display: flex;
-  gap: 24px;
+  gap: clamp(12px, 1.667vw, 24px);
   align-items: flex-start;
   font-family: "Lato", sans-serif;
   font-weight: 600;
-  font-size: 16px;
+  font-size: clamp(14px, 1.111vw, 16px);
   line-height: 24px;
   letter-spacing: 0.16px;
   text-transform: capitalize;
   white-space: nowrap;
-  color: #fff;
-  width: 799px;
+  width: 62.42%;
+  min-width: max-content;
   justify-content: center;
   list-style: none;
 }
 
-.nav--dark .nav-links {
-  color: #1e1e1e;
+.nav-toggle {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  :root {
+    --nav-height: 56px;
+  }
+
+  .canvas {
+    margin-top: var(--nav-height);
+  }
+
+  .nav {
+    background-color: #2456bc;
+  }
+
+  .nav--dark {
+    background-color: #f5f5f5;
+  }
+
+  .nav-toggle {
+    display: block;
+    padding: 8px 12px;
+    border: 1px solid currentColor;
+    border-radius: 6px;
+    background: transparent;
+    color: inherit;
+    font: 600 16px/1.5 "Lato", sans-serif;
+    cursor: pointer;
+  }
+
+  .nav-links {
+    display: none;
+    position: absolute;
+    inset: 100% 0 auto;
+    max-height: calc(100dvh - var(--nav-height));
+    overflow-y: auto;
+    width: auto;
+    flex-direction: column;
+    gap: 0;
+    align-items: stretch;
+    justify-content: flex-start;
+    padding: 8px 16px;
+    background-color: inherit;
+    font-size: 16px;
+  }
+
+  .nav-toggle[aria-expanded="true"] + .nav-links {
+    display: flex;
+  }
+
+  .nav-links a {
+    display: block;
+    padding: 10px 8px;
+  }
+}
+
+.nav--scrolled {
+  background-color: #000;
+  color: #fff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav {
+    transition: none;
+  }
 }
 
 .hero-truck {
@@ -198,91 +275,138 @@ a {
   outline-offset: 6px;
 }
 
-.cta-card {
+.home-content .page {
+  height: 5208px;
+}
+
+.home-hero .page {
+  height: 833px;
+}
+
+.home-sections {
   position: absolute;
-  left: 112px;
-  top: 760px;
-  width: 1216px;
-  height: 200px;
+  inset: -950px 0 0;
+}
+
+.booking-widget {
+  position: relative;
+  width: min(1216px, calc(100% - clamp(32px, 15.55vw, 224px)));
+  margin: max(-73px, -5.07vw) auto 0;
+}
+
+@font-face {
+  font-family: "Montserrat Booking";
+  src: url("/vendor/montserrat/montserrat-latin-400-normal.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+.cta-card {
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 20px 24px -4px rgba(16, 24, 40, 0.08), 0 8px 8px -4px rgba(16, 24, 40, 0.03);
-  backdrop-filter: blur(14px);
+  background: linear-gradient(#fff, #f9f9f9 40px);
+  box-shadow: 0 20px 24px -8px rgba(16, 24, 40, 0.20), 0 4px 10px rgba(16, 24, 40, 0.09);
+  padding: clamp(16px, 2vw, 26px);
 }
 
 .cta-fields {
-  position: absolute;
-  left: 136px;
-  top: 790px;
-  width: 1168px;
-  display: flex;
-  align-items: flex-end;
-  gap: 16px;
-}
-
-.cta-fields .group {
-  display: flex;
-  gap: 16px;
-  flex: 1;
-}
-
-.field {
   position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  z-index: 2;
+  color: rgb(0 0 0 / 80%);
+  font: 400 16px/normal "Montserrat Booking", "Montserrat", sans-serif;
+  letter-spacing: 0;
+  scroll-margin-top: 14px;
 }
 
-.field>label {
-  font-size: 16px;
-  color: #000;
-  opacity: 0.8;
-  white-space: nowrap;
+.booking-controls {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(158px, 1fr) repeat(2, minmax(168px, 1.28fr)) repeat(2, minmax(126px, 0.92fr)) auto;
+  column-gap: clamp(10px, 1.35vw, 20px);
+  row-gap: 14px;
+  align-items: start;
 }
 
-.field .box {
-  border: 1px solid rgba(0, 0, 0, 0.1);
+.cta-fields .field {
+  display: grid;
+  grid-template-rows: 20px auto;
+  gap: 8px;
+  min-width: 0;
+}
+
+.cta-fields .box {
+  position: relative;
+  min-width: 0;
+  height: 54px;
+  border: 1px solid #ddd;
   border-radius: 8px;
   background: #fff;
-  padding: 16px;
+  padding-inline: 12px;
   display: flex;
   align-items: center;
-  gap: 12px;
-  font-size: 16px;
-  line-height: 24px;
-  color: #000;
+  gap: 9px;
 }
 
-.field .box span {
-  opacity: 0.8;
+.cta-fields .box:focus-within {
+  border-color: #967349;
+  outline: 2px solid #f8d254;
+  outline-offset: 1px;
 }
 
-.cta-fields input,
-.cta-fields select {
+.cta-fields input {
   min-width: 0;
   width: 100%;
+  height: 100%;
   border: 0;
+  outline: none;
   background: transparent;
   font: inherit;
-  color: #0f0f0f;
+  color: inherit;
+}
+
+.cta-fields input::placeholder {
+  color: inherit;
+  opacity: 1;
+}
+
+.cta-fields input:not(:focus) {
+  text-overflow: ellipsis;
+}
+
+.booking-date .box {
+  padding-inline: 8px;
+}
+
+.booking-date input::-webkit-calendar-picker-indicator {
+  margin: 0;
+  padding: 0;
 }
 
 .cta-fields .field-error {
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0;
-  width: 100%;
-  font-size: 12px;
-  line-height: 16px;
-  color: #a32121;
+  color: rgb(163 33 33 / 80%);
+}
+
+.cta-fields .field-error:empty,
+.cta-fields .form-status:empty {
+  display: none;
 }
 
 .cta-fields .form-status {
-  position: absolute;
-  top: calc(100% + 43px);
-  left: 0;
-  font-size: 14px;
-  line-height: 20px;
+  margin-top: 14px;
+  overflow-wrap: anywhere;
+}
+
+.cta-fields .btn-dark {
+  justify-content: center;
+  align-self: start;
+  height: 54px;
+  font: inherit;
+  color: rgb(255 255 255 / 80%);
+}
+
+#booking-preview {
+  margin-top: 28px;
 }
 
 .form-status[data-state="error"] {
@@ -298,8 +422,200 @@ a {
   cursor: wait;
 }
 
-.field .box.between {
-  justify-content: space-between;
+.booking-options {
+  position: absolute;
+  z-index: 1;
+  inset: calc(100% + 6px) auto auto 0;
+  width: max(100%, min(270px, 100% + 78px));
+  max-width: min(360px, calc(100vw - 42px));
+  max-height: 248px;
+  overflow-y: auto;
+  list-style: none;
+  border-radius: 10px;
+  border: 1px solid #dedede;
+  background: #fff;
+  box-shadow: 0 10px 24px rgba(16, 24, 40, 0.16);
+}
+
+.booking-options ul {
+  list-style: none;
+}
+
+.booking-options li,
+.booking-options p {
+  padding: 11px 12px;
+}
+
+.booking-options [role="option"] {
+  cursor: pointer;
+}
+
+.booking-options [role="option"]:hover,
+.booking-options [aria-selected="true"] {
+  background: #fff3ca;
+}
+
+.booking-journey {
+  isolation: isolate;
+  margin-top: 20px;
+  scroll-margin-top: 12px;
+}
+
+.journey-summary:not([hidden]) {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.journey-summary h2 {
+  font: inherit;
+}
+
+#journey-progress {
+  margin-top: 14px;
+}
+
+#booking-confirm {
+  justify-self: end;
+}
+
+.journey-map-frame {
+  position: relative;
+  border: 1px solid #dedede;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+#journey-map {
+  height: clamp(248px, 32vw, 420px);
+  background: #eef1ed;
+}
+
+#journey-map .leaflet-tooltip {
+  font: 400 16px/normal "Montserrat Booking", "Montserrat", sans-serif;
+  color: rgb(0 0 0 / 80%);
+}
+
+.journey-map-status {
+  position: absolute;
+  z-index: 1000;
+  top: 12px;
+  right: 12px;
+  max-width: calc(100% - 64px);
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.journey-estimates {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.journey-estimates > div {
+  background: #fff;
+  border: 1px solid #e1e1e1;
+  border-radius: 10px;
+  padding: 14px;
+}
+
+.journey-estimates dd {
+  margin-top: 5px;
+}
+
+@media (max-width: 1200px) {
+  .booking-controls {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  #dropoff-options {
+    inset-inline: auto 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .home-hero .page {
+    width: 100%;
+    height: clamp(440px, 92vw, 500px);
+  }
+
+  .home-hero .cover {
+    object-position: 36% center;
+  }
+
+  .hero-truck {
+    inset: auto -24px 25px auto;
+    width: min(72vw, 350px);
+    height: auto;
+  }
+
+  .hero-title,
+  .hero-sub,
+  .hero-cta {
+    left: 20px;
+    width: calc(100% - 40px);
+  }
+
+  .hero-title {
+    top: 85px;
+    max-width: 450px;
+    font-size: clamp(29px, 7vw, 42px);
+    line-height: 1.12;
+  }
+
+  .hero-sub {
+    top: 200px;
+    max-width: 385px;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .hero-cta {
+    top: 281px;
+    width: auto;
+  }
+
+  .hero-cta .line {
+    display: none;
+  }
+
+  .booking-widget {
+    width: calc(100% - 24px);
+    margin-top: -25px;
+  }
+
+  .booking-controls {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .booking-controls .field:first-child,
+  .booking-location,
+  #booking-preview {
+    grid-column: 1 / -1;
+  }
+
+  #booking-preview {
+    margin-top: 0;
+  }
+
+  .booking-options {
+    width: 100%;
+  }
+
+  .journey-estimates > div {
+    padding: 9px;
+  }
+
+  #booking-confirm {
+    justify-self: stretch;
+  }
+}
+
+@media (max-width: 420px) {
+  .journey-estimates {
+    grid-template-columns: 1fr;
+  }
 }
 
 .btn-dark {

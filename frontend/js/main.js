@@ -1,21 +1,53 @@
 document.addEventListener("DOMContentLoaded", function () {
-  var canvas = document.querySelector(".canvas");
-  var page = document.querySelector(".page");
+  var canvases = document.querySelectorAll(".canvas");
+  var nav = document.querySelector(".nav");
+  var heroTruck = document.querySelector(".home-hero .hero-truck");
+  var navTrigger = heroTruck || document.querySelector("[data-nav-hero]");
+
+  function updateNavigation() {
+    if (!nav || !navTrigger) return;
+    var bounds = navTrigger.getBoundingClientRect();
+    var edge = heroTruck ? bounds.top : bounds.bottom;
+    nav.classList.toggle("nav--scrolled", edge <= nav.getBoundingClientRect().bottom);
+  }
 
   function fitCanvas() {
-    if (!canvas || !page) return;
+    if (!canvases.length) return;
     var available = document.documentElement.clientWidth;
     var scale = Math.min(1, available / 1440);
-    page.style.transform = scale < 1 ? "scale(" + scale + ")" : "none";
-    page.style.marginLeft = scale < 1 ? "0" : "auto";
-    page.style.marginRight = scale < 1 ? "0" : "auto";
-    canvas.style.height = page.offsetHeight * scale + "px";
+    canvases.forEach(function (canvas) {
+      var page = canvas.querySelector(".page");
+      var pageScale = canvas.classList.contains("home-hero") && available <= 640 ? 1 : scale;
+      page.style.transform = pageScale < 1 ? "scale(" + pageScale + ")" : "none";
+      page.style.marginLeft = pageScale < 1 ? "0" : "auto";
+      page.style.marginRight = pageScale < 1 ? "0" : "auto";
+      canvas.style.height = page.offsetHeight * pageScale + "px";
+    });
+    updateNavigation();
   }
 
   fitCanvas();
   window.addEventListener("resize", fitCanvas);
   window.addEventListener("orientationchange", fitCanvas);
   window.addEventListener("load", fitCanvas);
+  window.addEventListener("pageshow", updateNavigation);
+  window.addEventListener("scroll", updateNavigation, { passive: true });
+
+  if (nav) {
+    var menuButton = nav.querySelector(".nav-toggle");
+    menuButton.addEventListener("click", function () {
+      var open = menuButton.getAttribute("aria-expanded") === "true";
+      menuButton.setAttribute("aria-expanded", String(!open));
+    });
+    nav.addEventListener("keydown", function (event) {
+      if (event.key !== "Escape" || menuButton.getAttribute("aria-expanded") !== "true") return;
+      menuButton.setAttribute("aria-expanded", "false");
+      menuButton.focus();
+    });
+    document.addEventListener("click", function (event) {
+      if (!nav.contains(event.target)) menuButton.setAttribute("aria-expanded", "false");
+    });
+  }
 
   var truckCards = Array.from(document.querySelectorAll(".truck-card[data-category]"));
   var cardSlots = truckCards.map(function (card) {
@@ -80,6 +112,12 @@ document.addEventListener("DOMContentLoaded", function () {
     form.addEventListener("submit", async function (event) {
       event.preventDefault();
       if (pending) return;
+      if (options.preview && !options.preview.canConfirm(event.submitter)) {
+        delete status.dataset.state;
+        status.textContent = "";
+        options.preview.show();
+        return;
+      }
       attempted = true;
       var result = check();
       if (Object.keys(result.errors).length) {
@@ -90,8 +128,10 @@ document.addEventListener("DOMContentLoaded", function () {
         return;
       }
 
+      var clickedButton = event.submitter || submitButton;
       pending = true;
       submitButton.disabled = true;
+      clickedButton.disabled = true;
       fields.forEach(function (field) { field.disabled = true; });
       status.dataset.state = "pending";
       status.textContent = "Saving…";
@@ -114,11 +154,13 @@ document.addEventListener("DOMContentLoaded", function () {
           throw new Error(data.message || "Could not save your submission. Please try again.");
         }
         form.reset();
+        if (options.reset) options.reset();
         attempted = false;
         displayErrors({});
         if (options.update) options.update();
         status.dataset.state = "success";
         status.textContent = options.success + (options.showReference === false ? "" : " Reference: " + data.id);
+        if (options.preview) status.focus();
       } catch (error) {
         status.dataset.state = "error";
         status.textContent = error.name === "AbortError"
@@ -130,6 +172,7 @@ document.addEventListener("DOMContentLoaded", function () {
         clearTimeout(timeout);
         fields.forEach(function (field) { field.disabled = false; });
         submitButton.disabled = false;
+        clickedButton.disabled = false;
         pending = false;
         if (serverInvalidField) serverInvalidField.focus();
       }
@@ -152,29 +195,19 @@ document.addEventListener("DOMContentLoaded", function () {
   if (!bookingForm) return;
 
   var bookings = window.TruckBhaiBookings;
-  var vehicleSelect = bookingForm.elements.vehicle;
+  var trip = window.TruckBhaiTrip(bookingForm, bookings);
   var pickupDate = bookingForm.elements.pickupDate;
   var returnDate = bookingForm.elements.returnDate;
 
-  bookings.vehicles.forEach(function (vehicle) {
-    var option = document.createElement("option");
-    option.value = vehicle.id;
-    option.textContent = vehicle.name;
-    vehicleSelect.appendChild(option);
-  });
-
   var requestedVehicle = new URLSearchParams(window.location.search).get("vehicle");
-  if (bookings.vehicles.some(function (vehicle) { return vehicle.id === requestedVehicle; })) {
-    vehicleSelect.value = requestedVehicle;
-  }
+  trip.selectVehicle(requestedVehicle);
 
   document.querySelectorAll(".truck-card .book").forEach(function (link) {
     link.addEventListener("click", function (event) {
       event.preventDefault();
       if (bookingController.isPending()) return;
-      vehicleSelect.value = link.closest(".truck-card").dataset.vehicle;
-      vehicleSelect.dispatchEvent(new Event("change", { bubbles: true }));
-      bookingForm.scrollIntoView({ block: "center" });
+      trip.selectVehicle(link.closest(".truck-card").dataset.vehicle);
+      bookingForm.scrollIntoView({ block: "start" });
     });
   });
 
@@ -188,8 +221,12 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   updateDates();
-  var bookingController = connectForm(bookingForm, bookings.validate, {
+  var bookingController = connectForm(bookingForm, function (input) {
+    return bookings.validate(trip.bookingDetails(input));
+  }, {
     update: updateDates,
+    reset: trip.reset,
+    preview: trip.preview,
     success: "Booking request saved."
   });
 });

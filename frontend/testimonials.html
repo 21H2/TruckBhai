@@ -22,6 +22,23 @@
 </head>
 
 <body>
+  <!-- Navigation Bar -->
+  <nav class="nav nav--dark" aria-label="Main">
+    <a class="logo" href="index.html">
+      <p>Truck<span>Bhai</span></p>
+      <div class="underline" aria-hidden="true"></div>
+    </a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="main-nav-links">Menu</button>
+    <ul class="nav-links" id="main-nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="about.html">About Us</a></li>
+      <li><a href="vehicle-models.html">Vehicle Models</a></li>
+      <li><a href="testimonials.html" aria-current="page">Testimonials</a></li>
+      <li><a href="our-team.html">Our team</a></li>
+      <li><a href="contact.html">Contact Us</a></li>
+    </ul>
+  </nav>
+
   <div class="canvas">
     <main class="page" style="height:1604px">
       <!-- Testimonials Section -->
@@ -71,29 +88,13 @@
       </section>
 
       <!-- Page Hero Header -->
-      <div class="page-hero">
+      <div class="page-hero" data-nav-hero>
         <div class="shade"></div>
         <img class="fit cover bottom" src="images/page-hero.png" alt="Row of trucks" />
         <div class="wash"></div>
       </div>
       <p class="page-title">Testimonials</p>
       <p class="page-crumb">Home / Testimonials</p>
-
-      <!-- Navigation Bar -->
-      <nav class="nav nav--dark">
-        <a class="logo" href="index.html">
-          <p>Truck<span>Bhai</span></p>
-          <div class="underline" aria-hidden="true"></div>
-        </a>
-        <ul class="nav-links">
-          <li><a href="index.html">Home</a></li>
-          <li><a href="about.html">About Us</a></li>
-          <li><a href="vehicle-models.html">Vehicle Models</a></li>
-          <li><a href="testimonials.html" aria-current="page">Testimonials</a></li>
-          <li><a href="our-team.html">Our team</a></li>
-          <li><a href="contact.html">Contact Us</a></li>
-        </ul>
-      </nav>
 
       <!-- Footer Section -->
       <footer class="footer footer--inner" style="top:1229.29px">

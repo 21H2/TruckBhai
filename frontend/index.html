@@ -19,17 +19,39 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700;800&family=Lato:wght@400;600;700&family=Inter:wght@400;600&family=Cabin:wght@400;500&family=Mulish:wght@400;600&family=Work+Sans:wght@400;600;700&family=DM+Sans:wght@400;500;700&display=swap" />
+  <link rel="stylesheet" href="/vendor/leaflet/leaflet.css" />
   <link rel="stylesheet" href="css/styles.css" />
+  <script src="/vendor/leaflet/leaflet.js" defer></script>
   <script src="js/booking.js" defer></script>
+  <script src="js/booking-example.js" defer></script>
+  <script src="js/booking-trip.js" defer></script>
   <script src="js/forms.js" defer></script>
   <script src="js/main.js" defer></script>
 </head>
 
 <body>
-  <div class="canvas">
-    <main class="page" style="height:6158px">
+  <!-- Navigation Bar -->
+  <nav class="nav" aria-label="Main">
+    <a class="logo" href="index.html">
+      <p>Truck<span>Bhai</span></p>
+      <div class="underline" aria-hidden="true"></div>
+    </a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="main-nav-links">Menu</button>
+    <ul class="nav-links" id="main-nav-links">
+      <li><a href="index.html" aria-current="page">Home</a></li>
+      <li><a href="about.html">About Us</a></li>
+      <li><a href="vehicle-models.html">Vehicle Models</a></li>
+      <li><a href="testimonials.html">Testimonials</a></li>
+      <li><a href="our-team.html">Our team</a></li>
+      <li><a href="contact.html">Contact Us</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <div class="canvas home-hero">
+      <div class="page">
       <!-- Hero Section -->
-      <img class="abs cover" style="left:0;top:0;width:1440px;height:833px" src="images/hero-background.png"
+      <img class="fit cover" src="images/hero-background.png"
         alt="Truck on the highway" decoding="async" />
       <img class="abs hero-truck" src="images/hero-truck.png" alt="TruckBhai delivery truck" decoding="async" />
 
@@ -45,51 +67,77 @@
           book now
         </div>
       </a>
+      </div>
+    </div>
 
-      <!-- Booking Form Widget -->
-      <div class="cta-card"></div>
-      <form id="booking-form" class="cta-fields" action="/api/bookings" method="post">
-        <div class="group">
-          <div class="field" style="width:279px">
-            <label for="vehicle">select vehicle</label>
-            <div class="box" style="width:271px">
-              <img src="images/icon-location.svg" alt="" width="20" height="20" />
-              <select id="vehicle" name="vehicle" required>
-                <option value="">Select a vehicle</option>
-              </select>
+    <div class="booking-widget">
+      <form id="booking-form" class="cta-card cta-fields" action="/api/bookings" method="post" aria-label="Book a truck">
+        <div class="booking-controls">
+          <div class="field">
+            <label for="vehicle">Vehicle</label>
+            <div class="box">
+              <input id="vehicle" name="vehicle" autocomplete="off" placeholder="Search vehicles" required />
             </div>
             <p class="field-error" id="vehicle-error"></p>
           </div>
-          <div class="field" style="width:279px">
-            <label for="pickup">Pickup&nbsp; location</label>
-            <div class="box" style="width:271px">
+          <div class="field booking-location">
+            <label for="pickup">Pickup location</label>
+            <div class="box">
               <img src="images/icon-location.svg" alt="" width="20" height="20" />
-              <input id="pickup" name="pickup" autocomplete="street-address" placeholder="Enter pickup location"
-                minlength="3" maxlength="200" required />
+              <input id="pickup" name="pickup" autocomplete="off" placeholder="Search location" maxlength="200" required />
             </div>
             <p class="field-error" id="pickup-error"></p>
           </div>
-          <div class="field" style="width:180px">
-            <label for="from">Pick-up date</label>
-            <div class="box between">
+          <div class="field booking-location">
+            <label for="dropoff">Dropoff location</label>
+            <div class="box">
+              <img src="images/icon-location.svg" alt="" width="20" height="20" />
+              <input id="dropoff" name="dropoff" autocomplete="off" placeholder="Search location" maxlength="200" required />
+            </div>
+            <p class="field-error" id="dropoff-error"></p>
+          </div>
+          <div class="field booking-date">
+            <label for="from">Pickup date</label>
+            <div class="box">
               <input id="from" name="pickupDate" type="date" required />
             </div>
             <p class="field-error" id="from-error"></p>
           </div>
-          <div class="field" style="width:180px">
-            <label for="to">Return Date</label>
-            <div class="box between">
+          <div class="field booking-date">
+            <label for="to">Return date</label>
+            <div class="box">
               <input id="to" name="returnDate" type="date" required />
             </div>
             <p class="field-error" id="to-error"></p>
           </div>
+          <button class="btn-dark" id="booking-preview" type="submit" aria-controls="booking-journey"
+            aria-expanded="false">Book now</button>
         </div>
-        <button class="btn-dark" type="submit">
-          Book now <img src="images/icon-arrow-right.svg" alt="" width="18" height="18" />
-        </button>
-        <p class="form-status" id="booking-status" role="status"></p>
-      </form>
 
+        <div class="booking-journey" id="booking-journey" hidden>
+          <div class="journey-map-frame">
+            <div id="journey-map" role="region" aria-label="Journey route map" tabindex="-1"></div>
+            <p id="journey-map-status" class="journey-map-status" role="status" hidden></p>
+          </div>
+          <p id="journey-progress" role="status" hidden>Finding your road route…</p>
+          <section class="journey-summary" id="journey-summary" aria-labelledby="journey-title" hidden>
+            <h2 id="journey-title">Journey preview</h2>
+            <p id="journey-status" role="status"></p>
+            <dl class="journey-estimates">
+              <div><dt>Road distance</dt><dd id="journey-distance"></dd></div>
+              <div><dt>Estimated drive time</dt><dd id="journey-duration"></dd></div>
+              <div><dt>Estimated fare</dt><dd id="journey-fare"></dd></div>
+            </dl>
+            <button class="btn-dark" id="booking-confirm" type="submit">Confirm booking</button>
+          </section>
+        </div>
+        <p class="form-status" id="booking-status" role="status" tabindex="-1"></p>
+      </form>
+    </div>
+
+    <div class="canvas home-content">
+      <div class="page">
+        <div class="home-sections">
       <!-- Rent by Brands Section -->
       <h2 class="h-24 abs" style="left:112px;top:1005px">Rent by Brands</h2>
       <div class="tile" style="left:calc(12.5% + 25px);top:1060px"></div>
@@ -349,22 +397,6 @@
         </div>
       </section>
 
-      <!-- Navigation Bar -->
-      <nav class="nav">
-        <a class="logo" href="index.html">
-          <p>Truck<span>Bhai</span></p>
-          <div class="underline" aria-hidden="true"></div>
-        </a>
-        <ul class="nav-links">
-          <li><a href="index.html" aria-current="page">Home</a></li>
-          <li><a href="about.html">About Us</a></li>
-          <li><a href="vehicle-models.html">Vehicle Models</a></li>
-          <li><a href="testimonials.html">Testimonials</a></li>
-          <li><a href="our-team.html">Our team</a></li>
-          <li><a href="contact.html">Contact Us</a></li>
-        </ul>
-      </nav>
-
       <!-- Footer Section -->
       <footer class="footer footer--home" style="top:5783px">
         <div class="logo">
@@ -399,8 +431,10 @@
         </form>
         <p class="copyright">© Copyright Team Inc.</p>
       </footer>
-    </main>
-  </div>
+        </div>
+      </div>
+    </div>
+  </main>
 </body>
 
 </html>

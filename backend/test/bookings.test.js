@@ -7,8 +7,9 @@ const os = require("node:os");
 const path = require("node:path");
 const { Readable } = require("node:stream");
 const { createApp } = require("../server.js");
-const { validate, localDate } = require("../js/booking.js");
-const forms = require("../js/forms.js");
+const { createJourneyService } = require("../journeys.js");
+const { validate, localDate } = require("../../frontend/js/booking.js");
+const forms = require("../../frontend/js/forms.js");
 
 const validBooking = {
   vehicle: "tata-ace", pickup: "Chennai warehouse", pickupDate: "2099-06-10", returnDate: "2099-06-11"
@@ -88,6 +89,79 @@ test("a successful booking is normalized, saved, and persists across server inst
   assert.equal(JSON.parse(await fs.readFile(path.join(dataDir, "bookings.json"), "utf8")).length, 2);
 });
 
+test("new bookings save the dropoff, coordinates, and server fare", async (t) => {
+  const { dataDir, post } = await setup(t);
+  const pickupCoordinates = { lat: 28.2489, lon: 76.813912 };
+  const dropoffCoordinates = { lat: 28.459497, lon: 77.026638 };
+  const trip = { ...validBooking, dropoff: " Gurugram ", pickupCoordinates, dropoffCoordinates, estimatedFareInr: 1 };
+  const response = await post(trip);
+  assert.equal(response.status, 201);
+  const [saved] = JSON.parse(await fs.readFile(path.join(dataDir, "bookings.json"), "utf8"));
+  assert.equal(saved.dropoff, "Gurugram");
+  assert.deepEqual(saved.pickupCoordinates, pickupCoordinates);
+  assert.deepEqual(saved.dropoffCoordinates, dropoffCoordinates);
+  assert.equal(saved.estimatedFareInr, 2000);
+  assert.equal((await post({ ...trip, dropoffCoordinates: { lat: 181, lon: 77 } })).status, 422);
+  assert.equal((await post({ ...trip, dropoff: " " })).status, 422);
+  assert.equal((await post({ ...validBooking, dropoff: "Gurugram" })).status, 201);
+});
+
+test("BML Munjal University is suggested with the verified pin without calling Photon", async () => {
+  const journeys = createJourneyService({ fetcher: () => assert.fail("Unexpected provider request") });
+  for (const query of ["BML Munjal University", "  bml  Munjal  ", "bmu"]) {
+    const result = await request(createApp({ journeys }), "/api/places?" + new URLSearchParams({ q: query }));
+    assert.equal(result.status, 200);
+    const { places } = await result.json();
+    assert.equal(places.length, 1);
+    assert.match(places[0].label, /BML Munjal University.*Haryana 122413/);
+    assert.equal(places[0].lat, 28.2489);
+    assert.equal(places[0].lon, 76.813912);
+  }
+});
+
+test("the journey API normalizes suggestions and derives travel time from road distance", async () => {
+  const geometry = { type: "LineString", coordinates: [[76.813912, 28.2489], [77.026638, 28.459497]] };
+  const urls = [];
+  const journeys = createJourneyService({
+    photonUrl: "https://photon.example/api/",
+    osrmUrl: "https://router.example/service/",
+    fetcher: async (url) => {
+      urls.push(url);
+      if (url.hostname === "photon.example") {
+        return Response.json({ features: [{
+          geometry: { type: "Point", coordinates: [77.026638, 28.459497] },
+          properties: { name: "Gurugram", city: "Gurugram", state: "Haryana", country: "India" }
+        }] });
+      }
+      return Response.json({ code: "Ok", routes: [{ distance: 42500, duration: 300, geometry }] });
+    }
+  });
+  const app = createApp({ journeys });
+  const lookup = await request(app, "/api/places?q=Gurugram");
+  assert.deepEqual(await lookup.json(), { places: [{ label: "Gurugram, Haryana, India", lat: 28.459497, lon: 77.026638 }] });
+  assert.equal(urls[0].searchParams.get("countrycode"), "IN");
+  const route = await request(app, "/api/journey?pickup=28.2489,76.813912&dropoff=28.459497,77.026638");
+  assert.deepEqual(await route.json(), { distanceKm: 42.5, durationMinutes: 85, geometry });
+  assert.equal(urls[1].pathname, "/service/route/v1/driving/76.813912,28.2489;77.026638,28.459497");
+  assert.equal((await request(app, "/api/journey?pickup=,76&dropoff=28,77")).status, 400);
+  assert.equal(urls.length, 2);
+});
+
+test("a missing road route is distinguished from a provider failure", async () => {
+  const url = "/api/journey?pickup=28,76&dropoff=29,77";
+  const options = { osrmUrl: "https://router.example/" };
+  const noRoute = createJourneyService({
+    ...options, fetcher: async () => Response.json({ code: "NoRoute" }, { status: 400 })
+  });
+  const unavailable = createJourneyService({
+    ...options, fetcher: async () => { throw new Error("Provider unavailable"); }
+  });
+  const missing = await request(createApp({ journeys: noRoute }), url);
+  assert.equal(missing.status, 404);
+  assert.match((await missing.json()).message, /No road route/);
+  assert.equal((await request(createApp({ journeys: unavailable }), url)).status, 502);
+});
+
 test("invalid submissions do not create a data file", async (t) => {
   const { dataDir, post } = await setup(t);
   const response = await post({ ...validBooking, returnDate: validBooking.pickupDate });
@@ -149,7 +223,10 @@ test("site assets are available but data, server code and Git metadata stay priv
   for (const file of ["/", "/contact.html", "/css/styles.css", "/js/booking.js", "/images/icon-calendar.svg"]) {
     assert.equal((await request(file)).status, 200, file);
   }
-  for (const file of ["/data/bookings.json", "/server.js", "/.git/config", "/package.json", "/missing.html"]) {
+  for (const file of [
+    "/data/bookings.json", "/server.js", "/.git/config", "/package.json", "/missing.html",
+    "/backend/data/bookings.json", "/backend/server.js", "/backend/.env"
+  ]) {
     assert.equal((await request(file)).status, 404, file);
   }
   assert.equal((await request("/api/bookings")).status, 405);
@@ -167,7 +244,7 @@ test("security headers are sent for pages and API errors", async (t) => {
 
 test("HEAD checks public files without returning their contents", async (t) => {
   const { request } = await setup(t);
-  for (const url of ["/", "/css/styles.css", "/images/logo.svg"]) {
+  for (const url of ["/", "/css/styles.css", "/images/logo.svg", "/vendor/leaflet/leaflet.js"]) {
     const response = await request(url, { method: "HEAD" });
     const get = await request(url);
     assert.equal(response.status, 200);
@@ -183,6 +260,21 @@ test("pages revalidate while static assets can be cached briefly", async (t) => 
   assert.equal((await request("/")).headers.get("cache-control"), "no-cache");
   assert.equal((await request("/css/styles.css")).headers.get("cache-control"), "public, max-age=300");
   assert.equal((await request("/api/bookings")).headers.get("cache-control"), "no-store");
+});
+
+test("the booking map and font load from the site without exposing package files", async (t) => {
+  const { request } = await setup(t);
+  for (const [asset, mimeType] of [
+    ["/vendor/leaflet/leaflet.css", "text/css; charset=utf-8"],
+    ["/vendor/leaflet/leaflet.js", "text/javascript; charset=utf-8"],
+    ["/vendor/montserrat/montserrat-latin-400-normal.woff2", "font/woff2"]
+  ]) {
+    const result = await request(asset);
+    assert.equal(result.status, 200);
+    assert.equal(result.headers.get("Content-Type"), mimeType);
+    assert.ok((await result.arrayBuffer()).byteLength > 0);
+  }
+  assert.equal((await request("/vendor/leaflet/package.json")).status, 404);
 });
 
 test("contact validation rejects invalid values and preserves multiline messages", () => {

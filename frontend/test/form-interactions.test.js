@@ -8,6 +8,39 @@ const vm = require("node:vm");
 const forms = require("../js/forms.js");
 const source = fs.readFileSync(path.join(__dirname, "../js/main.js"), "utf8");
 
+test("the homepage header changes at the first contact with the hero truck", () => {
+  let scrolled = false;
+  let truckTop = 65;
+  const nav = {
+    querySelector: () => ({ addEventListener() {} }),
+    addEventListener() {},
+    getBoundingClientRect: () => ({ bottom: 64 }),
+    classList: { toggle(name, active) { if (name === "nav--scrolled") scrolled = active; } }
+  };
+  const elements = {
+    ".nav": nav,
+    ".home-hero .hero-truck": { getBoundingClientRect: () => ({ top: truckTop, bottom: 490 }) }
+  };
+  const listeners = {};
+  vm.runInNewContext(source, {
+    document: {
+      addEventListener(name, listener) { if (name === "DOMContentLoaded") listener(); },
+      querySelector: (selector) => elements[selector] || null,
+      querySelectorAll: () => []
+    },
+    window: { addEventListener(name, listener) { listeners[name] = listener; } }
+  });
+
+  listeners.scroll();
+  assert.equal(scrolled, false);
+  truckTop = 64;
+  listeners.scroll();
+  assert.equal(scrolled, true);
+  truckTop = 65;
+  listeners.scroll();
+  assert.equal(scrolled, false);
+});
+
 // A minimal DOM fixture tests event handlers and data retention without a browser.
 // Full browser layout and native controls require a separate browser check.
 function fixture(fetch, { newsletter = false, timeout } = {}) {
