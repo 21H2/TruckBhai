@@ -9,6 +9,7 @@ const bookings = require("../frontend/js/booking.js");
 const forms = require("../frontend/js/forms.js");
 const { loadMongoConfig, connectMongo } = require("./mongo.js");
 const { createJourneyService } = require("./journeys.js");
+const { createAdmin } = require("./admin.js");
 const { createMailer } = require("./email.js");
 
 const frontendDir = path.join(__dirname, "..", "frontend");
@@ -133,13 +134,14 @@ function createMongoStore(db, name, { uniqueEmail = false } = {}) {
 
 const { createFuelLookup, seedVehicles } = require("./fuel.js");
 
-function createApp({ dataDir = path.join(__dirname, "data"), db, journeys = createJourneyService(), fuel = createFuelLookup(db), mailer } = {}) {
+function createApp({ dataDir = path.join(__dirname, "data"), db, journeys = createJourneyService(), fuel = createFuelLookup(db), mailer, admin = {} } = {}) {
   const store = db ? createMongoStore.bind(null, db) : createJsonStore.bind(null, dataDir);
   const routes = {
     "/api/bookings": { validate: bookings.validate, save: store("bookings") },
     "/api/contacts": { validate: forms.contact, save: store("contacts"), confirmation: "contact" },
     "/api/subscribers": { validate: forms.subscriber, save: store("subscribers", { uniqueEmail: true }), confirmation: "subscription" }
   };
+  const handleAdmin = createAdmin({ ...admin, db, dataDir, readJson, sendJson });
   const journeyRoutes = { "/api/fuel": fuel, "/api/places": journeys.places, "/api/journey": journeys.route };
 
   return http.createServer(async (request, response) => {
@@ -149,6 +151,9 @@ function createApp({ dataDir = path.join(__dirname, "data"), db, journeys = crea
     try {
       const url = new URL(request.url, "http://localhost");
       const pathname = decodeURIComponent(url.pathname);
+      if (pathname === "/admin" || pathname === "/admin/login" || pathname.startsWith("/api/admin/")) {
+        return await handleAdmin(request, response, pathname, url.searchParams);
+      }
       if (Object.hasOwn(journeyRoutes, pathname)) {
         if (request.method !== "GET") {
           response.setHeader("Allow", "GET");
@@ -240,7 +245,15 @@ async function start() {
   try {
     const db = client?.db(config.database);
     if (db) await seedVehicles(db);
-    const app = createApp({ db, mailer: createMailer() });
+    const app = createApp({
+      db,
+      mailer: createMailer(),
+      admin: {
+        passwordHash: process.env.ADMIN_PASSWORD_HASH,
+        secondPasswordHash: process.env.ADMIN_SECOND_PASSWORD_HASH,
+        secureCookie: process.env.ADMIN_SECURE_COOKIE === "true"
+      }
+    });
     app.listen(port, "127.0.0.1");
     await once(app, "listening");
     console.log(`TruckBhai is running at http://127.0.0.1:${app.address().port} (${client ? "MongoDB" : "JSON"} storage)`);

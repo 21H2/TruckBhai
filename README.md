@@ -140,3 +140,34 @@ npm test
 
 Tests exercise the HTTP request handler in process and save only in temporary
 directories. They do not require a listening port.
+
+## Admin dashboard
+
+Open `/admin` to view saved bookings, contact messages, and newsletter
+subscribers. The dashboard is disabled until you set `ADMIN_PASSWORD_HASH` in
+`backend/.env` (or set `ADMIN_SECOND_PASSWORD_HASH`). To generate a hash from a password without putting the password
+in shell history, run this from the project directory in Bash.
+
+```bash
+read -rsp 'New admin password: ' truckbhai_admin_password
+printf '\n'
+printf '%s' "$truckbhai_admin_password" | node -e '
+  const { randomBytes, scryptSync } = require("node:crypto");
+  const password = require("node:fs").readFileSync(0);
+  if (password.length < 16) throw new Error("Use at least 16 characters.");
+  const salt = randomBytes(16);
+  console.log("ADMIN_PASSWORD_HASH=" + salt.toString("hex") + ":" + scryptSync(password, salt, 64).toString("hex"));
+'
+unset truckbhai_admin_password
+```
+
+Copy the generated line into `backend/.env`. To add a second password, generate
+another hash, use `ADMIN_SECOND_PASSWORD_HASH` for that line, and keep the first
+entry. Either password opens the same dashboard. Remove its line and restart
+the server to revoke a password and clear existing sessions.
+
+Restart the server after configuration changes. For an HTTPS
+deployment, set `ADMIN_SECURE_COOKIE=true` and have the reverse proxy preserve
+the public `Host` header. Sessions expire after eight hours and are cleared on
+logout or server restart. The login rate limit applies to the single admin
+account across all visitors.
