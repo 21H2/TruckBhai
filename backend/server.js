@@ -35,6 +35,7 @@ const mimeTypes = {
   ".jpeg": "image/jpeg",
   ".svg": "image/svg+xml",
   ".webp": "image/webp",
+  ".webm": "video/webm",
   ".ico": "image/x-icon"
 };
 
@@ -129,14 +130,16 @@ function createMongoStore(db, name, { uniqueEmail = false } = {}) {
   };
 }
 
-function createApp({ dataDir = path.join(__dirname, "data"), db, journeys = createJourneyService() } = {}) {
+const { createFuelLookup, seedVehicles } = require("./fuel.js");
+
+function createApp({ dataDir = path.join(__dirname, "data"), db, journeys = createJourneyService(), fuel = createFuelLookup(db) } = {}) {
   const store = db ? createMongoStore.bind(null, db) : createJsonStore.bind(null, dataDir);
   const routes = {
     "/api/bookings": { validate: bookings.validate, save: store("bookings") },
     "/api/contacts": { validate: forms.contact, save: store("contacts") },
     "/api/subscribers": { validate: forms.subscriber, save: store("subscribers", { uniqueEmail: true }) }
   };
-  const journeyRoutes = { "/api/places": journeys.places, "/api/journey": journeys.route };
+  const journeyRoutes = { "/api/fuel": fuel, "/api/places": journeys.places, "/api/journey": journeys.route };
 
   return http.createServer(async (request, response) => {
     response.setHeader("X-Content-Type-Options", "nosniff");
@@ -165,6 +168,22 @@ function createApp({ dataDir = path.join(__dirname, "data"), db, journeys = crea
         const { values, errors } = route.validate(input);
         if (Object.keys(errors).length) {
           return sendJson(response, 422, { message: "Check the form details.", errors });
+        }
+        if (pathname === "/api/bookings" && values.dropoff) {
+          const rate = await fuel(new URLSearchParams({
+            city: values.pickupCity || values.pickup, vehicle: values.vehicle, pricing: "1"
+          }));
+          let distanceKm = null;
+          if (rate.fuelType !== "electric" && values.pickupCoordinates && values.dropoffCoordinates) {
+            const points = new URLSearchParams();
+            for (const key of ["pickup", "dropoff"]) {
+              const { lat, lon } = values[key + "Coordinates"];
+              points.set(key, lat + "," + lon);
+            }
+            distanceKm = (await journeys.route(points)).distanceKm;
+          }
+          values.estimatedFareInr = bookings.estimateFare(rate, distanceKm, values.pickupDate, values.returnDate);
+          values.fareInputs = { ...rate, distanceKm };
         }
         const record = { id: randomUUID(), submittedAt: new Date().toISOString(), ...values };
         await route.save(record);
@@ -212,7 +231,9 @@ async function start() {
   const port = Number(process.env.PORT || 3000);
   const client = config.uri ? await connectMongo(config) : null;
   try {
-    const app = createApp({ db: client?.db(config.database) });
+    const db = client?.db(config.database);
+    if (db) await seedVehicles(db);
+    const app = createApp({ db });
     app.listen(port, "127.0.0.1");
     await once(app, "listening");
     console.log(`TruckBhai is running at http://127.0.0.1:${app.address().port} (${client ? "MongoDB" : "JSON"} storage)`);

@@ -1,9 +1,10 @@
 "use strict";
 
-const { averageSpeedKmh, validCoordinates } = require("../frontend/js/booking.js");
+const { validCoordinates } = require("../frontend/js/booking.js");
 
 const bmlMunjal = {
   label: "BML Munjal University, 67th Milestone, NH 48, Kapriwas, Gurugram, Haryana 122413",
+  city: "Gurugram",
   // Campus pin supplied for TruckBhai bookings.
   lat: 28.248900,
   lon: 76.813912
@@ -31,7 +32,7 @@ function photonPlace(feature) {
   const parts = [name, address, district, city || county, state, postcode, country];
   const label = [...new Set(parts.filter((part) => typeof part === "string" && part.trim()).map((part) => part.trim()))]
     .join(", ").slice(0, 200).trim();
-  return label.length >= 3 ? { label, lat, lon } : null;
+  return label.length >= 3 ? { label, lat, lon, ...(city ? { city } : {}) } : null;
 }
 
 function createJourneyService({
@@ -41,6 +42,7 @@ function createJourneyService({
 } = {}) {
   const demo = !osrmUrl && process.env.NODE_ENV !== "production";
   const routingBase = osrmUrl || (demo ? "https://router.project-osrm.org/" : null);
+  let lastRoute;
   let lastDemoRequest = -Infinity;
 
   async function getJson(url, unavailableMessage, allowedCodes = []) {
@@ -93,6 +95,8 @@ function createJourneyService({
       if (!pickup || !dropoff) throw serviceError(400, "Choose valid pickup and dropoff locations.");
       if (!routingBase) throw serviceError(503, "Road routing is temporarily unavailable.");
 
+      const key = [pickup.lat, pickup.lon, dropoff.lat, dropoff.lon].join(",");
+      if (lastRoute?.key === key && lastRoute.expires > Date.now()) return lastRoute.result;
       if (demo) {
         if (Date.now() - lastDemoRequest < 1000) throw serviceError(429, "Please wait a moment and try the route again.");
         lastDemoRequest = Date.now();
@@ -108,13 +112,16 @@ function createJourneyService({
       const geometry = route?.geometry;
       const points = geometry?.coordinates;
       if (data?.code !== "Ok" || !Number.isFinite(route?.distance) || route.distance < 0 ||
+          !Number.isFinite(route.duration) || route.duration < 0 ||
           geometry?.type !== "LineString" || !Array.isArray(points) || points.length < 2 ||
           points.some((point) => !Array.isArray(point) || !validCoordinates({ lat: point[1], lon: point[0] }))) {
         throw serviceError(502, unavailable);
       }
 
       const distanceKm = route.distance / 1000;
-      return { distanceKm, durationMinutes: distanceKm / averageSpeedKmh * 60, geometry };
+      const result = { distanceKm, durationMinutes: route.duration / 60, geometry };
+      lastRoute = { key, result, expires: Date.now() + 60000 };
+      return result;
     }
   };
 }

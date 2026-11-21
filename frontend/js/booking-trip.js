@@ -162,7 +162,6 @@
     const journey = document.getElementById("booking-journey");
     const summary = document.getElementById("journey-summary");
     const progress = document.getElementById("journey-progress");
-    const journeyStatus = document.getElementById("journey-status");
     const distance = document.getElementById("journey-distance");
     const duration = document.getElementById("journey-duration");
     const mapElement = document.getElementById("journey-map");
@@ -172,7 +171,6 @@
       style: "currency", currency: "INR", maximumFractionDigits: 0
     });
     const distanceFormat = new Intl.NumberFormat("en-IN", { maximumFractionDigits: 1 });
-    document.getElementById("journey-fare").textContent = price.format(bookings.estimatedFareInr);
 
     let map;
     let routeLayers;
@@ -229,6 +227,7 @@
     }
 
     function hideJourney() {
+      fuelRequest?.abort();
       routeRequest?.abort();
       routeRequest = null;
       reviewedStops = null;
@@ -238,21 +237,43 @@
       previewButton.setAttribute("aria-expanded", "false");
     }
 
+    let fuelRequest;
+    async function showFare(city, distanceKm, isExample) {
+      fuelRequest?.abort();
+      const controller = new AbortController();
+      fuelRequest = controller;
+      const output = document.getElementById("journey-fare");
+      output.textContent = "Calculating…";
+      if (isExample) {
+        output.textContent = "Unavailable · example route";
+        return;
+      }
+      try {
+        const data = await readJson("/api/fuel", { city, vehicle: vehicle.value()?.id || "", pricing: "1" },
+          controller.signal, "Fuel prices are temporarily unavailable.");
+        if (controller.signal.aborted) return;
+        const total = bookings.estimateFare(data, distanceKm, form.elements.pickupDate.value, form.elements.returnDate.value);
+        output.textContent = total === null ? "Select a vehicle and rental dates" : price.format(total);
+
+      } catch (error) {
+        if (!controller.signal.aborted) output.textContent = error.message;
+      }
+    }
+
     function showEstimate(result, start, end, isExample = false) {
+      showFare(start.city || start.label.split(",")[0], result.distanceKm, isExample);
       drawMap(start, end, result.geometry);
       distance.textContent = distanceFormat.format(result.distanceKm) + " km";
       const minutes = Math.round(result.durationMinutes);
       const hours = Math.floor(minutes / 60);
       duration.textContent = hours ? `${hours} hr ${minutes % 60} min` : `${minutes} min`;
-      journeyStatus.textContent = `${isExample ? "Example route · " : ""}${start.label} to ${end.label}`;
       reviewedStops = isExample ? null : { pickup: start, dropoff: end };
       progress.hidden = true;
       summary.hidden = false;
     }
 
     function showExample() {
-      showEstimate({ ...example, durationMinutes: example.distanceKm / bookings.averageSpeedKmh * 60 },
-        example.pickup, example.dropoff, true);
+      showEstimate(example, example.pickup, example.dropoff, true);
     }
 
     async function resolveStop(key, selection, signal) {
@@ -310,7 +331,8 @@
     }
 
     function locationEdited(event) {
-      if (!journey.hidden && (event.target === form.elements.pickup || event.target === form.elements.dropoff)) {
+      if (!journey.hidden && (event.target === form.elements.pickup || event.target === form.elements.dropoff || event.target === form.elements.vehicle ||
+          event.target === form.elements.pickupDate || event.target === form.elements.returnDate)) {
         hideJourney();
       }
     }
@@ -327,6 +349,7 @@
         if (option) vehicle.select(option);
       },
       bookingDetails(input) {
+        input.pickupCity = reviewedStops?.pickup.city || reviewedStops?.pickup.label.split(",")[0] || "";
         input.vehicle = vehicle.value()?.id || "";
         for (const [key, location] of [["pickup", pickup], ["dropoff", dropoff]]) {
           const selected = location.value();

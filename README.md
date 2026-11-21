@@ -44,8 +44,8 @@ and existing subscriber emails. The original files remain available under `backe
 - Click **Book now** to open the map and journey preview inside the form. The browser
   looks up any typed addresses you did not select from the suggestions. If the route
   is unavailable, it shows a labeled BML Munjal University to Agra example route of
-  199.3 km. Drive time uses road distance divided by 30 km/h and the estimated fare is
-  ₹2,000. Click **Confirm booking** to save the entered details.
+  199.3 km. Drive time uses OSRM's route duration and the estimated fare adds rental days × daily rate to one-way petrol cost
+  (distance ÷ mileage × pickup reference price). Electric rentals show the rental charge only. Click **Confirm booking** to save the entered details.
 - Pickup cannot be in the past. Return must be at least one calendar day after pickup.
 - The browser and server both validate the details. Dates use the machine's local date.
 - `POST /api/bookings` accepts JSON with `vehicle`, `pickup`, `dropoff`, `pickupDate`,

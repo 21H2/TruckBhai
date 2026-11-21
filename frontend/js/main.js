@@ -1,15 +1,6 @@
 document.addEventListener("DOMContentLoaded", function () {
   var canvases = document.querySelectorAll(".canvas");
   var nav = document.querySelector(".nav");
-  var heroTruck = document.querySelector(".home-hero .hero-truck");
-  var navTrigger = heroTruck || document.querySelector("[data-nav-hero]");
-
-  function updateNavigation() {
-    if (!nav || !navTrigger) return;
-    var bounds = navTrigger.getBoundingClientRect();
-    var edge = heroTruck ? bounds.top : bounds.bottom;
-    nav.classList.toggle("nav--scrolled", edge <= nav.getBoundingClientRect().bottom);
-  }
 
   function fitCanvas() {
     if (!canvases.length) return;
@@ -23,15 +14,12 @@ document.addEventListener("DOMContentLoaded", function () {
       page.style.marginRight = pageScale < 1 ? "0" : "auto";
       canvas.style.height = page.offsetHeight * pageScale + "px";
     });
-    updateNavigation();
   }
 
   fitCanvas();
   window.addEventListener("resize", fitCanvas);
   window.addEventListener("orientationchange", fitCanvas);
   window.addEventListener("load", fitCanvas);
-  window.addEventListener("pageshow", updateNavigation);
-  window.addEventListener("scroll", updateNavigation, { passive: true });
 
   if (nav) {
     var menuButton = nav.querySelector(".nav-toggle");
@@ -53,23 +41,35 @@ document.addEventListener("DOMContentLoaded", function () {
   var cardSlots = truckCards.map(function (card) {
     return { left: card.style.left, top: card.style.top };
   });
-  var filters = Array.from(document.querySelectorAll(".chip[data-filter]"));
+  var filters = Array.from(document.querySelectorAll(".chip[data-filter], .tile[data-filter]"));
   filters.forEach(function (button) {
     button.addEventListener("click", function () {
       filters.forEach(function (filter) {
         var active = filter === button;
-        filter.classList.toggle("chip--active", active);
+        filter.classList.toggle("chip--active", active && !filter.dataset.field);
         filter.setAttribute("aria-pressed", String(active));
       });
       var slot = 0;
       truckCards.forEach(function (card) {
-        card.hidden = button.dataset.filter !== "all" && card.dataset.category !== button.dataset.filter;
+        card.hidden = button.dataset.filter !== "all" && card.dataset[button.dataset.field || "category"] !== button.dataset.filter;
         if (!card.hidden) {
           card.style.left = cardSlots[slot].left;
           card.style.top = cardSlots[slot].top;
           slot += 1;
         }
       });
+      var status = document.getElementById("catalog-status");
+      if (status) {
+        var label = button.getAttribute("aria-label") || button.textContent.trim();
+        status.textContent = slot ? label + " · " + slot + (slot === 1 ? " truck" : " trucks")
+          : "No trucks listed for " + label + ". Choose Popular to see all trucks.";
+        if (button.dataset.field) {
+          status.focus({ preventScroll: true });
+          document.querySelector(".chips").scrollIntoView({
+            block: "start", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth"
+          });
+        }
+      }
     });
   });
 
@@ -230,3 +230,12 @@ document.addEventListener("DOMContentLoaded", function () {
     success: "Booking request saved."
   });
 });
+// -------- for sir reference --------
+/*The script in `main.js` initializes the website UI:
+
+- Resizes canvas sections responsively.
+- Handles the mobile navigation menu and Escape/outside clicks.
+- Filters and rearranges truck cards.
+- Validates and submits contact, newsletter, and booking forms.
+- Displays success/error status messages and server response references.
+- Preselects vehicles and updates valid pickup/return dates.*/

@@ -17,9 +17,19 @@
     { id: "refrigerated", name: "Refrigerated trailer" }
   ];
 
-  // TODO: Replace the fixed estimate when the fare calculation is defined.
-  var estimatedFareInr = 2000;
-  var averageSpeedKmh = 30;
+  function estimateFare(vehicle, distanceKm, pickupDate, returnDate) {
+    if (!vehicle || !isDate(pickupDate) || !isDate(returnDate)) return null;
+    const days = (Date.parse(returnDate) - Date.parse(pickupDate)) / 86400000;
+    if (days < 1 || !Number.isFinite(vehicle.dailyRateInr) || vehicle.dailyRateInr <= 0) return null;
+    let fuelCost = 0;
+    if (vehicle.fuelType !== "electric") {
+      if (vehicle.fuelType !== "petrol" || !Number.isFinite(distanceKm) || distanceKm < 0 ||
+          !Number.isFinite(vehicle.mileageKmPerLitre) || vehicle.mileageKmPerLitre <= 0 ||
+          !Number.isFinite(vehicle.pricePerLitre) || vehicle.pricePerLitre <= 0) return null;
+      fuelCost = distanceKm / vehicle.mileageKmPerLitre * vehicle.pricePerLitre;
+    }
+    return Math.round(days * vehicle.dailyRateInr + fuelCost);
+  }
 
   function localDate(date) {
     date = date || new Date();
@@ -70,7 +80,7 @@
     // Older API clients can still submit the original pickup-only booking format.
     if (Object.hasOwn(input, "dropoff") || Object.hasOwn(input, "pickupCoordinates") || Object.hasOwn(input, "dropoffCoordinates")) {
       validateLocation(input, values, errors, "dropoff");
-      values.estimatedFareInr = estimatedFareInr;
+      if (typeof input.pickupCity === "string") values.pickupCity = input.pickupCity.trim().slice(0, 100);
     }
     if (!isDate(values.pickupDate)) {
       errors.pickupDate = "Choose a valid pickup date.";
@@ -87,6 +97,6 @@
 
   return {
     vehicles: vehicles, localDate: localDate, validate: validate, validCoordinates: validCoordinates,
-    estimatedFareInr: estimatedFareInr, averageSpeedKmh: averageSpeedKmh
+    estimateFare: estimateFare
   };
 });

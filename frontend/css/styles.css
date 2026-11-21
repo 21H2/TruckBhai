@@ -6,7 +6,6 @@
 
 :root {
   --nav-height: 64px;
-  scroll-padding-top: var(--nav-height);
 }
 
 body {
@@ -67,7 +66,7 @@ a {
 }
 
 .nav {
-  position: fixed;
+  position: absolute;
   inset: 0 0 auto;
   height: var(--nav-height);
   display: flex;
@@ -77,7 +76,6 @@ a {
   padding-inline: max(clamp(16px, 5.556vw, 80px), calc((100% - 1280px) / 2));
   z-index: 10;
   color: #fff;
-  transition: background-color 360ms ease-in-out, color 360ms ease-in-out;
 }
 
 .nav--dark {
@@ -140,11 +138,8 @@ a {
     --nav-height: 56px;
   }
 
-  .canvas {
-    margin-top: var(--nav-height);
-  }
-
   .nav {
+    position: relative;
     background-color: #2456bc;
   }
 
@@ -189,23 +184,43 @@ a {
   }
 }
 
-.nav--scrolled {
-  background-color: #000;
-  color: #fff;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .nav {
-    transition: none;
-  }
-}
-
 .hero-truck {
   left: 627px;
   top: 129px;
   width: 852px;
   height: 575px;
-  object-fit: fill;
+  aspect-ratio: 3200 / 2160;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.hero-truck-arrival {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.hero-truck.is-arriving .hero-truck-parked {
+  visibility: hidden;
+}
+
+.hero-truck.is-arriving .hero-truck-arrival {
+  visibility: visible;
+}
+
+.hero-truck:focus-visible {
+  outline: 3px solid white;
+  outline-offset: -4px;
+}
+
+.hero-truck[aria-pressed="true"]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 4.9% 9% at 19.3% 67.85%, #fffde7 12%, #fff1b8e0 34%, #ffe6a85c 60%, transparent),
+    radial-gradient(ellipse 5.2% 9.6% at 39.8% 73.78%, #fffde7 12%, #fff1b8e0 34%, #ffe6a85c 60%, transparent);
 }
 
 .hero-title {
@@ -700,6 +715,10 @@ a {
 }
 
 .tile {
+  appearance: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
   position: absolute;
   width: 186px;
   height: 120px;
@@ -709,6 +728,7 @@ a {
 }
 
 .tile-content {
+  pointer-events: none;
   position: absolute;
   display: flex;
   flex-direction: column;

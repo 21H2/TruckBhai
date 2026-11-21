@@ -20,11 +20,16 @@
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700;800&family=Lato:wght@400;600;700&family=Inter:wght@400;600&family=Cabin:wght@400;500&family=Mulish:wght@400;600&family=Work+Sans:wght@400;600;700&family=DM+Sans:wght@400;500;700&display=swap" />
   <link rel="stylesheet" href="/vendor/leaflet/leaflet.css" />
-  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/styles.css?v=truck-arrival-2" />
+  <link rel="preload" as="image" href="images/hero-truck-arrival.webp"
+    media="(min-width: 761px) and (not (pointer: coarse)) and (prefers-reduced-motion: no-preference)" />
+  <link rel="preload" as="image" href="images/hero-truck-approach.webp"
+    media="(min-width: 761px) and (not (pointer: coarse)) and (prefers-reduced-motion: reduce)" />
+  <script src="js/hero-truck.js?v=4" defer></script>
   <script src="/vendor/leaflet/leaflet.js" defer></script>
-  <script src="js/booking.js" defer></script>
-  <script src="js/booking-example.js" defer></script>
-  <script src="js/booking-trip.js" defer></script>
+  <script src="js/booking.js?v=fare" defer></script>
+  <script src="js/booking-example.js?v=osrm-duration" defer></script>
+  <script src="js/booking-trip.js?v=fare" defer></script>
   <script src="js/forms.js" defer></script>
   <script src="js/main.js" defer></script>
 </head>
@@ -53,7 +58,11 @@
       <!-- Hero Section -->
       <img class="fit cover" src="images/hero-background.png"
         alt="Truck on the highway" decoding="async" />
-      <img class="abs hero-truck" src="images/hero-truck.png" alt="TruckBhai delivery truck" decoding="async" />
+      <button class="abs hero-truck" type="button" aria-label="Truck headlights" aria-pressed="false" disabled>
+        <img class="fit hero-truck-parked" src="images/hero-truck.png" alt="TruckBhai delivery truck" width="3200" height="2160" />
+        <img class="fit hero-truck-arrival" data-src="images/hero-truck-arrival.webp"
+          data-short-src="images/hero-truck-approach.webp" alt="" aria-hidden="true" />
+      </button>
 
       <h1 class="hero-title">Discover, book, and rent a truck in easy steps</h1>
       <p class="hero-sub">
@@ -120,9 +129,7 @@
             <p id="journey-map-status" class="journey-map-status" role="status" hidden></p>
           </div>
           <p id="journey-progress" role="status" hidden>Finding your road route…</p>
-          <section class="journey-summary" id="journey-summary" aria-labelledby="journey-title" hidden>
-            <h2 id="journey-title">Journey preview</h2>
-            <p id="journey-status" role="status"></p>
+          <section class="journey-summary" id="journey-summary" aria-label="Trip estimate" hidden>
             <dl class="journey-estimates">
               <div><dt>Road distance</dt><dd id="journey-distance"></dd></div>
               <div><dt>Estimated drive time</dt><dd id="journey-duration"></dd></div>
@@ -140,34 +147,34 @@
         <div class="home-sections">
       <!-- Rent by Brands Section -->
       <h2 class="h-24 abs" style="left:112px;top:1005px">Rent by Brands</h2>
-      <div class="tile" style="left:calc(12.5% + 25px);top:1060px"></div>
+      <button type="button" class="tile" style="left:calc(12.5% + 25px);top:1060px" data-field="brand" data-filter="eicher" aria-label="Eicher" aria-pressed="false"></button>
       <div class="tile-content" style="left:calc(12.5% + 16.5px);top:1088px">
         <img src="images/brand-eicher.png" alt="Eicher" width="53" height="39" />Eicher
       </div>
-      <div class="tile" style="left:calc(29.17% - 9px);top:1060px"></div>
+      <button type="button" class="tile" style="left:calc(29.17% - 9px);top:1060px" data-field="brand" data-filter="leaz" aria-label="Leaz" aria-pressed="false"></button>
       <div class="tile-content" style="left:calc(29.17% - 9px);top:1086px">
         <img src="images/brand-leaz.png" alt="Leaz" width="50" height="48" />Leaz
       </div>
-      <div class="tile" style="left:calc(41.67% + 17px);top:1060px"></div>
+      <button type="button" class="tile" style="left:calc(41.67% + 17px);top:1060px" data-field="brand" data-filter="tata" aria-label="TATA" aria-pressed="false"></button>
       <div class="tile-content" style="left:calc(41.67% + 17.13px);top:1082px">
         <img src="images/brand-tata.png" alt="TATA" width="68" height="50" />TATA
       </div>
-      <div class="tile" style="left:calc(58.33% - 17px);top:1060px"></div>
+      <button type="button" class="tile" style="left:calc(58.33% - 17px);top:1060px" data-field="brand" data-filter="mahindra" aria-label="Mahindra" aria-pressed="false"></button>
       <div class="tile-content" style="left:calc(58.33% - 17.5px);top:1081px">
         <img src="images/brand-mahindra.png" alt="Mahindra" width="78" height="39" />Mahindra
       </div>
 
       <!-- Rent by Body Type Section -->
       <h2 class="h-24 abs" style="left:112px;top:1261px">Rent by body type</h2>
-      <div class="tile" style="left:calc(12.5% + 26px);top:1312px"></div>
+      <button type="button" class="tile" style="left:calc(12.5% + 26px);top:1312px" data-field="body" data-filter="truck" aria-label="Open body truck" aria-pressed="false"></button>
       <div class="tile-content" style="left:calc(12.5% + 23px);top:1335px">
         <img src="images/body-truck.png" alt="Open body truck" width="80" height="58" />
       </div>
-      <div class="tile" style="left:calc(29.17% + 2px);top:1312px"></div>
+      <button type="button" class="tile" style="left:calc(29.17% + 2px);top:1312px" data-field="body" data-filter="container" aria-label="Container truck" aria-pressed="false"></button>
       <div class="tile-content" style="left:calc(29.17% + 2.11px);top:1332.5px">
         <img src="images/body-container.png" alt="Container truck" width="84" height="59" />
       </div>
-      <div class="tile" style="left:calc(45.83% - 24px);top:1312px"></div>
+      <button type="button" class="tile" style="left:calc(45.83% - 24px);top:1312px" data-field="body" data-filter="trailer" aria-label="Trailer" aria-pressed="false"></button>
       <div class="tile-content" style="left:calc(45.83% - 24.26px);top:1327px">
         <img src="images/body-trailer.png" alt="Trailer" width="101" height="48" />
       </div>
@@ -188,7 +195,8 @@
         <button type="button" class="chip" data-filter="large" aria-pressed="false">Large Truck</button>
         <button type="button" class="chip" data-filter="medium" aria-pressed="false">Medium Truck</button>
       </div>
-      <article data-category="small" data-vehicle="tata-ace" class="truck-card" style="left:113px;top:1959px">
+      <p class="catalog-status abs" id="catalog-status" role="status" tabindex="-1" style="left:113px;top:1911px"></p>
+      <article data-category="small" data-vehicle="tata-ace" data-body="truck" data-brand="tata" class="truck-card" style="left:113px;top:1959px">
         <div class="image" style="left:10px;top:37px;width:350px;height:237px"><img src="images/truck-tata-ace.png"
             alt="TATA Ace HT mini truck" /></div>
         <h3 class="name">TATA Ace HT mini</h3>
@@ -202,7 +210,7 @@
         </ul>
         <a class="btn-dark book" href="index.html?vehicle=tata-ace#booking-form">Rent Now</a>
       </article>
-      <article data-category="large" data-vehicle="eicher-19" class="truck-card" style="left:529px;top:1959px">
+      <article data-category="large" data-vehicle="eicher-19" data-body="truck" data-brand="eicher" class="truck-card" style="left:529px;top:1959px">
         <div class="image" style="left:8px;top:8px;width:368px;height:260px"><img src="images/truck-eicher-19.png"
             alt="EICHER 19 truck" /></div>
         <h3 class="name">EICHER 19</h3>
@@ -216,7 +224,7 @@
         </ul>
         <a class="btn-dark book" href="index.html?vehicle=eicher-19#booking-form">Rent Now</a>
       </article>
-      <article data-category="medium" data-vehicle="eicher-pro" class="truck-card" style="left:945px;top:1959px">
+      <article data-category="medium" data-vehicle="eicher-pro" data-body="truck" data-brand="eicher" class="truck-card" style="left:945px;top:1959px">
         <div class="image" style="left:21px;top:23px;width:339px;height:257px"><img src="images/truck-eicher-pro.png"
             alt="EICHER pro truck" /></div>
         <h3 class="name">EICHER pro</h3>
@@ -230,7 +238,7 @@
         </ul>
         <a class="btn-dark book" href="index.html?vehicle=eicher-pro#booking-form">Rent Now</a>
       </article>
-      <article data-category="large" data-vehicle="container" class="truck-card" style="left:113px;top:2529px">
+      <article data-category="large" data-vehicle="container" data-body="container" class="truck-card" style="left:113px;top:2529px">
         <div class="image" style="left:8px;top:12px;width:368px;height:260px"><img src="images/truck-container.png"
             alt="12 by 20 container truck" /></div>
         <h3 class="name">Container 12*20</h3>
@@ -244,7 +252,7 @@
         </ul>
         <a class="btn-dark book" href="index.html?vehicle=container#booking-form">Rent Now</a>
       </article>
-      <article data-category="large" data-vehicle="trailer" class="truck-card" style="left:529px;top:2529px">
+      <article data-category="large" data-vehicle="trailer" data-body="trailer" class="truck-card" style="left:529px;top:2529px">
         <div class="image" style="left:-11px;top:55px;width:395px;height:178px"><img src="images/truck-trailer.png"
             alt="12 by 32 trailer" /></div>
         <h3 class="name">trailer 12*32</h3>
@@ -258,7 +266,7 @@
         </ul>
         <a class="btn-dark book" href="index.html?vehicle=trailer#booking-form">Rent Now</a>
       </article>
-      <article data-category="large" data-vehicle="refrigerated" class="truck-card" style="left:945px;top:2529px">
+      <article data-category="large" data-vehicle="refrigerated" data-body="trailer" class="truck-card" style="left:945px;top:2529px">
         <div class="image" style="left:-7px;top:18px;width:347px;height:240px"><img src="images/truck-refrigerated.png"
             alt="Refrigerated trailer" /></div>
         <h3 class="name">refrigerated trailer</h3>
@@ -366,34 +374,31 @@
           <div class="card">
             <img src="images/icon-quote.svg" alt="" width="24" height="24" />
             <blockquote>
-              <p>It is a long established fact that a reader will be distracted by the readable content of a page when
-                looking at its layout.</p>
+              <p>I thought I needed a big truck for moving, but seeing the sizes side by side helped me pick one that fit my boxes.</p>
             </blockquote>
           </div>
-          <img class="face" src="images/team-aviral.png" alt="Aviral Agarwal" loading="lazy" />
-          <span class="who">Aviral Agarwal</span>
+          <img class="face" src="images/manas.jpeg" alt="Manas Sharma" loading="lazy" />
+          <span class="who">Manas Sharma</span>
         </div>
         <div class="testimonial testimonial--center" style="left:493px;top:99px">
           <div class="card">
             <img src="images/icon-quote.svg" alt="" width="24" height="24" />
             <blockquote>
-              <p>It is a long established fact that a reader will be distracted by the readable content of a page when
-                looking at its layout.</p>
+              <p>The route showed the driving time between pickup and dropoff, so I knew when to ask my friends to meet me at the flat.</p>
             </blockquote>
           </div>
-          <img class="face" src="images/team-aviral.png" alt="Krish Kumar" loading="lazy" />
-          <span class="who">krish Kumar</span>
+          <img class="face" src="images/king.jpg" alt="King Kapoor" loading="lazy" />
+          <span class="who">King Kapoor</span>
         </div>
         <div class="testimonial testimonial--side" style="left:918px;top:135px">
           <div class="card">
             <img src="images/icon-quote.svg" alt="" width="24" height="24" />
             <blockquote>
-              <p>It is a long established fact that a reader will be distracted by the readable content of a page when
-                looking at its layout.</p>
+              <p>I could see the fare for both days before booking the truck. That helped me work out how much each of us would pay for the move.</p>
             </blockquote>
           </div>
-          <img class="face" src="images/team-aviral.png" alt="Umesh Sharma" loading="lazy" />
-          <span class="who">umesh sharma</span>
+          <img class="face" src="images/shivain.webp" alt="Shivain Gupta" loading="lazy" />
+          <span class="who">Shivain Gupta</span>
         </div>
       </section>
 

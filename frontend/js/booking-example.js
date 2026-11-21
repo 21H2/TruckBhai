@@ -2,6 +2,7 @@
 // Road data © OpenStreetMap contributors, ODbL. See the attribution on the map.
 window.TruckBhaiExampleRoute = {
   distanceKm: 199.3074,
+  durationMinutes: 9123.8 / 60,
   pickup: { label: "BML Munjal University", lat: 28.2489, lon: 76.813912 },
   dropoff: { label: "Agra", lat: 27.183457, lon: 78.016475 },
   geometry: {

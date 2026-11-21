@@ -8,37 +8,27 @@ const vm = require("node:vm");
 const forms = require("../js/forms.js");
 const source = fs.readFileSync(path.join(__dirname, "../js/main.js"), "utf8");
 
-test("the homepage header changes at the first contact with the hero truck", () => {
-  let scrolled = false;
-  let truckTop = 65;
-  const nav = {
-    querySelector: () => ({ addEventListener() {} }),
-    addEventListener() {},
-    getBoundingClientRect: () => ({ bottom: 64 }),
-    classList: { toggle(name, active) { if (name === "nav--scrolled") scrolled = active; } }
+test("the mobile navigation opens and closes with its menu button", () => {
+  let expanded = "false";
+  const button = {
+    getAttribute: () => expanded,
+    setAttribute(name, value) { if (name === "aria-expanded") expanded = value; },
+    addEventListener(name, listener) { if (name === "click") this.click = listener; }
   };
-  const elements = {
-    ".nav": nav,
-    ".home-hero .hero-truck": { getBoundingClientRect: () => ({ top: truckTop, bottom: 490 }) }
-  };
-  const listeners = {};
+  const nav = { querySelector: () => button, addEventListener() {} };
   vm.runInNewContext(source, {
     document: {
       addEventListener(name, listener) { if (name === "DOMContentLoaded") listener(); },
-      querySelector: (selector) => elements[selector] || null,
+      querySelector: selector => selector === ".nav" ? nav : null,
       querySelectorAll: () => []
     },
-    window: { addEventListener(name, listener) { listeners[name] = listener; } }
+    window: { addEventListener() {} }
   });
 
-  listeners.scroll();
-  assert.equal(scrolled, false);
-  truckTop = 64;
-  listeners.scroll();
-  assert.equal(scrolled, true);
-  truckTop = 65;
-  listeners.scroll();
-  assert.equal(scrolled, false);
+  button.click();
+  assert.equal(expanded, "true");
+  button.click();
+  assert.equal(expanded, "false");
 });
 
 // A minimal DOM fixture tests event handlers and data retention without a browser.

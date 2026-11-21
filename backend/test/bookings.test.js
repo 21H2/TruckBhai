@@ -15,9 +15,9 @@ const validBooking = {
   vehicle: "tata-ace", pickup: "Chennai warehouse", pickupDate: "2099-06-10", returnDate: "2099-06-11"
 };
 
-async function setup(t) {
+async function setup(t, options = {}) {
   const dataDir = await fs.mkdtemp(path.join(os.tmpdir(), "truckbhai-test-"));
-  const app = createApp({ dataDir });
+  const app = createApp({ dataDir, ...options });
   t.after(async () => {
     await fs.rm(dataDir, { recursive: true, force: true });
   });
@@ -90,7 +90,10 @@ test("a successful booking is normalized, saved, and persists across server inst
 });
 
 test("new bookings save the dropoff, coordinates, and server fare", async (t) => {
-  const { dataDir, post } = await setup(t);
+  const { dataDir, post } = await setup(t, {
+    journeys: { route: async () => ({ distanceKm: 135 }) },
+    fuel: async () => ({ dailyRateInr: 1000, pricePerLitre: 102.12, fuelType: "petrol", mileageKmPerLitre: 13.5 })
+  });
   const pickupCoordinates = { lat: 28.2489, lon: 76.813912 };
   const dropoffCoordinates = { lat: 28.459497, lon: 77.026638 };
   const trip = { ...validBooking, dropoff: " Gurugram ", pickupCoordinates, dropoffCoordinates, estimatedFareInr: 1 };
@@ -100,7 +103,7 @@ test("new bookings save the dropoff, coordinates, and server fare", async (t) =>
   assert.equal(saved.dropoff, "Gurugram");
   assert.deepEqual(saved.pickupCoordinates, pickupCoordinates);
   assert.deepEqual(saved.dropoffCoordinates, dropoffCoordinates);
-  assert.equal(saved.estimatedFareInr, 2000);
+  assert.equal(saved.estimatedFareInr, 2021);
   assert.equal((await post({ ...trip, dropoffCoordinates: { lat: 181, lon: 77 } })).status, 422);
   assert.equal((await post({ ...trip, dropoff: " " })).status, 422);
   assert.equal((await post({ ...validBooking, dropoff: "Gurugram" })).status, 201);
@@ -119,7 +122,7 @@ test("BML Munjal University is suggested with the verified pin without calling P
   }
 });
 
-test("the journey API normalizes suggestions and derives travel time from road distance", async () => {
+test("the journey API normalizes suggestions and converts OSRM seconds to minutes", async () => {
   const geometry = { type: "LineString", coordinates: [[76.813912, 28.2489], [77.026638, 28.459497]] };
   const urls = [];
   const journeys = createJourneyService({
@@ -138,10 +141,10 @@ test("the journey API normalizes suggestions and derives travel time from road d
   });
   const app = createApp({ journeys });
   const lookup = await request(app, "/api/places?q=Gurugram");
-  assert.deepEqual(await lookup.json(), { places: [{ label: "Gurugram, Haryana, India", lat: 28.459497, lon: 77.026638 }] });
+  assert.deepEqual(await lookup.json(), { places: [{ label: "Gurugram, Haryana, India", city: "Gurugram", lat: 28.459497, lon: 77.026638 }] });
   assert.equal(urls[0].searchParams.get("countrycode"), "IN");
   const route = await request(app, "/api/journey?pickup=28.2489,76.813912&dropoff=28.459497,77.026638");
-  assert.deepEqual(await route.json(), { distanceKm: 42.5, durationMinutes: 85, geometry });
+  assert.deepEqual(await route.json(), { distanceKm: 42.5, durationMinutes: 5, geometry });
   assert.equal(urls[1].pathname, "/service/route/v1/driving/76.813912,28.2489;77.026638,28.459497");
   assert.equal((await request(app, "/api/journey?pickup=,76&dropoff=28,77")).status, 400);
   assert.equal(urls.length, 2);
