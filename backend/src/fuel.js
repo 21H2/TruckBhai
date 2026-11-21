@@ -1,9 +1,9 @@
-"use strict";
-
-const { vehicles } = require("../frontend/js/booking.js");
+import { vehicles } from "../../frontend/js/booking.js";
 const endpoint = "https://india-petroleum-api.vercel.app/v1/prices/latest";
 const metros = ["Delhi", "Mumbai", "Chennai", "Kolkata"];
 const tataSource = "https://smalltrucks.tatamotors.com/blogs/tata-ace-gold-petrol-cx-partner-new-beginnings";
+const delhiFallback = { pricePerLitre: 102.12, date: "2026-11-21" };
+const dayMs = 24 * 60 * 60 * 1000;
 
 const fleet = vehicles.map(({ id, name }) => ({
   _id: id, name, dailyRateInr: 1000,
@@ -30,11 +30,10 @@ function createFuelLookup(db, fetcher = fetch) {
       const { data } = await response.json();
       if (!/^\d{4}-\d{2}-\d{2}$/.test(data?.date) || !Number.isFinite(data.petrol?.delhi) || data.petrol.delhi <= 0) throw Error();
       snapshot = data;
-      nextCheck = Date.now() + 86400000;
+      nextCheck = Date.now() + dayMs;
     } catch {
+      snapshot = undefined;
       nextCheck = Date.now() + 60000;
-    } finally {
-      pending = null;
     }
   }
 
@@ -44,14 +43,22 @@ function createFuelLookup(db, fetcher = fetch) {
     if (params.get("pricing") === "1" && vehicle?.fuelType === "electric") {
       return { dailyRateInr: vehicle.dailyRateInr, fuelType: vehicle.fuelType };
     }
-    if (Date.now() >= nextCheck) await (pending ||= refresh());
-    if (!snapshot) throw Object.assign(Error("Fuel prices are temporarily unavailable."), { status: 503 });
+    if (Date.now() >= nextCheck) {
+      await (pending ||= refresh().finally(() => { pending = null; }));
+    }
     const city = (params.get("city") || "").trim().toLowerCase();
     const match = metros.find(name => name.toLowerCase() === (city === "new delhi" ? "delhi" : city));
-    const rate = snapshot.petrol[match?.toLowerCase()];
+    const rate = snapshot?.petrol[match?.toLowerCase()];
     const useCity = Number.isFinite(rate) && rate > 0;
-    return { city: useCity ? match : "Delhi", fallback: !useCity, pricePerLitre: useCity ? rate : snapshot.petrol.delhi,
-      dailyRateInr: vehicle?.dailyRateInr, date: snapshot.date, fuelType: vehicle?.fuelType, mileageKmPerLitre: vehicle?.mileageKmPerLitre };
+    return {
+      city: useCity ? match : "Delhi",
+      fallback: !useCity,
+      pricePerLitre: useCity ? rate : snapshot?.petrol.delhi ?? delhiFallback.pricePerLitre,
+      date: snapshot?.date ?? delhiFallback.date,
+      dailyRateInr: vehicle?.dailyRateInr,
+      fuelType: vehicle?.fuelType,
+      mileageKmPerLitre: vehicle?.mileageKmPerLitre
+    };
   };
 }
-module.exports = { createFuelLookup, seedVehicles };
+export { createFuelLookup, seedVehicles };

@@ -151,9 +151,10 @@ in shell history, run this from the project directory in Bash.
 ```bash
 read -rsp 'New admin password: ' truckbhai_admin_password
 printf '\n'
-printf '%s' "$truckbhai_admin_password" | node -e '
-  const { randomBytes, scryptSync } = require("node:crypto");
-  const password = require("node:fs").readFileSync(0);
+printf '%s' "$truckbhai_admin_password" | node --input-type=module -e '
+  import { randomBytes, scryptSync } from "node:crypto";
+  import { readFileSync } from "node:fs";
+  const password = readFileSync(0);
   if (password.length < 16) throw new Error("Use at least 16 characters.");
   const salt = randomBytes(16);
   console.log("ADMIN_PASSWORD_HASH=" + salt.toString("hex") + ":" + scryptSync(password, salt, 64).toString("hex"));

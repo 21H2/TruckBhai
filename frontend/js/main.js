@@ -1,14 +1,17 @@
-document.addEventListener("DOMContentLoaded", function () {
+import * as bookings from "./booking.js";
+import { connectBookingTrip } from "./booking-trip.js";
+import * as forms from "./forms.js?v=esm";
+
+export function initializePage(document, window) {
   var canvases = document.querySelectorAll(".canvas");
   var nav = document.querySelector(".nav");
 
   function fitCanvas() {
-    if (!canvases.length) return;
-    var available = document.documentElement.clientWidth;
-    var scale = Math.min(1, available / 1440);
     canvases.forEach(function (canvas) {
       var page = canvas.querySelector(".page");
-      var pageScale = canvas.classList.contains("home-hero") && available <= 640 ? 1 : scale;
+      if (!page || !page.offsetWidth) return;
+      // Measure the CSS layout width before transforms, including the fluid mobile hero.
+      var pageScale = Math.min(1, canvas.clientWidth / page.offsetWidth);
       page.style.transform = pageScale < 1 ? "scale(" + pageScale + ")" : "none";
       page.style.marginLeft = pageScale < 1 ? "0" : "auto";
       page.style.marginRight = pageScale < 1 ? "0" : "auto";
@@ -95,7 +98,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function check() {
       if (options.update) options.update();
-      var result = validate(Object.fromEntries(new FormData(form)));
+      var result = validate(Object.fromEntries(new window.FormData(form)));
       displayErrors(result.errors);
       return result;
     }
@@ -135,11 +138,11 @@ document.addEventListener("DOMContentLoaded", function () {
       fields.forEach(function (field) { field.disabled = true; });
       status.dataset.state = "pending";
       status.textContent = "Saving…";
-      var controller = new AbortController();
-      var timeout = setTimeout(function () { controller.abort(); }, 15000);
+      var controller = new window.AbortController();
+      var timeout = window.setTimeout(function () { controller.abort(); }, 15000);
       var serverInvalidField = null;
       try {
-        var response = await fetch(form.action, {
+        var response = await window.fetch(form.action, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(result.values),
@@ -169,7 +172,7 @@ document.addEventListener("DOMContentLoaded", function () {
           ? "Could not reach the form service. Please try again."
           : error.message;
       } finally {
-        clearTimeout(timeout);
+        window.clearTimeout(timeout);
         fields.forEach(function (field) { field.disabled = false; });
         submitButton.disabled = false;
         clickedButton.disabled = false;
@@ -183,19 +186,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
   var contactForm = document.querySelector("#contact-form");
   if (contactForm) {
-    connectForm(contactForm, window.TruckBhaiForms.contact, { success: "Your message was saved." });
+    connectForm(contactForm, forms.contact, { success: "Your message was saved." });
   }
 
   var newsletterForm = document.querySelector("#newsletter-form");
   if (newsletterForm) {
-    connectForm(newsletterForm, window.TruckBhaiForms.subscriber, { success: "Subscribed!", showReference: false });
+    connectForm(newsletterForm, forms.subscriber, { success: "Subscribed!", showReference: false });
   }
 
   var bookingForm = document.querySelector("#booking-form");
   if (!bookingForm) return;
 
-  var bookings = window.TruckBhaiBookings;
-  var trip = window.TruckBhaiTrip(bookingForm, bookings);
+  var trip = connectBookingTrip(bookingForm, bookings);
   var pickupDate = bookingForm.elements.pickupDate;
   var returnDate = bookingForm.elements.returnDate;
 
@@ -229,7 +231,12 @@ document.addEventListener("DOMContentLoaded", function () {
     preview: trip.preview,
     success: "Booking request saved."
   });
-});
+}
+
+if (typeof document !== "undefined") {
+  document.addEventListener("DOMContentLoaded", () => initializePage(document, window));
+}
+
 // -------- for sir reference --------
 /*The script in `main.js` initializes the website UI:
 

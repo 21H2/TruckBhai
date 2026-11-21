@@ -1,15 +1,13 @@
-"use strict";
-
-const { test } = require("node:test");
-const assert = require("node:assert/strict");
-const fs = require("node:fs/promises");
-const os = require("node:os");
-const path = require("node:path");
-const { Readable } = require("node:stream");
-const { createApp } = require("../server.js");
-const { createJourneyService } = require("../journeys.js");
-const { validate, localDate } = require("../../frontend/js/booking.js");
-const forms = require("../../frontend/js/forms.js");
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import fs from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
+import { once } from "node:events";
+import { createApp } from "../src/app.js";
+import { createJourneyService } from "../src/journeys.js";
+import { validate, localDate } from "../../frontend/js/booking.js";
+import * as forms from "../../frontend/js/forms.js";
 
 const validBooking = {
   vehicle: "tata-ace", pickup: "Chennai warehouse", pickupDate: "2099-06-10", returnDate: "2099-06-11"
@@ -30,28 +28,20 @@ async function setup(t, options = {}) {
   };
 }
 
-// Exercise the real HTTP handler and filesystem without requiring an open port.
-// Request bodies are readable streams, as they are with Node's IncomingMessage.
+// Use an ephemeral port so requests go through the Express middleware stack.
 async function request(app, url, options = {}) {
-  const incoming = Readable.from(options.body === undefined ? [] : [Buffer.from(options.body)]);
-  incoming.url = url;
-  incoming.method = options.method || "GET";
-  incoming.headers = { host: "127.0.0.1:3000" };
-  for (const [name, value] of Object.entries(options.headers || {})) {
-    incoming.headers[name.toLowerCase()] = value;
+  const server = app.listen(0, "127.0.0.1");
+  try {
+    await once(server, "listening");
+    const response = await fetch(`http://127.0.0.1:${server.address().port}${url}`, {
+      ...options,
+      redirect: "manual"
+    });
+    const body = response.body ? await response.arrayBuffer() : null;
+    return new Response(body, { status: response.status, headers: response.headers });
+  } finally {
+    await new Promise(resolve => server.close(resolve));
   }
-  return new Promise((resolve, reject) => {
-    const headers = {};
-    const outgoing = {
-      destroyed: false,
-      status: 200,
-      setHeader(name, value) { headers[name] = value; },
-      writeHead(status, values) { this.status = status; Object.assign(headers, values); },
-      end(body) { resolve(new Response(body, { status: this.status, headers })); }
-    };
-    const handler = app.listeners("request")[0];
-    handler(incoming, outgoing).catch(reject);
-  });
 }
 
 test("booking rules reject unknown trucks, whitespace locations, past and invalid dates", () => {
@@ -228,7 +218,8 @@ test("site assets are available but data, server code and Git metadata stay priv
   }
   for (const file of [
     "/data/bookings.json", "/server.js", "/.git/config", "/package.json", "/missing.html",
-    "/backend/data/bookings.json", "/backend/server.js", "/backend/.env"
+    "/backend/data/bookings.json", "/backend/server.js", "/backend/src/index.js",
+    "/backend/src/app.js", "/backend/src/admin/index.html", "/backend/.env"
   ]) {
     assert.equal((await request(file)).status, 404, file);
   }

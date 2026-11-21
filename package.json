@@ -3,9 +3,17 @@
   "version": "1.0.0",
   "private": true,
   "description": "TruckBhai truck rentals for people who need to move stuff",
+  "main": "backend/src/index.js",
+  "type": "module",
+  "author": "krish007code",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/krish007code/TruckBhai.git"
+  },
   "scripts": {
-    "start": "node backend/server.js",
-    "import:json": "node backend/import-json.js",
+    "start": "node backend/src/index.js",
+    "dev": "nodemon --watch backend/src --watch frontend/js backend/src/index.js",
+    "import:json": "node backend/src/import-json.js",
     "test": "node --test --test-isolation=none"
   },
   "engines": {
@@ -13,7 +21,12 @@
   },
   "dependencies": {
     "@fontsource/montserrat": "5.3.0",
+    "dotenv": "^18.0.10",
+    "express": "^5.3.0",
     "leaflet": "1.9.4",
-    "mongodb": "^7.9.0"
+    "mongoose": "^9.12.3"
+  },
+  "devDependencies": {
+    "nodemon": "3.1.11"
   }
 }

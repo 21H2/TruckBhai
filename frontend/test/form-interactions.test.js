@@ -1,12 +1,6 @@
-"use strict";
-
-const { test } = require("node:test");
-const assert = require("node:assert/strict");
-const fs = require("node:fs");
-const path = require("node:path");
-const vm = require("node:vm");
-const forms = require("../js/forms.js");
-const source = fs.readFileSync(path.join(__dirname, "../js/main.js"), "utf8");
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { initializePage } from "../js/main.js";
 
 test("the mobile navigation opens and closes with its menu button", () => {
   let expanded = "false";
@@ -16,14 +10,11 @@ test("the mobile navigation opens and closes with its menu button", () => {
     addEventListener(name, listener) { if (name === "click") this.click = listener; }
   };
   const nav = { querySelector: () => button, addEventListener() {} };
-  vm.runInNewContext(source, {
-    document: {
-      addEventListener(name, listener) { if (name === "DOMContentLoaded") listener(); },
-      querySelector: selector => selector === ".nav" ? nav : null,
-      querySelectorAll: () => []
-    },
-    window: { addEventListener() {} }
-  });
+  initializePage({
+    addEventListener() {},
+    querySelector: selector => selector === ".nav" ? nav : null,
+    querySelectorAll: () => []
+  }, { addEventListener() {} });
 
   button.click();
   assert.equal(expanded, "true");
@@ -56,14 +47,12 @@ function fixture(fetch, { newsletter = false, timeout } = {}) {
     reset() { this.resets += 1; fields.forEach((field) => { field.value = ""; }); }
   };
   const document = {
-    addEventListener: (name, listener) => { if (name === "DOMContentLoaded") listener(); },
     querySelector: (selector) => selector === (newsletter ? "#newsletter-form" : "#contact-form") ? form : null,
     querySelectorAll: () => [],
     getElementById: (id) => errors[id]
   };
-  vm.runInNewContext(source, {
-    document, fetch, AbortController,
-    window: { TruckBhaiForms: forms, addEventListener() {} },
+  initializePage(document, {
+    fetch, AbortController, addEventListener() {},
     setTimeout: timeout || setTimeout, clearTimeout,
     FormData: class {
       constructor() { this.entries = fields.filter((field) => !field.disabled).map((field) => [field.name, field.value]); }

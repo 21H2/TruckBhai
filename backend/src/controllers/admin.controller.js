@@ -1,9 +1,8 @@
-"use strict";
-
-const { randomBytes, scrypt, timingSafeEqual } = require("node:crypto");
-const { readFile } = require("node:fs/promises");
-const path = require("node:path");
-const { promisify } = require("node:util");
+import { randomBytes, scrypt, timingSafeEqual } from "node:crypto";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
+import { promisify } from "node:util";
+import { readJson, sendJson } from "../http.js";
 
 const deriveKey = promisify(scrypt);
 const sessionDuration = 8 * 60 * 60;
@@ -14,7 +13,7 @@ const fields = {
   subscribers: ["id", "submittedAt", "email"]
 };
 
-function createAdmin({ passwordHash, secondPasswordHash, secureCookie = false, db, dataDir, readJson, sendJson }) {
+export function createAdminController({ passwordHash, secondPasswordHash, secureCookie = false, models, dataDir }) {
   const credentials = [passwordHash, secondPasswordHash]
     .map(hash => /^([0-9a-f]{32}):([0-9a-f]{128})$/i.exec(hash || ""))
     .filter(Boolean)
@@ -37,10 +36,10 @@ function createAdmin({ passwordHash, secondPasswordHash, secureCookie = false, d
   async function listRecords(collection, page) {
     const offset = (page - 1) * pageSize;
     const columns = fields[collection];
-    if (db) {
+    if (models) {
       const projection = Object.fromEntries(columns.map(column => [column, 1]));
-      return db.collection(collection).find({}, { projection: { ...projection, _id: 0 } })
-        .sort({ submittedAt: -1, _id: -1 }).skip(offset).limit(pageSize + 1).toArray();
+      return models[collection].find({}, { ...projection, _id: 0 })
+        .sort({ submittedAt: -1, _id: -1 }).skip(offset).limit(pageSize + 1).lean().exec();
     }
 
     let records;
@@ -54,7 +53,8 @@ function createAdmin({ passwordHash, secondPasswordHash, secureCookie = false, d
       .map(record => Object.fromEntries(columns.map(column => [column, record[column]])));
   }
 
-  return async function handleAdmin(request, response, pathname, query) {
+  return async function handleAdminRequest(request, response) {
+    const { pathname, searchParams } = response.locals;
     response.setHeader("Cache-Control", "no-store");
     response.setHeader("Referrer-Policy", "no-referrer");
     response.setHeader("Content-Security-Policy", "default-src 'none'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'");
@@ -72,7 +72,7 @@ function createAdmin({ passwordHash, secondPasswordHash, secureCookie = false, d
       }
       if (pathname === "/admin" && !signedIn) return redirect(response, "/admin/login");
       if (pathname === "/admin/login" && signedIn) return redirect(response, "/admin");
-      const html = await readFile(path.join(__dirname, "admin", "index.html"));
+      const html = await readFile(path.join(import.meta.dirname, "..", "admin", "index.html"));
       response.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
       return response.end(request.method === "HEAD" ? undefined : html);
     }
@@ -133,7 +133,7 @@ function createAdmin({ passwordHash, secondPasswordHash, secureCookie = false, d
       return sendJson(response, 405, { message: "Method not allowed." });
     }
 
-    const page = Number(query.get("page") ?? "1");
+    const page = Number(searchParams.get("page") ?? "1");
     if (!Number.isSafeInteger(page) || page < 1 || page > 1_000_000) {
       return sendJson(response, 400, { message: "Invalid page number." });
     }
@@ -141,5 +141,3 @@ function createAdmin({ passwordHash, secondPasswordHash, secureCookie = false, d
     return sendJson(response, 200, { records: records.slice(0, pageSize), hasNext: records.length > pageSize });
   };
 }
-
-module.exports = { createAdmin };

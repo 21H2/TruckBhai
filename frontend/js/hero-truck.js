@@ -1,15 +1,17 @@
 (() => {
   const truck = document.querySelector(".home-hero .hero-truck");
+  if (!truck) return;
   const arrival = truck.querySelector(".hero-truck-arrival");
   const parked = truck.querySelector(".hero-truck-parked");
-  const desktop = window.matchMedia("(min-width: 761px) and (not (pointer: coarse))");
+  const desktop = window.matchMedia("(min-width: 761px)");
   const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
   let waiting = true;
-  let inView = false;
+  let inView = !("IntersectionObserver" in window);
   let finishTimer;
 
   function park() {
     clearTimeout(finishTimer);
+    parked.removeEventListener("load", park);
     waiting = false;
     truck.classList.remove("is-arriving");
     truck.disabled = false;
@@ -42,11 +44,13 @@
   });
   arrival.addEventListener("load", startWhenVisible);
   arrival.addEventListener("error", park);
-  const observer = new IntersectionObserver(([entry]) => {
-    inView = entry.isIntersecting;
-    startWhenVisible();
-  });
-  observer.observe(truck);
+  if (!inView) {
+    const observer = new IntersectionObserver(([entry]) => {
+      inView = entry.isIntersecting;
+      startWhenVisible();
+    });
+    observer.observe(truck);
+  }
   document.addEventListener("visibilitychange", startWhenVisible);
   window.addEventListener("pageshow", event => {
     if (event.persisted && desktop.matches) {
@@ -63,7 +67,13 @@
     else if (motion.matches) park();
   });
   desktop.addEventListener("change", () => {
-    if (!desktop.matches) park();
+    if (desktop.matches) {
+      waiting = true;
+      startWhenVisible();
+    } else {
+      park();
+    }
   });
   if (!desktop.matches) park();
+  else startWhenVisible();
 })();

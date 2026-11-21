@@ -1,11 +1,11 @@
-"use strict";
-
-const fs = require("node:fs/promises");
-const path = require("node:path");
-const { loadMongoConfig, connectMongo } = require("./mongo.js");
+import fs from "node:fs/promises";
+import path from "node:path";
+import dotenv from "dotenv";
+import { connectDatabase } from "./config/database.js";
+import { DATA_DIR, ENV_FILE, DEFAULT_MONGODB_DATABASE } from "./config/constants.js";
 
 async function readRecords(name) {
-  const filename = path.join(__dirname, "data", name + ".json");
+  const filename = path.join(DATA_DIR, name + ".json");
   let contents;
   try {
     contents = await fs.readFile(filename, "utf8");
@@ -52,19 +52,23 @@ async function importRecords(collection, records) {
 }
 
 async function main() {
-  const config = loadMongoConfig();
-  if (!config.uri) throw new Error("Set MONGODB_URI before importing.");
+  const { error } = dotenv.config({ path: ENV_FILE, quiet: true });
+  if (error && error.code !== "ENOENT") throw error;
+
+  const uri = process.env.MONGODB_URI?.trim();
+  if (!uri) throw new Error("Set MONGODB_URI before importing.");
+  const database = process.env.MONGODB_DB?.trim() || DEFAULT_MONGODB_DATABASE;
   const names = ["bookings", "contacts", "subscribers"];
   const records = await Promise.all(names.map(readRecords));
-  const client = await connectMongo(config);
+  const connection = await connectDatabase({ uri, database });
   try {
-    const db = client.db(config.database);
+    const db = connection.db;
     for (const [index, name] of names.entries()) {
       const inserted = await importRecords(db.collection(name), records[index]);
       console.log(`${name}: imported ${inserted}, already present ${records[index].length - inserted}`);
     }
   } finally {
-    await client.close();
+    await connection.close();
   }
 }
 

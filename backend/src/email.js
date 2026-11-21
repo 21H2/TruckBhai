@@ -1,6 +1,4 @@
-"use strict";
-
-const { setTimeout: delay } = require("node:timers/promises");
+import { setTimeout as delay } from "node:timers/promises";
 
 function createMailer(env = process.env, request = fetch) {
   const serviceId = env.EMAILJS_SERVICE_ID?.trim();
@@ -48,4 +46,4 @@ function createMailer(env = process.env, request = fetch) {
   };
 }
 
-module.exports = { createMailer };
+export { createMailer };

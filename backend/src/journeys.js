@@ -1,6 +1,5 @@
-"use strict";
-
-const { validCoordinates } = require("../frontend/js/booking.js");
+import { validCoordinates } from "../../frontend/js/booking.js";
+import { DEFAULT_PHOTON_URL, OSRM_DEMO_URL } from "./config/constants.js";
 
 const bmlMunjal = {
   label: "BML Munjal University, 67th Milestone, NH 48, Kapriwas, Gurugram, Haryana 122413",
@@ -37,11 +36,11 @@ function photonPlace(feature) {
 
 function createJourneyService({
   fetcher = globalThis.fetch,
-  photonUrl = process.env.PHOTON_URL || "https://photon.komoot.io/api/",
+  photonUrl = process.env.PHOTON_URL || DEFAULT_PHOTON_URL,
   osrmUrl = process.env.OSRM_URL
 } = {}) {
   const demo = !osrmUrl && process.env.NODE_ENV !== "production";
-  const routingBase = osrmUrl || (demo ? "https://router.project-osrm.org/" : null);
+  const routingBase = osrmUrl || (demo ? OSRM_DEMO_URL : null);
   let lastRoute;
   let lastDemoRequest = -Infinity;
 
@@ -126,4 +125,4 @@ function createJourneyService({
   };
 }
 
-module.exports = { createJourneyService };
+export { createJourneyService };
