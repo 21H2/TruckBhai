@@ -9,6 +9,7 @@ const bookings = require("../frontend/js/booking.js");
 const forms = require("../frontend/js/forms.js");
 const { loadMongoConfig, connectMongo } = require("./mongo.js");
 const { createJourneyService } = require("./journeys.js");
+const { createMailer } = require("./email.js");
 
 const frontendDir = path.join(__dirname, "..", "frontend");
 const publicDependencies = new Map([
@@ -132,12 +133,12 @@ function createMongoStore(db, name, { uniqueEmail = false } = {}) {
 
 const { createFuelLookup, seedVehicles } = require("./fuel.js");
 
-function createApp({ dataDir = path.join(__dirname, "data"), db, journeys = createJourneyService(), fuel = createFuelLookup(db) } = {}) {
+function createApp({ dataDir = path.join(__dirname, "data"), db, journeys = createJourneyService(), fuel = createFuelLookup(db), mailer } = {}) {
   const store = db ? createMongoStore.bind(null, db) : createJsonStore.bind(null, dataDir);
   const routes = {
     "/api/bookings": { validate: bookings.validate, save: store("bookings") },
-    "/api/contacts": { validate: forms.contact, save: store("contacts") },
-    "/api/subscribers": { validate: forms.subscriber, save: store("subscribers", { uniqueEmail: true }) }
+    "/api/contacts": { validate: forms.contact, save: store("contacts"), confirmation: "contact" },
+    "/api/subscribers": { validate: forms.subscriber, save: store("subscribers", { uniqueEmail: true }), confirmation: "subscription" }
   };
   const journeyRoutes = { "/api/fuel": fuel, "/api/places": journeys.places, "/api/journey": journeys.route };
 
@@ -187,6 +188,12 @@ function createApp({ dataDir = path.join(__dirname, "data"), db, journeys = crea
         }
         const record = { id: randomUUID(), submittedAt: new Date().toISOString(), ...values };
         await route.save(record);
+        if (mailer && route.confirmation) {
+          // A mail failure must not turn an already-saved submission into a failed form response.
+          Promise.resolve().then(() => mailer.send(route.confirmation, record)).catch((error) => {
+            console.error("Could not send %s confirmation for %s: %s", route.confirmation, record.id, error.message);
+          });
+        }
         return sendJson(response, 201, { message: "Your submission was saved.", id: record.id });
       }
 
@@ -233,7 +240,7 @@ async function start() {
   try {
     const db = client?.db(config.database);
     if (db) await seedVehicles(db);
-    const app = createApp({ db });
+    const app = createApp({ db, mailer: createMailer() });
     app.listen(port, "127.0.0.1");
     await once(app, "listening");
     console.log(`TruckBhai is running at http://127.0.0.1:${app.address().port} (${client ? "MongoDB" : "JSON"} storage)`);

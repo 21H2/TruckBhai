@@ -96,7 +96,6 @@ characters), and messages (10–5,000 characters). `POST /api/contacts` accepts 
 with `name`, `email`, and `message` and stores the trimmed values, reference ID,
 and UTC timestamp in the `contacts` collection. Errors appear beside each field.
 Failed submissions retain the message. Successful submissions clear the form.
-Email delivery requires a separate service.
 
 ## Newsletter form
 
@@ -105,7 +104,21 @@ accepts JSON with `email`. Addresses are validated, trimmed, converted to lowerc
 and saved with their reference ID and UTC timestamp in the `subscribers` collection.
 The unique email index prevents duplicates across concurrent requests and restarts.
 Duplicate addresses return HTTP 409 with an inline error.
-Newsletter delivery requires a separate service.
+
+## EmailJS confirmations
+
+Connect Gmail under [Email Services](https://dashboard.emailjs.com/admin).
+Set both templates’ **To Email** field to `{{email}}`. Enter the service ID,
+public key, and template IDs in the ignored `backend/.env` file, using
+`backend/.env.example` as a guide. Allow requests from non-browser applications
+in [EmailJS Account Security](https://dashboard.emailjs.com/admin/account/security).
+If private-key authorization is enabled there, set `EMAILJS_PRIVATE_KEY` locally.
+Restart TruckBhai with `npm start`.
+
+TruckBhai calls EmailJS after saving a contact message or a new subscription.
+The contact template receives `name`, `email`, `message`, and `reference_id`.
+The newsletter template receives `email`. A delivery failure leaves the
+submission saved and logs its reference ID.
 
 ## Submission feedback
 

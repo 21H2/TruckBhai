@@ -294,7 +294,8 @@ test("contact validation rejects invalid values and preserves multiline messages
 });
 
 test("contact submissions save to their own file and invalid requests save nothing", async (t) => {
-  const { dataDir, request, post } = await setup(t);
+  const emails = [];
+  const { dataDir, request, post } = await setup(t, { mailer: { send: (kind, record) => emails.push({ kind, record }) } });
   const send = (body) => request("/api/contacts", {
     method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body)
   });
@@ -312,6 +313,8 @@ test("contact submissions save to their own file and invalid requests save nothi
   await post(validBooking);
   assert.equal(JSON.parse(await fs.readFile(path.join(dataDir, "bookings.json"), "utf8")).length, 1);
   assert.equal((await request("/data/contacts.json")).status, 404);
+  assert.equal(emails.length, 1);
+  assert.deepEqual(emails[0], { kind: "contact", record: contacts[0] });
 });
 
 test("newsletter validation rejects malformed emails and normalizes valid addresses", () => {
@@ -324,7 +327,8 @@ test("newsletter validation rejects malformed emails and normalizes valid addres
 });
 
 test("newsletter saves only valid subscriptions and prevents case-insensitive duplicates", async (t) => {
-  const { dataDir, request } = await setup(t);
+  const emails = [];
+  const { dataDir, request } = await setup(t, { mailer: { send: (kind, record) => emails.push({ kind, record }) } });
   const send = (email) => request("/api/subscribers", {
     method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email })
   });
@@ -341,6 +345,8 @@ test("newsletter saves only valid subscriptions and prevents case-insensitive du
   assert.equal(subscribers[0].id, (await response.json()).id);
   assert.ok(Number.isFinite(Date.parse(subscribers[0].submittedAt)));
   assert.equal((await request("/data/subscribers.json")).status, 404);
+  assert.equal(emails.length, 1);
+  assert.deepEqual(emails[0], { kind: "subscription", record: subscribers[0] });
 });
 
 test("concurrent newsletter requests and server restarts cannot duplicate an address", async (t) => {
