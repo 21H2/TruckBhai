@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin | TruckBhai</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700;800&family=Lato:wght@400;600;700&family=Inter:wght@400;600&family=Cabin:wght@400;500&family=Mulish:wght@400;600&family=Work+Sans:wght@400;600;700&family=DM+Sans:wght@400;500;700&display=swap" />
+  <link rel="stylesheet" href="/css/styles.css" />
+  <link rel="stylesheet" href="/css/admin.css" />
+  <script type="module" src="/js/main.js?v=esm"></script>
+  <script type="module" src="/js/admin.js?v=api-v1"></script>
+</head>
+<body>
+  <nav class="nav nav--dark" aria-label="Main">
+    <a class="logo" href="/index.html">
+      <p>Truck<span>Bhai</span></p>
+      <div class="underline" aria-hidden="true"></div>
+    </a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="main-nav-links">Menu</button>
+    <ul class="nav-links" id="main-nav-links">
+      <li><a href="/index.html">Home</a></li>
+      <li><a href="/about.html">About Us</a></li>
+      <li><a href="/vehicle-models.html">Vehicle Models</a></li>
+      <li><a href="/testimonials.html">Testimonials</a></li>
+      <li><a href="/our-team.html">Our team</a></li>
+      <li><a href="/contact.html">Contact Us</a></li>
+    </ul>
+  </nav>
+  <main class="admin-main">
+    <section id="admin-login" class="admin-login" hidden>
+      <h1>Admin sign in</h1>
+      <form id="admin-login-form" method="post">
+        <label for="admin-password">Password</label>
+        <input id="admin-password" type="password" name="password" autocomplete="current-password" maxlength="256" required />
+        <button class="btn-dark" type="submit">Sign in</button>
+        <p class="form-status" id="login-status" role="status"></p>
+      </form>
+    </section>
+    <section id="admin-dashboard" hidden>
+      <div class="admin-heading">
+        <h1>Admin dashboard</h1>
+        <button class="btn-dark" id="admin-logout" type="button">Sign out</button>
+      </div>
+      <div class="admin-filters" role="group" aria-label="Submission type">
+        <button type="button" data-collection="bookings" aria-pressed="true">Bookings</button>
+        <button type="button" data-collection="contacts" aria-pressed="false">Contact messages</button>
+        <button type="button" data-collection="subscribers" aria-pressed="false">Newsletter subscribers</button>
+      </div>
+      <p class="form-status" id="admin-status" role="status"></p>
+      <div class="admin-results" id="admin-results" role="region" aria-label="Submissions" tabindex="0" hidden>
+        <table>
+          <caption id="admin-caption"></caption>
+          <thead><tr id="admin-columns"></tr></thead>
+          <tbody id="admin-rows"></tbody>
+        </table>
+      </div>
+      <div class="admin-pagination" id="admin-pagination" hidden>
+        <button class="btn-dark" id="admin-previous" type="button">Previous</button>
+        <span id="admin-page"></span>
+        <button class="btn-dark" id="admin-next" type="button">Next</button>
+      </div>
+    </section>
+    <noscript>Enable JavaScript to use the TruckBhai admin dashboard.</noscript>
+  </main>
+</body>
+</html>

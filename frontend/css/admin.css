@@ -1,0 +1,121 @@
+.admin-main {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: calc(var(--nav-height) + 55px) clamp(18px, 5.5vw, 80px) 64px;
+}
+
+.admin-main h1 {
+  font-size: clamp(28px, 4vw, 42px);
+  line-height: 1.15;
+  letter-spacing: -0.04em;
+}
+
+.admin-login {
+  width: min(100%, 460px);
+  margin: 0 auto;
+  padding: clamp(20px, 5vw, 40px);
+  background: #f5f5f5;
+  border-radius: 24px;
+}
+
+.admin-login form {
+  display: grid;
+  gap: 12px;
+  margin-top: 24px;
+  justify-items: start;
+}
+
+.admin-login input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #ebeaed;
+  border-radius: 24px;
+  background: #fff;
+  color: inherit;
+  font: inherit;
+}
+
+.admin-main :focus-visible {
+  outline: 3px solid #f8d254;
+  outline-offset: 2px;
+}
+
+.admin-heading,
+.admin-filters,
+.admin-pagination:not([hidden]) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-heading {
+  justify-content: space-between;
+}
+
+.admin-filters,
+.admin-pagination {
+  margin-top: 24px;
+}
+
+.admin-filters button {
+  padding: 10px 18px;
+  background: #f5f5f5;
+  color: inherit;
+  border: 0;
+  border-radius: 24px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.admin-filters button[aria-pressed="true"] {
+  background: #f8d254;
+}
+
+.admin-main .form-status {
+  margin-block: 12px;
+}
+
+.admin-results {
+  overflow-x: auto;
+  border-radius: 16px;
+  background: #f5f5f5;
+}
+
+.admin-results table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.admin-results caption,
+.admin-results td,
+.admin-results th {
+  padding: 12px 16px;
+  text-align: left;
+}
+
+.admin-results caption {
+  font-weight: 700;
+}
+
+.admin-results th {
+  border-bottom: 2px solid #f8d254;
+}
+
+.admin-results td {
+  border-bottom: 1px solid #e1e1e1;
+  vertical-align: top;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.admin-results td:last-child {
+  min-width: 160px;
+}
+
+.admin-main button:disabled {
+  cursor: default;
+  opacity: 0.5;
+}

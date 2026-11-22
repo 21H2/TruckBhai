@@ -1,39 +1,76 @@
 # TruckBhai
 
-A static truck rental website with a Node.js server for local form storage.
+A static truck rental website with a Node.js server for form submissions.
+
+## Project layout
+
+- `frontend/` contains the HTML pages, styles, images, browser scripts, and browser interaction tests. The server also uses the validators in `frontend/js/`.
+- `backend/` contains the Node.js server, MongoDB configuration, JSON import script, local submission storage, and API tests.
+- The npm manifest and lockfile sit at the project root.
 
 ## Run locally
 
-Install Node.js 22 or newer, then run:
+Install Node.js 22 or newer. Run these commands from the project folder:
 
 ```sh
+npm ci
+cp backend/.env.example backend/.env
 npm start
 ```
 
-Open **http://127.0.0.1:3000**. No package installation is needed. To use another
-port, run `PORT=3001 npm start`.
+The example connects to a running MongoDB server at `127.0.0.1:27017`. For Atlas
+or another deployment, set `MONGODB_URI` in `backend/.env` to its connection string before
+starting the app. `MONGODB_DB` selects the database and defaults to `truckbhai`.
+The server creates a unique index on subscriber email at startup.
 
-Open the site through this server for form submissions; opening `index.html`
-directly or using a static-only server cannot save JSON files.
+Open **http://127.0.0.1:3000** to use the forms. To use another port, run
+`PORT=3001 npm start`. With `MONGODB_URI` unset, the server runs in local JSON
+mode and saves submissions to `backend/data/*.json`. Run one server process per JSON
+data directory. Git ignores both these files and `backend/.env`, and the site server
+keeps them private.
+
+### Import existing submissions
+
+Stop the app before switching from JSON storage. With MongoDB configured, run
+`npm run import:json` and start the app again. The import copies the three local
+JSON files into their corresponding collections and preserves reference IDs and
+timestamps. You can rerun it safely. It skips existing booking and contact IDs
+and existing subscriber emails. The original files remain available under `backend/data/`.
 
 ## Booking form
 
-- Select one of the six listed trucks and enter a pickup location (3–200 characters).
+- Search the six-truck catalog and select a vehicle. Enter pickup and dropoff locations
+  (3–200 characters each). India-based suggestions appear after three characters.
+- Click **Book now** to open the map and journey preview inside the form. The browser
+  looks up any typed addresses you did not select from the suggestions. If the route
+  is unavailable, it shows a labeled BML Munjal University to Agra example route of
+  199.3 km. Drive time uses OSRM's route duration and the estimated fare adds rental days × daily rate to one-way petrol cost
+  (distance ÷ mileage × pickup reference price). Electric rentals show the rental charge only. Click **Confirm booking** to save the entered details.
 - Pickup cannot be in the past. Return must be at least one calendar day after pickup.
 - The browser and server both validate the details. Dates use the machine's local date.
-- `POST /api/bookings` accepts JSON with `vehicle`, `pickup`, `pickupDate`, and
-  `returnDate`. Vehicle IDs are defined in `js/booking.js`; dates use `YYYY-MM-DD`.
-- Successful requests return HTTP 201 with a reference ID and append a record to
-  `data/bookings.json`, created on the first successful submission. Each record
-  includes `id` and `submittedAt` (UTC).
-- Writes are queued within the running server and use a temporary file followed by
-  rename, preventing overlapping submissions from losing existing records. Run one
-  server process per data directory.
-- Submitted JSON files are ignored by Git and cannot be downloaded through the
-  site server. Data persists when the server restarts.
+- `POST /api/v1/bookings` accepts JSON with `vehicle`, `pickup`, `dropoff`, `pickupDate`,
+  and `returnDate`, plus optional `pickupCoordinates` and `dropoffCoordinates` objects
+  with numeric `lat` and `lon` fields. New trip requests store these fields and the
+  server-calculated `estimatedFareInr`. The API also accepts the original pickup-only
+  request format. Vehicle IDs live in `frontend/js/booking.js`. Dates use `YYYY-MM-DD`.
+- Successful requests return HTTP 201 with a reference ID and save a record in
+  the `bookings` collection. Each record includes `id` and `submittedAt` (UTC).
 - The form retains entered details on an error and clears them only after saving.
 
-This records a booking request locally; it does not reserve inventory or take payment.
+This records a booking request. Inventory reservations and payments are outside
+this workflow.
+
+### Map providers
+
+The server hosts Leaflet and the booking form's Montserrat font. The browser loads
+OpenStreetMap tiles and can draw the route line even if those tiles are unavailable. The server
+queries Photon for location suggestions and OSRM for road routes. Set `PHOTON_URL`
+to a Photon search endpoint and `OSRM_URL` to the base of an OSRM-compatible server
+to override the defaults. Local development defaults to the public OSRM demo for
+low-volume, non-commercial testing. With `NODE_ENV=production`, configure `OSRM_URL`
+for live route previews. The BML Munjal University campus suggestion is built in and
+uses the verified campus pin. The route preview uses driving directions for its road
+distance estimate.
 
 ## Rent Now buttons
 
@@ -55,22 +92,33 @@ pro (medium), and EICHER 19, container and trailers (large); edit each card's
 ## Contact form
 
 The Contact page validates names (2–100 characters), email addresses (up to 254
-characters), and messages (10–5,000 characters). `POST /api/contacts` accepts JSON
+characters), and messages (10–5,000 characters). `POST /api/v1/contacts` accepts JSON
 with `name`, `email`, and `message` and stores the trimmed values, reference ID,
-and UTC timestamp in `data/contacts.json`. Errors appear beside each field. Failed
-submissions retain the message; successful submissions clear the form.
-
-This saves messages locally; email delivery is not configured.
+and UTC timestamp in the `contacts` collection. Errors appear beside each field.
+Failed submissions retain the message. Successful submissions clear the form.
 
 ## Newsletter form
 
-Every page has a newsletter email field and Subscribe button. `POST /api/subscribers`
+Every page has a newsletter email field and Subscribe button. `POST /api/v1/subscribers`
 accepts JSON with `email`. Addresses are validated, trimmed, converted to lowercase,
-and saved with their reference ID and UTC timestamp in `data/subscribers.json`.
-Duplicate addresses return HTTP 409 with an inline error and are not saved again,
-including simultaneous submissions or requests after a server restart.
+and saved with their reference ID and UTC timestamp in the `subscribers` collection.
+The unique email index prevents duplicates across concurrent requests and restarts.
+Duplicate addresses return HTTP 409 with an inline error.
 
-This stores subscriptions locally; sending newsletters is not configured.
+## EmailJS confirmations
+
+Connect Gmail under [Email Services](https://dashboard.emailjs.com/admin).
+Set both templates’ **To Email** field to `{{email}}`. Enter the service ID,
+public key, and template IDs in the ignored `backend/.env` file, using
+`backend/.env.example` as a guide. Allow requests from non-browser applications
+in [EmailJS Account Security](https://dashboard.emailjs.com/admin/account/security).
+If private-key authorization is enabled there, set `EMAILJS_PRIVATE_KEY` locally.
+Restart TruckBhai with `npm start`.
+
+TruckBhai calls EmailJS after saving a contact message or a new subscription.
+The contact template receives `name`, `email`, `message`, and `reference_id`.
+The newsletter template receives `email`. A delivery failure leaves the
+submission saved and logs its reference ID.
 
 ## Submission feedback
 
@@ -80,7 +128,7 @@ are disabled while saving to prevent repeated submissions. Details clear only
 after a successful server response and remain available after validation, server,
 or network failures. A request that takes more than 15 seconds releases the controls
 and displays a timeout message. A timeout cannot establish whether the server
-finished saving; inspect local data before retrying if that matters.
+finished saving. Check the active storage before retrying if that matters.
 
 Broader UX and responsive layout improvements are on hold.
 
@@ -91,4 +139,36 @@ npm test
 ```
 
 Tests exercise the HTTP request handler in process and save only in temporary
-directories, never the site's `data/` folder. They do not require a listening port.
+directories. They do not require a listening port.
+
+## Admin dashboard
+
+Open `/admin` to view saved bookings, contact messages, and newsletter
+subscribers. The dashboard is disabled until you set `ADMIN_PASSWORD_HASH` in
+`backend/.env` (or set `ADMIN_SECOND_PASSWORD_HASH`). To generate a hash from a password without putting the password
+in shell history, run this from the project directory in Bash.
+
+```bash
+read -rsp 'New admin password: ' truckbhai_admin_password
+printf '\n'
+printf '%s' "$truckbhai_admin_password" | node --input-type=module -e '
+  import { randomBytes, scryptSync } from "node:crypto";
+  import { readFileSync } from "node:fs";
+  const password = readFileSync(0);
+  if (password.length < 16) throw new Error("Use at least 16 characters.");
+  const salt = randomBytes(16);
+  console.log("ADMIN_PASSWORD_HASH=" + salt.toString("hex") + ":" + scryptSync(password, salt, 64).toString("hex"));
+'
+unset truckbhai_admin_password
+```
+
+Copy the generated line into `backend/.env`. To add a second password, generate
+another hash, use `ADMIN_SECOND_PASSWORD_HASH` for that line, and keep the first
+entry. Either password opens the same dashboard. Remove its line and restart
+the server to revoke a password and clear existing sessions.
+
+Restart the server after configuration changes. For an HTTPS
+deployment, set `ADMIN_SECURE_COOKIE=true` and have the reverse proxy preserve
+the public `Host` header. Sessions expire after eight hours and are cleared on
+logout or server restart. The login rate limit applies to the single admin
+account across all visitors.

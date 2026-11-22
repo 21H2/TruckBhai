@@ -16,7 +16,25 @@ Thumbs.db
 # Logs and temporary files
 *.log
 
-# Submitted form data stays on this machine
-data/*.json
-data/*.tmp
+# Installed dependencies
 node_modules/
+
+# Local credentials and tool configuration
+.env
+.env.*
+!.env.example
+/.aws/
+/.agents/
+/.codex/
+
+# Local Postman workspace files
+/.postman/
+/postman/
+
+# Local form submissions and legacy storage
+/backend/data/*
+!/backend/data/.gitkeep
+/data/
+
+# Personal project preparation notes
+/PROJECT_EXPLANATION_PREP.md

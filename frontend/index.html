@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <!-- Page Metadata and SEO -->
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TruckBhai — Discover, book, and rent a truck in easy steps</title>
+  <meta name="description"
+    content="Find the perfect truck for your storage and budget. Enjoy the open road with TruckBhai's reliable and affordable truck rental service." />
+  <!-- Social Sharing (Open Graph / Twitter) -->
+  <meta property="og:title" content="TruckBhai — Discover, book, and rent a truck in easy steps" />
+  <meta property="og:description"
+    content="Find the perfect truck for your storage and budget. Enjoy the open road with TruckBhai's reliable and affordable truck rental service." />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <!-- Web Fonts and Stylesheets -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700;800&family=Lato:wght@400;600;700&family=Inter:wght@400;600&family=Cabin:wght@400;500&family=Mulish:wght@400;600&family=Work+Sans:wght@400;600;700&family=DM+Sans:wght@400;500;700&display=swap" />
+  <link rel="stylesheet" href="/vendor/leaflet/leaflet.css" />
+  <link rel="stylesheet" href="css/styles.css?v=truck-arrival-2" />
+  <link rel="preload" as="image" href="images/hero-truck-arrival.webp"
+    media="(min-width: 761px) and (prefers-reduced-motion: no-preference)" />
+  <link rel="preload" as="image" href="images/hero-truck-approach.webp"
+    media="(min-width: 761px) and (prefers-reduced-motion: reduce)" />
+  <script type="module" src="js/hero-truck.js?v=5"></script>
+  <script src="/vendor/leaflet/leaflet.js" defer></script>
+  <script type="module" src="js/main.js?v=api-v1"></script>
+</head>
+
+<body>
+  <!-- Navigation Bar -->
+  <nav class="nav" aria-label="Main">
+    <a class="logo" href="index.html">
+      <p>Truck<span>Bhai</span></p>
+      <div class="underline" aria-hidden="true"></div>
+    </a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="main-nav-links">Menu</button>
+    <ul class="nav-links" id="main-nav-links">
+      <li><a href="index.html" aria-current="page">Home</a></li>
+      <li><a href="about.html">About Us</a></li>
+      <li><a href="vehicle-models.html">Vehicle Models</a></li>
+      <li><a href="testimonials.html">Testimonials</a></li>
+      <li><a href="our-team.html">Our team</a></li>
+      <li><a href="contact.html">Contact Us</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <div class="canvas home-hero">
+      <div class="page">
+      <!-- Hero Section -->
+      <img class="fit cover" src="images/hero-background.png"
+        alt="Truck on the highway" decoding="async" />
+      <button class="abs hero-truck" type="button" aria-label="Truck headlights" aria-pressed="false" disabled>
+        <img class="fit hero-truck-parked" src="images/hero-truck.png" alt="TruckBhai delivery truck" width="3200" height="2160" />
+        <img class="fit hero-truck-arrival" data-src="images/hero-truck-arrival.webp"
+          data-short-src="images/hero-truck-approach.webp" alt="" aria-hidden="true" />
+      </button>
+
+      <h1 class="hero-title">Discover, book, and rent a truck in easy steps</h1>
+      <p class="hero-sub">
+        Find the perfect truck for your storage and budget. Enjoy the open road with our reliable and affordable rental
+        service.
+      </p>
+      <a class="hero-cta" href="#booking-form" aria-label="Book a truck now">
+        <div class="line"></div>
+        <div class="row">
+          <span class="pill"><img src="images/icon-chevron-right.svg" alt="" width="18" height="18" /></span>
+          book now
+        </div>
+      </a>
+      </div>
+    </div>
+
+    <div class="booking-widget">
+      <form id="booking-form" class="cta-card cta-fields" action="/api/v1/bookings" method="post" aria-label="Book a truck">
+        <div class="booking-controls">
+          <div class="field">
+            <label for="vehicle">Vehicle</label>
+            <div class="box">
+              <input id="vehicle" name="vehicle" autocomplete="off" placeholder="Search vehicles" required />
+            </div>
+            <p class="field-error" id="vehicle-error"></p>
+          </div>
+          <div class="field booking-location">
+            <label for="pickup">Pickup location</label>
+            <div class="box">
+              <img src="images/icon-location.svg" alt="" width="20" height="20" />
+              <input id="pickup" name="pickup" autocomplete="off" placeholder="Search location" maxlength="200" required />
+            </div>
+            <p class="field-error" id="pickup-error"></p>
+          </div>
+          <div class="field booking-location">
+            <label for="dropoff">Dropoff location</label>
+            <div class="box">
+              <img src="images/icon-location.svg" alt="" width="20" height="20" />
+              <input id="dropoff" name="dropoff" autocomplete="off" placeholder="Search location" maxlength="200" required />
+            </div>
+            <p class="field-error" id="dropoff-error"></p>
+          </div>
+          <div class="field booking-date">
+            <label for="from">Pickup date</label>
+            <div class="box">
+              <input id="from" name="pickupDate" type="date" required />
+            </div>
+            <p class="field-error" id="from-error"></p>
+          </div>
+          <div class="field booking-date">
+            <label for="to">Return date</label>
+            <div class="box">
+              <input id="to" name="returnDate" type="date" required />
+            </div>
+            <p class="field-error" id="to-error"></p>
+          </div>
+          <button class="btn-dark" id="booking-preview" type="submit" aria-controls="booking-journey"
+            aria-expanded="false">Book now</button>
+        </div>
+
+        <div class="booking-journey" id="booking-journey" hidden>
+          <div class="journey-map-frame">
+            <div id="journey-map" role="region" aria-label="Journey route map" tabindex="-1"></div>
+            <p id="journey-map-status" class="journey-map-status" role="status" hidden></p>
+          </div>
+          <p id="journey-progress" role="status" hidden>Finding your road route…</p>
+          <section class="journey-summary" id="journey-summary" aria-label="Trip estimate" hidden>
+            <dl class="journey-estimates">
+              <div><dt>Road distance</dt><dd id="journey-distance"></dd></div>
+              <div><dt>Estimated drive time</dt><dd id="journey-duration"></dd></div>
+              <div><dt>Estimated fare</dt><dd id="journey-fare"></dd></div>
+            </dl>
+            <button class="btn-dark" id="booking-confirm" type="submit">Confirm booking</button>
+          </section>
+        </div>
+        <p class="form-status" id="booking-status" role="status" tabindex="-1"></p>
+      </form>
+    </div>
+
+    <div class="canvas home-content">
+      <div class="page">
+        <div class="home-sections">
+      <!-- Rent by Brands Section -->
+      <h2 class="h-24 abs" style="left:112px;top:1005px">Rent by Brands</h2>
+      <button type="button" class="tile" style="left:calc(12.5% + 25px);top:1060px" data-field="brand" data-filter="eicher" aria-label="Eicher" aria-pressed="false"></button>
+      <div class="tile-content" style="left:calc(12.5% + 16.5px);top:1088px">
+        <img src="images/brand-eicher.png" alt="Eicher" width="53" height="39" />Eicher
+      </div>
+      <button type="button" class="tile" style="left:calc(29.17% - 9px);top:1060px" data-field="brand" data-filter="leaz" aria-label="Leaz" aria-pressed="false"></button>
+      <div class="tile-content" style="left:calc(29.17% - 9px);top:1086px">
+        <img src="images/brand-leaz.png" alt="Leaz" width="50" height="48" />Leaz
+      </div>
+      <button type="button" class="tile" style="left:calc(41.67% + 17px);top:1060px" data-field="brand" data-filter="tata" aria-label="TATA" aria-pressed="false"></button>
+      <div class="tile-content" style="left:calc(41.67% + 17.13px);top:1082px">
+        <img src="images/brand-tata.png" alt="TATA" width="68" height="50" />TATA
+      </div>
+      <button type="button" class="tile" style="left:calc(58.33% - 17px);top:1060px" data-field="brand" data-filter="mahindra" aria-label="Mahindra" aria-pressed="false"></button>
+      <div class="tile-content" style="left:calc(58.33% - 17.5px);top:1081px">
+        <img src="images/brand-mahindra.png" alt="Mahindra" width="78" height="39" />Mahindra
+      </div>
+
+      <!-- Rent by Body Type Section -->
+      <h2 class="h-24 abs" style="left:112px;top:1261px">Rent by body type</h2>
+      <button type="button" class="tile" style="left:calc(12.5% + 26px);top:1312px" data-field="body" data-filter="truck" aria-label="Open body truck" aria-pressed="false"></button>
+      <div class="tile-content" style="left:calc(12.5% + 23px);top:1335px">
+        <img src="images/body-truck.png" alt="Open body truck" width="80" height="58" />
+      </div>
+      <button type="button" class="tile" style="left:calc(29.17% + 2px);top:1312px" data-field="body" data-filter="container" aria-label="Container truck" aria-pressed="false"></button>
+      <div class="tile-content" style="left:calc(29.17% + 2.11px);top:1332.5px">
+        <img src="images/body-container.png" alt="Container truck" width="84" height="59" />
+      </div>
+      <button type="button" class="tile" style="left:calc(45.83% - 24px);top:1312px" data-field="body" data-filter="trailer" aria-label="Trailer" aria-pressed="false"></button>
+      <div class="tile-content" style="left:calc(45.83% - 24.26px);top:1327px">
+        <img src="images/body-trailer.png" alt="Trailer" width="101" height="48" />
+      </div>
+
+      <!-- Impressive Collection of Trucks Section -->
+
+      <div class="abs" style="left:1px;top:1553px;width:1440px;height:1734px;background:#f5f5f5"></div>
+      <div class="section-head" style="left:calc(50% + 1px);top:1653px">
+        <h2 class="title-48">Our Impressive Collection of Trucks</h2>
+        <p class="body-18">
+          From robust utility trucks to versatile cargo vans, our carefully curated selection ensures that our customers
+          experience unmatched performance and reliability for all their transportation needs
+        </p>
+      </div>
+      <div class="chips" style="left:calc(16.67% + 99px);top:1845px">
+        <button type="button" class="chip" data-filter="all" aria-pressed="false">Popular</button>
+        <button type="button" class="chip" data-filter="small" aria-pressed="false">Small Truck</button>
+        <button type="button" class="chip" data-filter="large" aria-pressed="false">Large Truck</button>
+        <button type="button" class="chip" data-filter="medium" aria-pressed="false">Medium Truck</button>
+      </div>
+      <p class="catalog-status abs" id="catalog-status" role="status" tabindex="-1" style="left:113px;top:1911px"></p>
+      <article data-category="small" data-vehicle="tata-ace" data-body="truck" data-brand="tata" class="truck-card" style="left:113px;top:1959px">
+        <div class="image" style="left:10px;top:37px;width:350px;height:237px"><img src="images/truck-tata-ace.png"
+            alt="TATA Ace HT mini truck" /></div>
+        <h3 class="name">TATA Ace HT mini</h3>
+        <p class="price">1000<small>/day</small></p>
+        <ul class="specs">
+          <li class="spec"><img src="images/icon-speedometer.svg" alt="" width="20" height="20" /><span>4,000 km</span>
+          </li>
+          <li class="spec"><img src="images/icon-gearbox.svg" alt="" width="20" height="20" /><span>Auto</span></li>
+          <li class="spec"><img src="images/icon-users.svg" alt="" width="20" height="20" /><span>2 Person</span></li>
+          <li class="spec"><img src="images/icon-fuel.svg" alt="" width="20" height="20" /><span>Petrol</span></li>
+        </ul>
+        <a class="btn-dark book" href="index.html?vehicle=tata-ace#booking-form">Rent Now</a>
+      </article>
+      <article data-category="large" data-vehicle="eicher-19" data-body="truck" data-brand="eicher" class="truck-card" style="left:529px;top:1959px">
+        <div class="image" style="left:8px;top:8px;width:368px;height:260px"><img src="images/truck-eicher-19.png"
+            alt="EICHER 19 truck" /></div>
+        <h3 class="name">EICHER 19</h3>
+        <p class="price">1000<small>/day</small></p>
+        <ul class="specs">
+          <li class="spec"><img src="images/icon-speedometer.svg" alt="" width="20" height="20" /><span>4,000</span>
+          </li>
+          <li class="spec"><img src="images/icon-gearbox.svg" alt="" width="20" height="20" /><span>Auto</span></li>
+          <li class="spec"><img src="images/icon-users.svg" alt="" width="20" height="20" /><span>4 Person</span></li>
+          <li class="spec"><img src="images/icon-fuel.svg" alt="" width="20" height="20" /><span>Electric</span></li>
+        </ul>
+        <a class="btn-dark book" href="index.html?vehicle=eicher-19#booking-form">Rent Now</a>
+      </article>
+      <article data-category="medium" data-vehicle="eicher-pro" data-body="truck" data-brand="eicher" class="truck-card" style="left:945px;top:1959px">
+        <div class="image" style="left:21px;top:23px;width:339px;height:257px"><img src="images/truck-eicher-pro.png"
+            alt="EICHER pro truck" /></div>
+        <h3 class="name">EICHER pro</h3>
+        <p class="price">1000<small>/day</small></p>
+        <ul class="specs">
+          <li class="spec"><img src="images/icon-speedometer.svg" alt="" width="20" height="20" /><span>4,000</span>
+          </li>
+          <li class="spec"><img src="images/icon-gearbox.svg" alt="" width="20" height="20" /><span>Auto</span></li>
+          <li class="spec"><img src="images/icon-users.svg" alt="" width="20" height="20" /><span>4 Person</span></li>
+          <li class="spec"><img src="images/icon-fuel.svg" alt="" width="20" height="20" /><span>Electric</span></li>
+        </ul>
+        <a class="btn-dark book" href="index.html?vehicle=eicher-pro#booking-form">Rent Now</a>
+      </article>
+      <article data-category="large" data-vehicle="container" data-body="container" class="truck-card" style="left:113px;top:2529px">
+        <div class="image" style="left:8px;top:12px;width:368px;height:260px"><img src="images/truck-container.png"
+            alt="12 by 20 container truck" /></div>
+        <h3 class="name">Container 12*20</h3>
+        <p class="price">1000<small>/day</small></p>
+        <ul class="specs">
+          <li class="spec"><img src="images/icon-speedometer.svg" alt="" width="20" height="20" /><span>4,000</span>
+          </li>
+          <li class="spec"><img src="images/icon-gearbox.svg" alt="" width="20" height="20" /><span>Auto</span></li>
+          <li class="spec"><img src="images/icon-users.svg" alt="" width="20" height="20" /><span>4 Person</span></li>
+          <li class="spec"><img src="images/icon-fuel.svg" alt="" width="20" height="20" /><span>Electric</span></li>
+        </ul>
+        <a class="btn-dark book" href="index.html?vehicle=container#booking-form">Rent Now</a>
+      </article>
+      <article data-category="large" data-vehicle="trailer" data-body="trailer" class="truck-card" style="left:529px;top:2529px">
+        <div class="image" style="left:-11px;top:55px;width:395px;height:178px"><img src="images/truck-trailer.png"
+            alt="12 by 32 trailer" /></div>
+        <h3 class="name">trailer 12*32</h3>
+        <p class="price">1000<small>/day</small></p>
+        <ul class="specs">
+          <li class="spec"><img src="images/icon-speedometer.svg" alt="" width="20" height="20" /><span>4,000</span>
+          </li>
+          <li class="spec"><img src="images/icon-gearbox.svg" alt="" width="20" height="20" /><span>Auto</span></li>
+          <li class="spec"><img src="images/icon-users.svg" alt="" width="20" height="20" /><span>4 Person</span></li>
+          <li class="spec"><img src="images/icon-fuel.svg" alt="" width="20" height="20" /><span>Electric</span></li>
+        </ul>
+        <a class="btn-dark book" href="index.html?vehicle=trailer#booking-form">Rent Now</a>
+      </article>
+      <article data-category="large" data-vehicle="refrigerated" data-body="trailer" class="truck-card" style="left:945px;top:2529px">
+        <div class="image" style="left:-7px;top:18px;width:347px;height:240px"><img src="images/truck-refrigerated.png"
+            alt="Refrigerated trailer" /></div>
+        <h3 class="name">refrigerated trailer</h3>
+        <p class="price">1000<small>/day</small></p>
+        <ul class="specs">
+          <li class="spec"><img src="images/icon-speedometer.svg" alt="" width="20" height="20" /><span>4,000</span>
+          </li>
+          <li class="spec"><img src="images/icon-gearbox.svg" alt="" width="20" height="20" /><span>Auto</span></li>
+          <li class="spec"><img src="images/icon-users.svg" alt="" width="20" height="20" /><span>4 Person</span></li>
+          <li class="spec"><img src="images/icon-fuel.svg" alt="" width="20" height="20" /><span>Electric</span></li>
+        </ul>
+        <a class="btn-dark book" href="index.html?vehicle=refrigerated#booking-form">Rent Now</a>
+      </article>
+      <a class="btn-dark abs" style="left:calc(50% + 1px);top:3131px;transform:translateX(-50%);padding:16px 40px"
+        href="vehicle-models.html">
+        See all Trucks <img src="images/icon-arrow-right.svg" alt="" width="24" height="24" />
+      </a>
+
+      <!-- How It Works Section -->
+      <section class="abs" style="left:81px;top:3391px;width:1248px;height:838px">
+        <div class="abs" style="left:476px;top:200px;width:761px;height:638px;border-radius:24px;background:#f5f5f5">
+        </div>
+        <div class="section-head" style="left:50%;top:0">
+          <h2 class="title-48">How it works</h2>
+          <p class="body-18" style="width:743px">
+            Discover the simplicity and reliability of renting our quality trucks through our streamlined process.
+            Effortlessly book and confirm your selected vehicle online for a smooth and dependable experience
+          </p>
+        </div>
+
+        <div class="step-card" style="left:0;top:248px;height:170px"></div>
+        <div class="step-icon" style="left:32px;top:280px"></div>
+        <img class="abs" style="left:47px;top:321px" src="images/icon-search.svg" alt="" width="24" height="24" />
+        <h3 class="step-title" style="left:106px;top:280px">Browse and select</h3>
+        <p class="step-text" style="left:106px;top:328px">
+          Choose the ideal truck size for your needs and select the rental duration that suits your moving plans.
+        </p>
+
+        <div class="step-card" style="left:0;top:434px;height:170px"></div>
+        <div class="step-icon" style="left:32px;top:466px"></div>
+        <img class="abs" style="left:47px;top:507px" src="images/icon-calendar-check.svg" alt="" width="24"
+          height="24" />
+        <h3 class="step-title" style="left:106px;top:466px">Book and confirm</h3>
+        <p class="step-text" style="left:106px;top:514px">
+          Easily book your selected truck online through our secure platform, ensuring a confirmed reservation.
+        </p>
+
+        <div class="step-card" style="left:0;top:620px;height:218px"></div>
+        <div class="step-icon" style="left:32px;top:652px"></div>
+        <img class="abs" style="left:47px;top:693px" src="images/icon-face-happy.svg" alt="" width="24" height="24" />
+        <h3 class="step-title" style="left:106px;top:652px">Enjoy a Smooth Move</h3>
+        <p class="step-text" style="left:106px;top:700px">
+          Collect your rented truck on the scheduled day from our convenient location. Our friendly staff is ready to
+          assist, ensuring a smooth and stress-free moving experience.
+        </p>
+
+        <img class="abs cover" style="left:603px;top:338px;width:645px;height:337px" src="images/how-it-works-truck.png"
+          loading="lazy" alt="Truck being loaded" />
+      </section>
+
+      <!-- Services & Benefits Section -->
+      <section class="services" style="top:4296px">
+        <div class="section-head" style="left:50%;top:100px;color:#fff">
+          <h2 class="title-48">Our Services &amp; Benefits</h2>
+          <p class="body-18" style="width:720px">
+            To make renting easy and hassle-free, we provide a variety of services and advantages. We have you covered
+            with
+            a variety of vehicles and flexible rental terms.
+          </p>
+        </div>
+        <div class="svc-col" style="left:112px;top:308px">
+          <div class="badge"><img src="images/icon-stars.svg" alt="" /></div>
+          <h4>Quality Choice</h4>
+          <p>
+            Choose from a varied selection of top-tier trucks, ensuring high-quality options for your specific needs and
+            preferences.
+          </p>
+        </div>
+        <div class="svc-col" style="left:528px;top:308px">
+          <div class="badge"><img src="images/icon-coins-hand.svg" alt="" /></div>
+          <h4>Affordable Prices</h4>
+          <p>
+            Our rental rates are highly competitive and affordable, allowing our customers to enjoy their trips without
+            breaking the bank.
+          </p>
+        </div>
+        <div class="svc-col" style="left:944px;top:308px">
+          <div class="badge"><img src="images/icon-check-verified.svg" alt="" /></div>
+          <h4>Convenient Online Booking</h4>
+          <p>
+            With our easy-to-use online booking system, customers can quickly and conveniently reserve their rental
+            truck
+            from anywhere, anytime.
+          </p>
+        </div>
+      </section>
+
+      <!-- Customer Testimonials Section -->
+      <h2 class="abs"
+        style="left:120px;top:5116px;font-size:40px;font-weight:700;line-height:1.3;letter-spacing:-0.8px;color:#0f0f0f;white-space:nowrap">
+        What Our Customers Say
+      </h2>
+      <section class="testimonials" style="top:5175px;left:0;width:1440px;height:560px">
+        <div class="testimonial testimonial--side" style="left:71px;top:135px">
+          <div class="card">
+            <img src="images/icon-quote.svg" alt="" width="24" height="24" />
+            <blockquote>
+              <p>I thought I needed a big truck for moving, but seeing the sizes side by side helped me pick one that fit my boxes.</p>
+            </blockquote>
+          </div>
+          <img class="face" src="images/manas.jpeg" alt="Manas Sharma" loading="lazy" />
+          <span class="who">Manas Sharma</span>
+        </div>
+        <div class="testimonial testimonial--center" style="left:493px;top:99px">
+          <div class="card">
+            <img src="images/icon-quote.svg" alt="" width="24" height="24" />
+            <blockquote>
+              <p>The route showed the driving time between pickup and dropoff, so I knew when to ask my friends to meet me at the flat.</p>
+            </blockquote>
+          </div>
+          <img class="face" src="images/king.jpg" alt="King Kapoor" loading="lazy" />
+          <span class="who">King Kapoor</span>
+        </div>
+        <div class="testimonial testimonial--side" style="left:918px;top:135px">
+          <div class="card">
+            <img src="images/icon-quote.svg" alt="" width="24" height="24" />
+            <blockquote>
+              <p>I could see the fare for both days before booking the truck. That helped me work out how much each of us would pay for the move.</p>
+            </blockquote>
+          </div>
+          <img class="face" src="images/shivain.webp" alt="Shivain Gupta" loading="lazy" />
+          <span class="who">Shivain Gupta</span>
+        </div>
+      </section>
+
+      <!-- Footer Section -->
+      <footer class="footer footer--home" style="top:5783px">
+        <div class="logo">
+          <p>Truck<span>Bhai</span></p>
+          <div class="underline"></div>
+        </div>
+        <p class="tagline">Your Trusted Truck Rental Solution</p>
+        <div class="col col--company">
+          <h4>Company</h4>
+          <ul>
+            <li>Rent Details</li>
+            <li>Why Choose Us</li>
+            <li>Terms and Conditions</li>
+          </ul>
+        </div>
+        <div class="col col--contact">
+          <h4>Contact Us</h4>
+          <a href="mailto:info@truckbhai.com">info@truckbhai.com</a>
+          <p>+91 99349 49572</p>
+          <p>chennai,tamilnadu</p>
+        </div>
+        <div class="col col--news">
+          <h4>Get deals and discounts</h4>
+
+        </div>
+        <form id="newsletter-form" class="newsletter-form" action="/api/v1/subscribers" method="post">
+          <input id="newsletter-email" class="newsletter-input" name="email" type="email" autocomplete="email"
+            placeholder="Email" aria-label="Newsletter email" maxlength="254" required />
+          <button class="newsletter-button" type="submit">Subscribe</button>
+          <p class="field-error" id="newsletter-email-error"></p>
+          <p class="form-status" role="status"></p>
+        </form>
+        <p class="copyright">© Copyright Team Inc.</p>
+      </footer>
+        </div>
+      </div>
+    </div>
+  </main>
+</body>
+
+</html>
