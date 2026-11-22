@@ -6,6 +6,7 @@ import path from "node:path";
 import { once } from "node:events";
 import { scryptSync, randomBytes } from "node:crypto";
 import { createApp } from "../src/app.js";
+import { businessToday } from "../src/today.js";
 
 const password = "admin test password";
 const salt = randomBytes(16);
@@ -107,10 +108,13 @@ test("the summary always returns 14 days, oldest first, ending today", async (t)
   assert.equal(summary.byDay.length, 14);
   const dates = summary.byDay.map(point => point.date);
   assert.deepEqual([...dates].sort(), dates, "days must be in ascending order");
-  assert.equal(dates[13], new Date().toISOString().slice(0, 10));
+  // The axis ends on the business timezone's today, not the UTC date: those
+  // disagree for 5.5 hours every day in IST.
+  assert.equal(dates[13], businessToday());
   // The booking was created now, so it lands on the final day.
   assert.equal(summary.byDay[13].count, 1);
   assert.equal(summary.byDay[0].count, 0);
+  assert.equal(summary.capped, false);
 });
 
 test("the summary separates signed-in bookings from anonymous ones", async (t) => {

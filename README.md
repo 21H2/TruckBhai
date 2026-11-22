@@ -270,3 +270,43 @@ the last 14 days, and the vehicle mix. Bookings are read newest first and capped
 
 The charts are SVG drawn in `frontend/js/admin-charts.js` with no charting
 dependency, because the admin CSP blocks both external scripts and inline styles.
+
+## Running behind a reverse proxy
+
+Set `PUBLIC_ORIGIN` to the origin browsers actually use, for example
+`https://truckbhai.example`. Every state-changing endpoint checks the request's
+`Origin` against it, and password reset links are built from it.
+
+Without it the expected origin is derived from `request.protocol`, which Express
+reads from `X-Forwarded-Proto` because `trust proxy` is set to one hop. If neither
+is right, a browser on HTTPS sends `Origin: https://host` while the server expects
+`http://host`, and every form returns 403 "Submit this form from this website."
+
+## Dates and timezones
+
+Booking dates are plain `YYYY-MM-DD` in the operating country, so the server
+compares them against the date in `BUSINESS_TIMEZONE`, which defaults to
+`Asia/Kolkata`. `backend/src/today.js` is the only place that decides what "today"
+means.
+
+Using the UTC date instead would be wrong for the 5 hours 30 minutes each day when
+the UTC date and the Indian date disagree: a booking picking up today would read as
+upcoming, and one that ended yesterday would read as still on rent. The admin
+chart's 14-day axis and its per-day buckets both use the same timezone, so a
+booking cannot land in a bar it does not belong to.
+
+## Fares
+
+`estimateFare` in `frontend/js/booking.js` charges the daily rate for the number of
+days, plus fuel for the road distance at the vehicle's mileage and the current pump
+price for the fuel it burns. Diesel vehicles are priced from the diesel price and
+the petrol Ace from the petrol price.
+
+Each class has its own rate and mileage in `backend/src/fuel.js`: from ₹1,200/day at
+13.5 km/L for the Ace to ₹5,800/day at 3 km/L for the refrigerated trailer. A
+vehicle whose mileage or pump price is missing yields no estimate rather than a
+silently fuel-free trip.
+
+Run `db.vehicles.deleteMany({})` and restart to reseed the fleet after changing
+those specifications; `seedVehicles` only inserts, so it will not overwrite
+existing documents.

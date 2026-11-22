@@ -453,3 +453,13 @@
     grid-template-columns: 1fr;
   }
 }
+
+.admin-capped {
+  margin-bottom: 18px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: #fff3ca;
+  font-size: 14px;
+  line-height: 20px;
+  color: #7a5600;
+}

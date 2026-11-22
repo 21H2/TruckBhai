@@ -3,7 +3,8 @@ import path from "node:path";
 import { randomUUID } from "node:crypto";
 import * as bookings from "../../../frontend/js/booking.js";
 import * as forms from "../../../frontend/js/forms.js";
-import { requireJsonObject, requestError, sendJson } from "../http.js";
+import { requireJsonObject, requestError, sendJson, sameOrigin } from "../http.js";
+import { businessToday } from "../today.js";
 
 function duplicateSubscription() {
   const message = "This email address is already subscribed.";
@@ -101,7 +102,7 @@ export function createSubmissionController({ dataDir, models, journeys, fuel, ma
     if (!record) {
       return sendJson(response, 404, { message: "No booking matches that reference." });
     }
-    const today = new Date().toISOString().slice(0, 10);
+    const today = businessToday();
     response.setHeader("Cache-Control", "no-store");
     return sendJson(response, 200, { booking: { ...record, stage: bookingStage(record, today) } });
   }
@@ -126,7 +127,7 @@ export function createSubmissionController({ dataDir, models, journeys, fuel, ma
 
   function submit({ validate, save, confirmation, prepare, attribute }) {
     return async (request, response) => {
-      if (request.headers.origin && request.headers.origin !== request.protocol + "://" + request.headers.host) {
+      if (!sameOrigin(request)) {
         return sendJson(response, 403, { message: "Submit this form from this website." });
       }
       const input = requireJsonObject(request);

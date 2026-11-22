@@ -2,7 +2,8 @@ import { randomBytes, scrypt, timingSafeEqual } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { promisify } from "node:util";
-import { requireJsonObject, sendJson } from "../http.js";
+import { requireJsonObject, sendJson, sameOrigin } from "../http.js";
+import { businessToday, businessDate, recentDays } from "../today.js";
 
 const deriveKey = promisify(scrypt);
 const sessionDuration = 8 * 60 * 60;
@@ -83,7 +84,7 @@ export function createAdminController({ passwordHash, secondPasswordHash, secure
       models?.users ? models.users.estimatedDocumentCount().exec() : countUsersFromFile()
     ]);
 
-    const today = new Date().toISOString().slice(0, 10);
+    const today = businessToday();
     const stages = { upcoming: 0, active: 0, completed: 0 };
     const vehicles = new Map();
     const byDay = new Map();
@@ -91,10 +92,7 @@ export function createAdminController({ passwordHash, secondPasswordHash, secure
     let attributed = 0;
 
     // The last 14 days always appear, so the chart keeps a steady shape.
-    for (let back = 13; back >= 0; back--) {
-      const date = new Date(Date.now() - back * 86_400_000).toISOString().slice(0, 10);
-      byDay.set(date, 0);
-    }
+    for (const date of recentDays(14)) byDay.set(date, 0);
 
     for (const booking of bookings) {
       const stage = booking.pickupDate > today ? "upcoming"
@@ -103,7 +101,8 @@ export function createAdminController({ passwordHash, secondPasswordHash, secure
       vehicles.set(booking.vehicle, (vehicles.get(booking.vehicle) || 0) + 1);
       if (Number.isFinite(booking.estimatedFareInr)) revenue += booking.estimatedFareInr;
       if (booking.accountEmail) attributed++;
-      const day = typeof booking.submittedAt === "string" ? booking.submittedAt.slice(0, 10) : null;
+      // Bucket by the business-timezone day, matching how the axis was built.
+      const day = businessDate(booking.submittedAt);
       if (day && byDay.has(day)) byDay.set(day, byDay.get(day) + 1);
     }
 
@@ -112,6 +111,9 @@ export function createAdminController({ passwordHash, secondPasswordHash, secure
         bookings: bookings.length, contacts, subscribers, accounts,
         attributed, anonymous: bookings.length - attributed
       },
+      // True once the read hit its cap, so the UI can say the figures cover only
+      // the most recent bookings instead of presenting a subtotal as the total.
+      capped: bookings.length >= summaryLimit,
       revenue,
       stages,
       byDay: [...byDay].map(([date, count]) => ({ date, count })),
@@ -155,9 +157,8 @@ export function createAdminController({ passwordHash, secondPasswordHash, secure
     }
 
     if (request.method === "POST") {
-      const protocol = secureCookie ? "https" : "http";
-      if (request.headers["sec-fetch-site"] === "cross-site" ||
-          request.headers.origin !== `${protocol}://${request.headers.host}`) {
+      // Admin posts must carry an Origin, so the stricter check stays here.
+      if (!request.headers.origin || !sameOrigin(request)) {
         return sendJson(response, 403, { message: "Submit this request from the TruckBhai admin page." });
       }
       if (apiPath === "/login") {

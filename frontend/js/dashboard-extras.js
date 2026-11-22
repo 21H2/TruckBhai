@@ -93,7 +93,11 @@ export function monthlySpend(bookings, now = new Date()) {
   const months = [];
   for (let back = 5; back >= 0; back--) {
     const date = new Date(now.getFullYear(), now.getMonth() - back, 1);
-    months.push({ key: date.toISOString().slice(0, 7), date, total: 0 });
+    // Build the key from local parts: toISOString() converts to UTC, which rolls
+    // local midnight back into the previous month anywhere east of UTC and drops
+    // the current month off the chart entirely.
+    const key = date.getFullYear() + "-" + String(date.getMonth() + 1).padStart(2, "0");
+    months.push({ key, date, total: 0 });
   }
   const index = new Map(months.map(month => [month.key, month]));
   for (const booking of bookings) {

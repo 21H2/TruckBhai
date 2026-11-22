@@ -12,8 +12,11 @@ function estimateFare(vehicle, distanceKm, pickupDate, returnDate) {
   const days = (Date.parse(returnDate) - Date.parse(pickupDate)) / 86400000;
   if (days < 1 || !Number.isFinite(vehicle.dailyRateInr) || vehicle.dailyRateInr <= 0) return null;
   let fuelCost = 0;
+  // Any liquid fuel is priced from distance, mileage and the pump price. Only an
+  // electric vehicle skips fuel entirely; a fuel type we cannot price is an error
+  // rather than a silently free trip.
   if (vehicle.fuelType !== "electric") {
-    if (vehicle.fuelType !== "petrol" || !Number.isFinite(distanceKm) || distanceKm < 0 ||
+    if (!Number.isFinite(distanceKm) || distanceKm < 0 ||
         !Number.isFinite(vehicle.mileageKmPerLitre) || vehicle.mileageKmPerLitre <= 0 ||
         !Number.isFinite(vehicle.pricePerLitre) || vehicle.pricePerLitre <= 0) return null;
     fuelCost = distanceKm / vehicle.mileageKmPerLitre * vehicle.pricePerLitre;

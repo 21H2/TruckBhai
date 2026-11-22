@@ -26,11 +26,15 @@ const pages = new Set([
   "forgot-password.html", "dashboard.html", "track.html", "drive-with-us.html",
   "help.html", "business.html", "terms.html", "privacy.html", "not-found.html"
 ]);
+// Crawler files that have to sit at the site root to be found.
+const rootFiles = new Set(["robots.txt", "sitemap.xml"]);
 const mimeTypes = {
   ".html": "text/html; charset=utf-8",
   ".css": "text/css; charset=utf-8",
   ".js": "text/javascript; charset=utf-8",
   ".map": "application/json; charset=utf-8",
+  ".txt": "text/plain; charset=utf-8",
+  ".xml": "application/xml; charset=utf-8",
   ".woff2": "font/woff2",
   ".png": "image/png",
   ".jpg": "image/jpeg",
@@ -45,11 +49,19 @@ function createApp({ dataDir = DATA_DIR, db, models, journeys = createJourneySer
   const app = express();
   app.disable("x-powered-by");
   app.enable("case sensitive routing");
+  // One proxy hop, so request.protocol reflects X-Forwarded-Proto in production
+  // and the origin check below does not reject every HTTPS form post.
+  app.set("trust proxy", 1);
 
   app.use((request, response, next) => {
     response.setHeader("X-Content-Type-Options", "nosniff");
     response.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
     response.setHeader("X-Frame-Options", "DENY");
+    response.setHeader("Permissions-Policy", "geolocation=(), camera=(), microphone=()");
+    response.setHeader("Cross-Origin-Opener-Policy", "same-origin");
+    if (request.secure) {
+      response.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+    }
     const url = new URL(request.url, "http://localhost");
     const pathname = decodeURIComponent(url.pathname);
     response.locals.pathname = pathname;
@@ -95,7 +107,7 @@ function createApp({ dataDir = DATA_DIR, db, models, journeys = createJourneySer
     }
     const file = pathname === "/" ? "index.html" : pathname.slice(1);
     // Only public site files are served; submissions and server files stay private.
-    const publicAsset = /^(?:css|js|images)\/[a-zA-Z0-9_.-]+$/.test(file);
+    const publicAsset = /^(?:css|js|images)\/[a-zA-Z0-9_.-]+$/.test(file) || rootFiles.has(file);
     const dependency = publicDependencies.get(file);
     const mimeType = mimeTypes[path.extname(file)];
     if ((!pages.has(file) && !publicAsset && !dependency) || !mimeType) {

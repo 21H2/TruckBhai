@@ -9,8 +9,9 @@
 import { randomBytes, randomUUID, scrypt, timingSafeEqual } from "node:crypto";
 import { promisify } from "node:util";
 import * as forms from "../../../frontend/js/forms.js";
-import { requireJsonObject, requestError, sendJson } from "../http.js";
+import { requireJsonObject, requestError, sendJson, expectedOrigin, sameOrigin } from "../http.js";
 import { createAccountStore, createBookingReader } from "../accounts.js";
+import { businessToday } from "../today.js";
 
 const deriveKey = promisify(scrypt);
 const keyLength = 64;
@@ -38,7 +39,10 @@ export function createAccountController({ dataDir, models, mailer, secureCookie 
   const sessions = new Map();
   const cookieName = secureCookie ? "__Host-truckbhai_account" : "truckbhai_account";
   const cookieFlags = "Path=/; HttpOnly; SameSite=Strict" + (secureCookie ? "; Secure" : "");
-  const attempts = new Map();
+  // Separate maps so flooding one endpoint cannot evict the other's counters.
+  const signInAttempts = new Map();
+  const resetAttempts = new Map();
+  const registerAttempts = new Map();
   // Reset tokens are single use and short lived. They are kept server side and
   // only their raw value, delivered by email, can redeem one.
   const resetTokens = new Map();
@@ -64,17 +68,25 @@ export function createAccountController({ dataDir, models, mailer, secureCookie 
     for (const [token, session] of sessions) {
       if (session.expiresAt <= now) sessions.delete(token);
     }
-    // A bounded map keeps a flood of signups from growing memory without limit.
-    while (sessions.size >= maxSessions) sessions.delete(sessions.keys().next().value);
   }
 
+  // Returns null when the table is full. Evicting the oldest live session instead
+  // would let unauthenticated signups sign every real customer out, so a full
+  // table refuses the new session rather than destroying existing ones.
   function startSession(response, email) {
     const now = Date.now();
     pruneSessions(now);
+    if (sessions.size >= maxSessions) return null;
     const token = randomBytes(32).toString("hex");
     sessions.set(token, { email, expiresAt: now + sessionDuration * 1000 });
     setCookie(response, token, sessionDuration);
     return token;
+  }
+
+  function dropSessionsFor(email) {
+    for (const [token, session] of sessions) {
+      if (session.email === email) sessions.delete(token);
+    }
   }
 
   // Exposed so the booking controller can attribute a submission to its customer.
@@ -90,23 +102,26 @@ export function createAccountController({ dataDir, models, mailer, secureCookie 
     return session.email;
   }
 
-  function rateLimit(email) {
+  // M-1: expired entries are dropped first and a full table refuses rather than
+  // evicting a live counter, so an attacker cannot flush a victim's budget.
+  function rateLimit(store, key, limit = 5) {
     const now = Date.now();
-    const entry = attempts.get(email);
-    if (!entry || now >= entry.resetAt) {
-      attempts.set(email, { count: 1, resetAt: now + 60_000 });
-      if (attempts.size > 1000) attempts.delete(attempts.keys().next().value);
+    for (const [existing, entry] of store) {
+      if (now >= entry.resetAt) store.delete(existing);
+    }
+    const entry = store.get(key);
+    if (!entry) {
+      if (store.size >= 5000) return 60;
+      store.set(key, { count: 1, resetAt: now + 60_000 });
       return null;
     }
     entry.count++;
-    if (entry.count > 5) return Math.ceil((entry.resetAt - now) / 1000);
+    if (entry.count > limit) return Math.ceil((entry.resetAt - now) / 1000);
     return null;
   }
 
-  function sameOrigin(request) {
-    if (request.headers["sec-fetch-site"] === "cross-site") return false;
-    if (!request.headers.origin) return true;
-    return request.headers.origin === request.protocol + "://" + request.headers.host;
+  function clientKey(request) {
+    return request.ip || request.socket?.remoteAddress || "unknown";
   }
 
   function profile(record) {
@@ -116,6 +131,11 @@ export function createAccountController({ dataDir, models, mailer, secureCookie 
   async function register(request, response) {
     if (!sameOrigin(request)) {
       return sendJson(response, 403, { message: "Submit this form from this website." });
+    }
+    const retryAfter = rateLimit(registerAttempts, clientKey(request), 10);
+    if (retryAfter) {
+      response.setHeader("Retry-After", retryAfter);
+      return sendJson(response, 429, { message: "Too many sign-up attempts. Try again in a minute." });
     }
     const { values, errors } = forms.registration(requireJsonObject(request));
     if (Object.keys(errors).length) {
@@ -135,7 +155,15 @@ export function createAccountController({ dataDir, models, mailer, secureCookie 
       passwordHash: await hashPassword(values.password)
     };
     await accounts.create(record);
-    startSession(response, record.email);
+    // Replace any session the visitor already carried, so registering cannot be
+    // used to graft a new account onto an attacker-planted session.
+    const previous = readToken(request);
+    if (previous) sessions.delete(previous);
+    if (!startSession(response, record.email)) {
+      return sendJson(response, 503, {
+        message: "Your account was created, but sign-in is busy. Try signing in now."
+      });
+    }
 
     if (mailer) {
       // A mail failure must not turn a created account into a failed response.
@@ -155,7 +183,7 @@ export function createAccountController({ dataDir, models, mailer, secureCookie 
       return sendJson(response, 422, { message: "Check the form details.", errors });
     }
 
-    const retryAfter = rateLimit(values.email);
+    const retryAfter = rateLimit(signInAttempts, values.email);
     if (retryAfter) {
       response.setHeader("Retry-After", retryAfter);
       return sendJson(response, 429, { message: "Too many sign-in attempts. Try again in a minute." });
@@ -169,10 +197,12 @@ export function createAccountController({ dataDir, models, mailer, secureCookie 
       return sendJson(response, 401, { message: "Email or password is incorrect." });
     }
 
-    attempts.delete(values.email);
+    signInAttempts.delete(values.email);
     const previous = readToken(request);
     if (previous) sessions.delete(previous);
-    startSession(response, record.email);
+    if (!startSession(response, record.email)) {
+      return sendJson(response, 503, { message: "Sign-in is busy right now. Try again shortly." });
+    }
     return sendJson(response, 200, { message: "Signed in.", account: profile(record) });
   }
 
@@ -198,7 +228,7 @@ export function createAccountController({ dataDir, models, mailer, secureCookie 
     const email = sessionEmail(request);
     if (!email) return sendJson(response, 401, { message: "Sign in to continue." });
     const bookings = await listBookings(email);
-    const today = new Date().toISOString().slice(0, 10);
+    const today = businessToday();
     return sendJson(response, 200, {
       bookings: bookings.map((booking) => ({
         ...booking,
@@ -218,7 +248,7 @@ export function createAccountController({ dataDir, models, mailer, secureCookie 
     // addresses. A missing account simply has no token created for it.
     const answer = { message: "If that email has an account, a reset link is on its way." };
 
-    const retryAfter = rateLimit("reset:" + email);
+    const retryAfter = rateLimit(resetAttempts, email);
     if (retryAfter) {
       response.setHeader("Retry-After", retryAfter);
       return sendJson(response, 429, { message: "Too many reset requests. Try again in a minute." });
@@ -233,7 +263,7 @@ export function createAccountController({ dataDir, models, mailer, secureCookie 
     resetTokens.set(token, { email: record.email, expiresAt: now + resetDuration });
 
     if (mailer) {
-      const link = `${request.protocol}://${request.headers.host}/forgot-password.html?token=${token}`;
+      const link = `${expectedOrigin(request)}/forgot-password.html?token=${token}`;
       Promise.resolve().then(() => mailer.send("reset", { ...record, resetLink: link, resetToken: token }))
         .catch((error) => {
           console.error("Could not send reset email for %s: %s", record.id, error.message);
@@ -278,10 +308,9 @@ export function createAccountController({ dataDir, models, mailer, secureCookie 
     // Single use, and every existing session for the account is dropped so a
     // stolen session cannot outlive the password it was created with.
     resetTokens.delete(token);
-    for (const [sessionToken, session] of sessions) {
-      if (session.email === entry.email) sessions.delete(sessionToken);
-    }
-    attempts.delete(entry.email);
+    dropSessionsFor(entry.email);
+    signInAttempts.delete(entry.email);
+    resetAttempts.delete(entry.email);
     return sendJson(response, 200, { message: "Your password is updated. Sign in with it now." });
   }
 

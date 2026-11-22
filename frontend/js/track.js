@@ -67,7 +67,9 @@ if (form) {
     heading.className = "track-head";
     const route = document.createElement("h2");
     route.className = "track-route";
-    route.textContent = booking.pickup + " → " + booking.dropoff;
+    route.textContent = booking.dropoff
+      ? booking.pickup + " → " + booking.dropoff
+      : booking.pickup;
     const pill = document.createElement("span");
     pill.className = "dash-pill dash-pill--" +
       (booking.stage === "active" ? "confirmed" : booking.stage === "completed" ? "done" : "pending");
@@ -79,7 +81,7 @@ if (form) {
       detail("Reference", booking.id),
       detail("Vehicle", names.get(booking.vehicle) || booking.vehicle),
       detail("Pickup date", day(booking.pickupDate)),
-      detail("Return date", day(booking.returnDate))
+      detail("Return date", booking.returnDate ? day(booking.returnDate) : "—")
     );
     if (Number.isFinite(booking.estimatedFareInr)) {
       list.append(detail("Estimated fare", price.format(booking.estimatedFareInr)));

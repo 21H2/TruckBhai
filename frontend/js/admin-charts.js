@@ -201,6 +201,9 @@ export function renderSummary(summary, labels) {
     if (element) element.textContent = value;
   }
 
+  const capped = document.getElementById("summary-capped");
+  if (capped) capped.hidden = !summary.capped;
+
   drawDailyBookings(document.getElementById("chart-daily"), summary.byDay);
   drawVehicleMix(document.getElementById("chart-vehicles"), summary.vehicles, labels);
   drawStages(document.getElementById("chart-stages"), summary.stages);

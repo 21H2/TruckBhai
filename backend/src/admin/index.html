@@ -8,10 +8,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700;800&family=Lato:wght@400;600;700&family=Inter:wght@400;600&family=Cabin:wght@400;500&family=Mulish:wght@400;600&family=Work+Sans:wght@400;600;700&family=DM+Sans:wght@400;500;700&display=swap" />
-  <link rel="stylesheet" href="/css/styles.css?v=5" />
-  <link rel="stylesheet" href="/css/admin.css?v=5" />
+  <link rel="stylesheet" href="/css/styles.css?v=6" />
+  <link rel="stylesheet" href="/css/admin.css?v=6" />
   <script type="module" src="/js/main.js?v=esm"></script>
-  <script type="module" src="/js/admin.js?v=charts-1"></script>
+  <script type="module" src="/js/admin.js?v=charts-2"></script>
 </head>
 <body>
   <!-- Navigation Bar -->
@@ -69,6 +69,9 @@
       <div class="admin-panel">
         <p class="form-status" id="overview-status" role="status">Loading the overview…</p>
         <div class="admin-overview" id="admin-overview" hidden>
+          <p class="admin-capped" id="summary-capped" hidden>
+            These figures cover the 2,000 most recent bookings. Older bookings are in the table below.
+          </p>
           <!-- Headline Figures -->
           <dl class="admin-figures">
             <div class="admin-figure">

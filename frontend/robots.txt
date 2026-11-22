@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+
+# Nothing useful or public lives behind these.
+Disallow: /admin
+Disallow: /api/
+Disallow: /dashboard.html
+Disallow: /forgot-password.html
+
+Sitemap: /sitemap.xml

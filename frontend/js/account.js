@@ -60,7 +60,11 @@ function connectAuthForm(form, { validate, path, redirect, pending, done }) {
       await send(path, values);
       status.textContent = done;
       status.dataset.state = "success";
-      window.location.assign(redirect);
+      // Honour ?next= so a visitor bounced off a page returns to it, but only for
+      // a same-site page so the parameter cannot become an open redirect.
+      const next = new URLSearchParams(window.location.search).get("next");
+      const safeNext = next && /^[a-z0-9-]+\.html$/.test(next) ? next : null;
+      window.location.assign(safeNext || redirect);
     } catch (error) {
       showErrors(form, error.errors);
       status.textContent = error.message;
@@ -116,7 +120,7 @@ async function connectDashboard() {
     ({ account } = await send("/me"));
   } catch (error) {
     if (error.status === 401) {
-      window.location.replace("login.html?next=dashboard");
+      window.location.replace("login.html?next=dashboard.html");
       return;
     }
     status.textContent = error.message;
@@ -197,7 +201,15 @@ if (loginForm) {
   });
 }
 
-connectDashboard();
+// A missing element or an unexpected shape must surface as a message, not as an
+// unhandled rejection that leaves the page stuck on "Loading your dashboard…".
+connectDashboard().catch((error) => {
+  const status = document.getElementById("dash-status");
+  if (!status) return;
+  status.textContent = "Could not load your dashboard. Reload the page to try again.";
+  status.dataset.state = "error";
+  console.error("Dashboard failed:", error);
+});
 
 // Nav state: swap the Login link for Dashboard once a session exists, so every
 // page reflects whether the visitor is signed in. Failure leaves the nav as the
