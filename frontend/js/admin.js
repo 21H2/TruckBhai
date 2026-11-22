@@ -38,7 +38,7 @@ if (location.pathname === "/admin/login") {
     button.disabled = true;
     updateStatus(status, "Signing in…");
     try {
-      await adminRequest("/api/admin/login", { password: password.value });
+      await adminRequest("/api/v1/admin/login", { password: password.value });
       location.replace("/admin");
     } catch (error) {
       updateStatus(status, error.status ? error.message : "Could not sign in. Try again.", true);
@@ -100,7 +100,7 @@ if (location.pathname === "/admin/login") {
     pagination.hidden = true;
     updateStatus(status, "Loading…");
     try {
-      const data = await adminRequest(`/api/admin/${collection}?page=${page}`);
+      const data = await adminRequest(`/api/v1/admin/${collection}?page=${page}`);
       if (currentRequest !== requestNumber) return;
       const entries = Object.entries(headings[collection]);
       document.getElementById("admin-caption").textContent = activeFilter.textContent;
@@ -140,7 +140,7 @@ if (location.pathname === "/admin/login") {
   logout.addEventListener("click", async () => {
     logout.disabled = true;
     try {
-      await adminRequest("/api/admin/logout", {});
+      await adminRequest("/api/v1/admin/logout", {});
       location.replace("/admin/login");
     } catch (error) {
       updateStatus(status, error.status ? error.message : "Could not sign out. Try again.", true);

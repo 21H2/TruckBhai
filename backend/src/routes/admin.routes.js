@@ -2,17 +2,21 @@ import { Router } from "express";
 import { createAdminController } from "../controllers/admin.controller.js";
 
 export function createAdminRoutes(options) {
-  const router = Router();
   const handleAdminRequest = createAdminController(options);
+  const pages = Router();
+  const api = Router();
 
-  router.use((request, response, next) => {
+  pages.use((request, response, next) => {
     const { pathname } = response.locals;
-    if (pathname !== "/admin" && pathname !== "/admin/login" && !pathname.startsWith("/api/admin/")) {
-      return next();
-    }
-
+    if (pathname !== "/admin" && pathname !== "/admin/login") return next();
     return handleAdminRequest(request, response);
   });
 
-  return router;
+  api.use((request, response, next) => {
+    const apiPath = response.locals.pathname.slice(request.baseUrl.length);
+    if (!apiPath.startsWith("/")) return next();
+    return handleAdminRequest(request, response, apiPath);
+  });
+
+  return { pages, api };
 }

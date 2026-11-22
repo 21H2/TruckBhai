@@ -149,7 +149,7 @@ export function connectBookingTrip(form, bookings) {
     loading: "Searching for locations…",
     empty: "No matching locations. Try another search or enter the address manually.",
     search: async (q, signal) => {
-      const data = await readJson("/api/places", { q }, signal,
+      const data = await readJson("/api/v1/places", { q }, signal,
         "Location search is unavailable. You can enter the address manually.");
       return data.places;
     }
@@ -248,7 +248,7 @@ export function connectBookingTrip(form, bookings) {
       return;
     }
     try {
-      const data = await readJson("/api/fuel", { city, vehicle: vehicle.value()?.id || "", pricing: "1" },
+      const data = await readJson("/api/v1/fuel", { city, vehicle: vehicle.value()?.id || "", pricing: "1" },
         controller.signal, "Fuel prices are temporarily unavailable.");
       if (controller.signal.aborted) return;
       const total = bookings.estimateFare(data, distanceKm, form.elements.pickupDate.value, form.elements.returnDate.value);
@@ -314,7 +314,7 @@ export function connectBookingTrip(form, bookings) {
         showExample();
         return;
       }
-      const result = await readJson("/api/journey", {
+      const result = await readJson("/api/v1/journey", {
         pickup: `${start.lat},${start.lon}`,
         dropoff: `${end.lat},${end.lon}`
       }, signal, "Road routing is temporarily unavailable.");

@@ -2,7 +2,7 @@ import { randomBytes, scrypt, timingSafeEqual } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { promisify } from "node:util";
-import { readJson, sendJson } from "../http.js";
+import { requireJsonObject, sendJson } from "../http.js";
 
 const deriveKey = promisify(scrypt);
 const sessionDuration = 8 * 60 * 60;
@@ -53,7 +53,7 @@ export function createAdminController({ passwordHash, secondPasswordHash, secure
       .map(record => Object.fromEntries(columns.map(column => [column, record[column]])));
   }
 
-  return async function handleAdminRequest(request, response) {
+  return async function handleAdminRequest(request, response, apiPath) {
     const { pathname, searchParams } = response.locals;
     response.setHeader("Cache-Control", "no-store");
     response.setHeader("Referrer-Policy", "no-referrer");
@@ -83,8 +83,8 @@ export function createAdminController({ passwordHash, secondPasswordHash, secure
           request.headers.origin !== `${protocol}://${request.headers.host}`) {
         return sendJson(response, 403, { message: "Submit this request from the TruckBhai admin page." });
       }
-      if (pathname === "/api/admin/login") {
-        const { password } = await readJson(request);
+      if (apiPath === "/login") {
+        const { password } = requireJsonObject(request);
         if (typeof password !== "string" || password.length === 0 || password.length > 256) {
           return sendJson(response, 400, { message: "Enter the admin password." });
         }
@@ -118,7 +118,7 @@ export function createAdminController({ passwordHash, secondPasswordHash, secure
         setCookie(response, newToken, sessionDuration);
         return sendJson(response, 200, { message: "Signed in." });
       }
-      if (pathname === "/api/admin/logout") {
+      if (apiPath === "/logout") {
         sessions.delete(token);
         setCookie(response, "", 0);
         return sendJson(response, 200, { message: "Signed out." });
@@ -126,7 +126,7 @@ export function createAdminController({ passwordHash, secondPasswordHash, secure
     }
 
     if (!signedIn) return sendJson(response, 401, { message: "Sign in to continue." });
-    const collection = pathname.slice("/api/admin/".length);
+    const collection = apiPath.slice(1);
     if (!Object.hasOwn(fields, collection)) return sendJson(response, 404, { message: "Page not found." });
     if (request.method !== "GET") {
       response.setHeader("Allow", "GET");

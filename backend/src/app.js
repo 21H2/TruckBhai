@@ -5,7 +5,7 @@ import fs from "node:fs/promises";
 import { createJourneyService } from "./journeys.js";
 import { createFuelLookup } from "./fuel.js";
 import { DATA_DIR, FRONTEND_DIR } from "./config/constants.js";
-import { sendJson } from "./http.js";
+import { isJsonRequest, requestError, sendJson } from "./http.js";
 import { createAdminRoutes } from "./routes/admin.routes.js";
 import { createJourneyRoutes } from "./routes/journey.routes.js";
 import { createSubmissionRoutes } from "./routes/submission.routes.js";
@@ -41,20 +41,44 @@ const mimeTypes = {
 function createApp({ dataDir = DATA_DIR, db, models, journeys = createJourneyService(), fuel = createFuelLookup(db), mailer, admin = {} } = {}) {
   const app = express();
   app.disable("x-powered-by");
+  app.enable("case sensitive routing");
 
   app.use((request, response, next) => {
     response.setHeader("X-Content-Type-Options", "nosniff");
     response.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
     response.setHeader("X-Frame-Options", "DENY");
     const url = new URL(request.url, "http://localhost");
-    response.locals.pathname = decodeURIComponent(url.pathname);
+    const pathname = decodeURIComponent(url.pathname);
+    response.locals.pathname = pathname;
     response.locals.searchParams = url.searchParams;
+    if (pathname.startsWith("/api/") && pathname !== url.pathname) {
+      // Keep encoded API paths working after switching to Express path mounts.
+      request.url = pathname.split("/").map(encodeURIComponent).join("/") + url.search;
+    }
     next();
   });
 
-  app.use(createAdminRoutes({ ...admin, models, dataDir }));
-  app.use(createJourneyRoutes({ journeys, fuel }));
-  app.use(createSubmissionRoutes({ dataDir, models, journeys, fuel, mailer }));
+  app.use(express.json({
+    limit: "32kb",
+    inflate: false,
+    type: request => request.method === "POST" && isJsonRequest(request),
+    verify: (_request, _response, buffer) => {
+      if (!buffer.length) throw requestError(400, "Send a valid JSON object.");
+    }
+  }));
+
+  const adminRoutes = createAdminRoutes({ ...admin, models, dataDir });
+  const { bookings, contacts, subscribers } = createSubmissionRoutes({ dataDir, models, journeys, fuel, mailer });
+  const journeyRoutes = createJourneyRoutes({ journeys, fuel });
+
+  app.use("/admin", adminRoutes.pages);
+  app.use(["/api/v1/admin", "/api/admin"], adminRoutes.api);
+  app.use(["/api/v1/bookings", "/api/bookings"], bookings);
+  app.use(["/api/v1/contacts", "/api/contacts"], contacts);
+  app.use(["/api/v1/subscribers", "/api/subscribers"], subscribers);
+  app.use(["/api/v1/fuel", "/api/fuel"], journeyRoutes.fuel);
+  app.use(["/api/v1/places", "/api/places"], journeyRoutes.places);
+  app.use(["/api/v1/journey", "/api/journey"], journeyRoutes.journey);
 
   app.use(async (request, response) => {
     const { pathname } = response.locals;
@@ -90,7 +114,10 @@ function createApp({ dataDir = DATA_DIR, db, models, journeys = createJourneySer
     if (status === 500) console.error("Request failed:", db ? error.name : error.message);
     sendJson(response, status, {
       message: status === 500 ? "Could not process your request. Please try again."
-        : status === 404 && !error.status ? "Page not found." : error.message,
+        : status === 404 && !error.status ? "Page not found."
+        : error.type === "entity.parse.failed" ? "Send a valid JSON object."
+        : error.type === "entity.too.large" ? "The submitted form is too large."
+        : error.message,
       ...(error.errors ? { errors: error.errors } : {})
     });
   });

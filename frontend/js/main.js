@@ -1,5 +1,5 @@
 import * as bookings from "./booking.js";
-import { connectBookingTrip } from "./booking-trip.js";
+import { connectBookingTrip } from "./booking-trip.js?v=api-v1";
 import * as forms from "./forms.js?v=esm";
 
 export function initializePage(document, window) {

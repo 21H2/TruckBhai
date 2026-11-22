@@ -22,7 +22,7 @@ async function setup(t, options = {}) {
   return {
     dataDir,
     request: (url, options) => request(app, url, options),
-    post: (body) => request(app, "/api/bookings", {
+    post: (body) => request(app, "/api/v1/bookings", {
       method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body)
     })
   };
@@ -72,7 +72,7 @@ test("a successful booking is normalized, saved, and persists across server inst
   assert.ok(Number.isFinite(Date.parse(saved[0].submittedAt)));
 
   const second = createApp({ dataDir });
-  const next = await request(second, "/api/bookings", {
+  const next = await request(second, "/api/v1/bookings", {
     method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(validBooking)
   });
   assert.equal(next.status, 201);
@@ -102,7 +102,7 @@ test("new bookings save the dropoff, coordinates, and server fare", async (t) =>
 test("BML Munjal University is suggested with the verified pin without calling Photon", async () => {
   const journeys = createJourneyService({ fetcher: () => assert.fail("Unexpected provider request") });
   for (const query of ["BML Munjal University", "  bml  Munjal  ", "bmu"]) {
-    const result = await request(createApp({ journeys }), "/api/places?" + new URLSearchParams({ q: query }));
+    const result = await request(createApp({ journeys }), "/api/v1/places?" + new URLSearchParams({ q: query }));
     assert.equal(result.status, 200);
     const { places } = await result.json();
     assert.equal(places.length, 1);
@@ -130,18 +130,18 @@ test("the journey API normalizes suggestions and converts OSRM seconds to minute
     }
   });
   const app = createApp({ journeys });
-  const lookup = await request(app, "/api/places?q=Gurugram");
+  const lookup = await request(app, "/api/v1/places?q=Gurugram");
   assert.deepEqual(await lookup.json(), { places: [{ label: "Gurugram, Haryana, India", city: "Gurugram", lat: 28.459497, lon: 77.026638 }] });
   assert.equal(urls[0].searchParams.get("countrycode"), "IN");
-  const route = await request(app, "/api/journey?pickup=28.2489,76.813912&dropoff=28.459497,77.026638");
+  const route = await request(app, "/api/v1/journey?pickup=28.2489,76.813912&dropoff=28.459497,77.026638");
   assert.deepEqual(await route.json(), { distanceKm: 42.5, durationMinutes: 5, geometry });
   assert.equal(urls[1].pathname, "/service/route/v1/driving/76.813912,28.2489;77.026638,28.459497");
-  assert.equal((await request(app, "/api/journey?pickup=,76&dropoff=28,77")).status, 400);
+  assert.equal((await request(app, "/api/v1/journey?pickup=,76&dropoff=28,77")).status, 400);
   assert.equal(urls.length, 2);
 });
 
 test("a missing road route is distinguished from a provider failure", async () => {
-  const url = "/api/journey?pickup=28,76&dropoff=29,77";
+  const url = "/api/v1/journey?pickup=28,76&dropoff=29,77";
   const options = { osrmUrl: "https://router.example/" };
   const noRoute = createJourneyService({
     ...options, fetcher: async () => Response.json({ code: "NoRoute" }, { status: 400 })
@@ -184,14 +184,14 @@ test("malformed, oversized, wrong-content and cross-origin requests are rejected
     [JSON.stringify(validBooking), { "Content-Type": "text/plain" }, 415],
     [JSON.stringify(validBooking), { "Content-Type": "application/json", Origin: "https://example.com" }, 403]
   ]) {
-    const response = await request("/api/bookings", { method: "POST", body, headers });
+    const response = await request("/api/v1/bookings", { method: "POST", body, headers });
     assert.equal(response.status, expected);
   }
 });
 
 test("JSON content type accepts case variants and charset parameters", async (t) => {
   const { request } = await setup(t);
-  const response = await request("/api/bookings", {
+  const response = await request("/api/v1/bookings", {
     method: "POST",
     headers: { "Content-Type": "Application/JSON; charset=UTF-8" },
     body: JSON.stringify(validBooking)
@@ -223,12 +223,12 @@ test("site assets are available but data, server code and Git metadata stay priv
   ]) {
     assert.equal((await request(file)).status, 404, file);
   }
-  assert.equal((await request("/api/bookings")).status, 405);
+  assert.equal((await request("/api/v1/bookings")).status, 405);
 });
 
 test("security headers are sent for pages and API errors", async (t) => {
   const { request } = await setup(t);
-  for (const url of ["/", "/missing.html", "/api/bookings"]) {
+  for (const url of ["/", "/missing.html", "/api/v1/bookings"]) {
     const response = await request(url);
     assert.equal(response.headers.get("x-content-type-options"), "nosniff");
     assert.equal(response.headers.get("referrer-policy"), "strict-origin-when-cross-origin");
@@ -253,7 +253,7 @@ test("pages revalidate while static assets can be cached briefly", async (t) => 
   const { request } = await setup(t);
   assert.equal((await request("/")).headers.get("cache-control"), "no-cache");
   assert.equal((await request("/css/styles.css")).headers.get("cache-control"), "public, max-age=300");
-  assert.equal((await request("/api/bookings")).headers.get("cache-control"), "no-store");
+  assert.equal((await request("/api/v1/bookings")).headers.get("cache-control"), "no-store");
 });
 
 test("the booking map and font load from the site without exposing package files", async (t) => {
@@ -287,7 +287,7 @@ test("contact validation rejects invalid values and preserves multiline messages
 test("contact submissions save to their own file and invalid requests save nothing", async (t) => {
   const emails = [];
   const { dataDir, request, post } = await setup(t, { mailer: { send: (kind, record) => emails.push({ kind, record }) } });
-  const send = (body) => request("/api/contacts", {
+  const send = (body) => request("/api/v1/contacts", {
     method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body)
   });
   const bad = await send({ name: " ", email: "wrong", message: "" });
@@ -320,7 +320,7 @@ test("newsletter validation rejects malformed emails and normalizes valid addres
 test("newsletter saves only valid subscriptions and prevents case-insensitive duplicates", async (t) => {
   const emails = [];
   const { dataDir, request } = await setup(t, { mailer: { send: (kind, record) => emails.push({ kind, record }) } });
-  const send = (email) => request("/api/subscribers", {
+  const send = (email) => request("/api/v1/subscribers", {
     method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email })
   });
   assert.equal((await send("wrong")).status, 422);
@@ -346,10 +346,10 @@ test("concurrent newsletter requests and server restarts cannot duplicate an add
     method: "POST", headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email: "same@example.com" })
   };
-  const responses = await Promise.all(Array.from({ length: 10 }, () => send("/api/subscribers", options)));
+  const responses = await Promise.all(Array.from({ length: 10 }, () => send("/api/v1/subscribers", options)));
   assert.equal(responses.filter((response) => response.status === 201).length, 1);
   assert.equal(responses.filter((response) => response.status === 409).length, 9);
   const second = createApp({ dataDir });
-  assert.equal((await request(second, "/api/subscribers", options)).status, 409);
+  assert.equal((await request(second, "/api/v1/subscribers", options)).status, 409);
   assert.equal(JSON.parse(await fs.readFile(path.join(dataDir, "subscribers.json"), "utf8")).length, 1);
 });

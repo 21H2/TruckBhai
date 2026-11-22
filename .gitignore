@@ -27,6 +27,10 @@ node_modules/
 /.agents/
 /.codex/
 
+# Local Postman workspace files
+/.postman/
+/postman/
+
 # Local form submissions and legacy storage
 /backend/data/*
 !/backend/data/.gitkeep

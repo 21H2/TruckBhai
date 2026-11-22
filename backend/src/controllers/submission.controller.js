@@ -3,7 +3,7 @@ import path from "node:path";
 import { randomUUID } from "node:crypto";
 import * as bookings from "../../../frontend/js/booking.js";
 import * as forms from "../../../frontend/js/forms.js";
-import { readJson, requestError, sendJson } from "../http.js";
+import { requireJsonObject, requestError, sendJson } from "../http.js";
 
 function duplicateSubscription() {
   const message = "This email address is already subscribed.";
@@ -88,7 +88,7 @@ export function createSubmissionController({ dataDir, models, journeys, fuel, ma
       if (request.headers.origin && request.headers.origin !== "http://" + request.headers.host) {
         return sendJson(response, 403, { message: "Submit this form from this website." });
       }
-      const input = await readJson(request);
+      const input = requireJsonObject(request);
       const { values, errors } = validate(input);
       if (Object.keys(errors).length) {
         return sendJson(response, 422, { message: "Check the form details.", errors });

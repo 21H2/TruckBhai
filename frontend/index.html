@@ -27,7 +27,7 @@
     media="(min-width: 761px) and (prefers-reduced-motion: reduce)" />
   <script type="module" src="js/hero-truck.js?v=5"></script>
   <script src="/vendor/leaflet/leaflet.js" defer></script>
-  <script type="module" src="js/main.js?v=esm"></script>
+  <script type="module" src="js/main.js?v=api-v1"></script>
 </head>
 
 <body>
@@ -76,7 +76,7 @@
     </div>
 
     <div class="booking-widget">
-      <form id="booking-form" class="cta-card cta-fields" action="/api/bookings" method="post" aria-label="Book a truck">
+      <form id="booking-form" class="cta-card cta-fields" action="/api/v1/bookings" method="post" aria-label="Book a truck">
         <div class="booking-controls">
           <div class="field">
             <label for="vehicle">Vehicle</label>
@@ -423,7 +423,7 @@
           <h4>Get deals and discounts</h4>
 
         </div>
-        <form id="newsletter-form" class="newsletter-form" action="/api/subscribers" method="post">
+        <form id="newsletter-form" class="newsletter-form" action="/api/v1/subscribers" method="post">
           <input id="newsletter-email" class="newsletter-input" name="email" type="email" autocomplete="email"
             placeholder="Email" aria-label="Newsletter email" maxlength="254" required />
           <button class="newsletter-button" type="submit">Subscribe</button>

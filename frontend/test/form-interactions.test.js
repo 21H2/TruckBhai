@@ -39,7 +39,7 @@ function fixture(fetch, { newsletter = false, timeout } = {}) {
   const button = { disabled: false };
   const events = {};
   const form = {
-    action: "http://127.0.0.1:3000/api/" + (newsletter ? "subscribers" : "contacts"),
+    action: "http://127.0.0.1:3000/api/v1/" + (newsletter ? "subscribers" : "contacts"),
     noValidate: false, resets: 0,
     querySelector: (selector) => selector === ".form-status" ? status : button,
     querySelectorAll: () => fields,

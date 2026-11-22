@@ -10,25 +10,18 @@ function requestError(status, message) {
   return Object.assign(new Error(message), { status });
 }
 
-async function readJson(request) {
-  if (request.headers["content-type"]?.split(";")[0].trim().toLowerCase() !== "application/json") {
-    throw requestError(415, "Send form data as JSON.");
-  }
-  const chunks = [];
-  let size = 0;
-  for await (const chunk of request) {
-    size += chunk.length;
-    // Drain oversized bodies without retaining them or destroying the response socket.
-    if (size <= 32768) chunks.push(chunk);
-  }
-  if (size > 32768) throw requestError(413, "The submitted form is too large.");
-  try {
-    const body = JSON.parse(Buffer.concat(chunks).toString("utf8"));
-    if (!body || typeof body !== "object" || Array.isArray(body)) throw new Error();
-    return body;
-  } catch {
-    throw requestError(400, "Send a valid JSON object.");
-  }
+function isJsonRequest(request) {
+  return request.headers["content-type"]?.split(";")[0].trim().toLowerCase() === "application/json";
 }
 
-export { readJson, requestError, sendJson };
+function requireJsonObject(request) {
+  if (!isJsonRequest(request)) {
+    throw requestError(415, "Send form data as JSON.");
+  }
+  if (!request.body || typeof request.body !== "object" || Array.isArray(request.body)) {
+    throw requestError(400, "Send a valid JSON object.");
+  }
+  return request.body;
+}
+
+export { isJsonRequest, requireJsonObject, requestError, sendJson };

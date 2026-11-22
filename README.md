@@ -48,7 +48,7 @@ and existing subscriber emails. The original files remain available under `backe
   (distance ÷ mileage × pickup reference price). Electric rentals show the rental charge only. Click **Confirm booking** to save the entered details.
 - Pickup cannot be in the past. Return must be at least one calendar day after pickup.
 - The browser and server both validate the details. Dates use the machine's local date.
-- `POST /api/bookings` accepts JSON with `vehicle`, `pickup`, `dropoff`, `pickupDate`,
+- `POST /api/v1/bookings` accepts JSON with `vehicle`, `pickup`, `dropoff`, `pickupDate`,
   and `returnDate`, plus optional `pickupCoordinates` and `dropoffCoordinates` objects
   with numeric `lat` and `lon` fields. New trip requests store these fields and the
   server-calculated `estimatedFareInr`. The API also accepts the original pickup-only
@@ -92,14 +92,14 @@ pro (medium), and EICHER 19, container and trailers (large); edit each card's
 ## Contact form
 
 The Contact page validates names (2–100 characters), email addresses (up to 254
-characters), and messages (10–5,000 characters). `POST /api/contacts` accepts JSON
+characters), and messages (10–5,000 characters). `POST /api/v1/contacts` accepts JSON
 with `name`, `email`, and `message` and stores the trimmed values, reference ID,
 and UTC timestamp in the `contacts` collection. Errors appear beside each field.
 Failed submissions retain the message. Successful submissions clear the form.
 
 ## Newsletter form
 
-Every page has a newsletter email field and Subscribe button. `POST /api/subscribers`
+Every page has a newsletter email field and Subscribe button. `POST /api/v1/subscribers`
 accepts JSON with `email`. Addresses are validated, trimmed, converted to lowercase,
 and saved with their reference ID and UTC timestamp in the `subscribers` collection.
 The unique email index prevents duplicates across concurrent requests and restarts.

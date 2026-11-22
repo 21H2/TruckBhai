@@ -45,7 +45,7 @@
         <h1>Need additional information?</h1>
         <p class="lead">Please submit your information and a Truckbhai representative will get in touch with you</p>
         <p class="phone">Call sales at +91 99349 49572</p>
-        <form id="contact-form" class="contact-form" action="/api/contacts" method="post">
+        <form id="contact-form" class="contact-form" action="/api/v1/contacts" method="post">
           <input id="contact-name" class="name" name="name" type="text" autocomplete="name" placeholder="Your name"
             aria-label="Your name" minlength="2" maxlength="100" required />
           <p class="field-error" id="contact-name-error"></p>
@@ -102,7 +102,7 @@
           <h4>Get deals and discounts</h4>
           <p>Subscribe to our newsletter</p>
         </div>
-        <form id="newsletter-form" class="newsletter-form" action="/api/subscribers" method="post">
+        <form id="newsletter-form" class="newsletter-form" action="/api/v1/subscribers" method="post">
           <input id="newsletter-email" class="newsletter-input" name="email" type="email" autocomplete="email"
             placeholder="Email" aria-label="Newsletter email" maxlength="254" required />
           <button class="newsletter-button" type="submit">Subscribe</button>
