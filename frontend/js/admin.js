@@ -1,5 +1,8 @@
 "use strict";
 
+import { renderSummary } from "./admin-charts.js?v=1";
+import { vehicles as vehicleList } from "./booking.js";
+
 const login = document.getElementById("admin-login");
 const dashboard = document.getElementById("admin-dashboard");
 
@@ -50,6 +53,24 @@ if (location.pathname === "/admin/login") {
   });
 } else {
   dashboard.hidden = false;
+  const vehicleLabels = new Map(vehicleList.map(({ id, name }) => [id, name]));
+
+  // The overview is independent of the table, so a summary failure must not stop
+  // submissions from loading.
+  (async () => {
+    const overview = document.getElementById("admin-overview");
+    const status = document.getElementById("overview-status");
+    try {
+      const summary = await adminRequest("/api/v1/admin/summary");
+      renderSummary(summary, vehicleLabels);
+      overview.hidden = false;
+      status.textContent = "";
+    } catch (error) {
+      if (error.status === 401) return location.replace("/admin/login");
+      status.textContent = error.status ? error.message : "Could not load the overview.";
+      status.dataset.state = "error";
+    }
+  })();
   const headings = {
     bookings: {
       submittedAt: "Submitted", id: "Reference", vehicle: "Vehicle",

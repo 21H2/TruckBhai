@@ -30,6 +30,25 @@ function createJsonAccounts(dataDir) {
     async find(email) {
       return (await readAll()).find((record) => record?.email === email) || null;
     },
+    updatePassword(email, passwordHash) {
+      const operation = queue.then(async () => {
+        const records = await readAll();
+        const target = records.find((record) => record?.email === email);
+        if (!target) return;
+        target.passwordHash = passwordHash;
+        const temporary = filename + "." + randomUUID() + ".tmp";
+        try {
+          await fs.writeFile(temporary, JSON.stringify(records, null, 2) + "\n", {
+            encoding: "utf8", mode: 0o600, flag: "wx"
+          });
+          await fs.rename(temporary, filename);
+        } finally {
+          await fs.rm(temporary, { force: true });
+        }
+      });
+      queue = operation.catch(() => {});
+      return operation;
+    },
     create(record) {
       const operation = queue.then(async () => {
         await fs.mkdir(dataDir, { recursive: true });
@@ -65,6 +84,9 @@ function createModelAccounts(models) {
         if (error.code === 11000) throw duplicateEmail();
         throw error;
       }
+    },
+    async updatePassword(email, passwordHash) {
+      await models.users.updateOne({ email }, { $set: { passwordHash } }).exec();
     }
   };
 }

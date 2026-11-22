@@ -7,7 +7,8 @@ function createMailer(env = process.env, request = fetch) {
   const templates = {
     contact: env.EMAILJS_CONTACT_TEMPLATE_ID?.trim(),
     subscription: env.EMAILJS_NEWSLETTER_TEMPLATE_ID?.trim(),
-    welcome: env.EMAILJS_WELCOME_TEMPLATE_ID?.trim()
+    welcome: env.EMAILJS_WELCOME_TEMPLATE_ID?.trim(),
+    reset: env.EMAILJS_RESET_TEMPLATE_ID?.trim()
   };
   if (!serviceId || !publicKey || !templates.contact || !templates.subscription) return null;
 
@@ -30,6 +31,10 @@ function createMailer(env = process.env, request = fetch) {
         }
         if (kind === "welcome") {
           params.name = record.name;
+        }
+        if (kind === "reset") {
+          params.name = record.name;
+          params.reset_link = record.resetLink;
         }
         const response = await request("https://api.emailjs.com/api/v1.0/email/send", {
           method: "POST",

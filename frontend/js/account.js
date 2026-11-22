@@ -3,6 +3,7 @@
 // which gates everything on a server-held session cookie.
 import { registration, credentials } from "./forms.js?v=esm";
 import { vehicles } from "./booking.js";
+import { nextTrip, renderNextTrip, monthlySpend, renderSpend } from "./dashboard-extras.js?v=1";
 
 const names = new Map(vehicles.map(({ id, name }) => [id, name]));
 const dateOnly = new Intl.DateTimeFormat(undefined, { dateStyle: "medium" });
@@ -164,6 +165,9 @@ async function connectDashboard() {
     body.replaceChildren(...bookings.map(bookingRow));
     empty.hidden = bookings.length > 0;
     document.getElementById("dash-table").hidden = bookings.length === 0;
+
+    renderNextTrip(document.getElementById("dash-trip"), nextTrip(bookings), names);
+    renderSpend(document.getElementById("dash-spend-chart"), monthlySpend(bookings));
     status.textContent = "";
   } catch (error) {
     status.textContent = error.message;
@@ -194,3 +198,94 @@ if (loginForm) {
 }
 
 connectDashboard();
+
+// Nav state: swap the Login link for Dashboard once a session exists, so every
+// page reflects whether the visitor is signed in. Failure leaves the nav as the
+// markup shipped it.
+async function markNavState() {
+  const link = document.querySelector('.nav-links a[href$="login.html"]');
+  if (!link) return;
+  try {
+    const { account } = await send("/me");
+    link.textContent = "Dashboard";
+    link.href = "dashboard.html";
+    link.title = "Signed in as " + account.email;
+    if (window.location.pathname.endsWith("dashboard.html")) {
+      link.setAttribute("aria-current", "page");
+    } else {
+      link.removeAttribute("aria-current");
+    }
+  } catch {
+    // Not signed in, or the lookup failed: the Login link stays as it is.
+  }
+}
+
+markNavState();
+
+// Password reset. The page shows the request form by default, and the new-password
+// form when it is opened from an emailed link carrying ?token=.
+const resetRequestForm = document.getElementById("reset-request-form");
+const resetForm = document.getElementById("reset-form");
+if (resetRequestForm && resetForm) {
+  const token = new URLSearchParams(window.location.search).get("token") || "";
+  const requesting = document.getElementById("reset-request-step");
+  const choosing = document.getElementById("reset-step");
+  if (/^[0-9a-f]{64}$/i.test(token)) {
+    requesting.hidden = true;
+    choosing.hidden = false;
+  }
+
+  const requestStatus = resetRequestForm.querySelector(".form-status");
+  const requestButton = resetRequestForm.querySelector('[type="submit"]');
+  resetRequestForm.noValidate = true;
+  resetRequestForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    requestButton.disabled = true;
+    requestStatus.textContent = "Sending your reset link…";
+    delete requestStatus.dataset.state;
+    try {
+      const { message } = await send("/reset-request", {
+        email: document.getElementById("reset-email").value
+      });
+      requestStatus.textContent = message;
+      requestStatus.dataset.state = "success";
+    } catch (error) {
+      requestStatus.textContent = error.message;
+      requestStatus.dataset.state = "error";
+    } finally {
+      requestButton.disabled = false;
+    }
+  });
+
+  const resetStatus = resetForm.querySelector(".form-status");
+  const resetButton = resetForm.querySelector('[type="submit"]');
+  resetForm.noValidate = true;
+  resetForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const password = document.getElementById("reset-password").value;
+    const confirmation = document.getElementById("reset-confirm").value;
+    const holder = document.getElementById("reset-confirm-error");
+    holder.textContent = "";
+    if (password !== confirmation) {
+      holder.textContent = "Both passwords must match.";
+      document.getElementById("reset-confirm").focus();
+      return;
+    }
+
+    resetButton.disabled = true;
+    resetStatus.textContent = "Updating your password…";
+    delete resetStatus.dataset.state;
+    try {
+      const { message } = await send("/reset", { token, password });
+      resetStatus.textContent = message;
+      resetStatus.dataset.state = "success";
+      window.setTimeout(() => window.location.assign("login.html"), 1200);
+    } catch (error) {
+      document.getElementById("reset-password-error").textContent = error.errors?.password || "";
+      resetStatus.textContent = error.message;
+      resetStatus.dataset.state = "error";
+    } finally {
+      resetButton.disabled = false;
+    }
+  });
+}

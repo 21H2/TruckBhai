@@ -281,11 +281,12 @@ page. The newsletter form must keep `id="newsletter-form"`,
 | `contact.html` | A, fixed height | enquiry form | `POST /api/v1/contacts` |
 | `login.html` | A, flow | customer sign-in | `POST /api/v1/account/login`, real |
 | `signup.html` | A, flow | customer registration | `POST /api/v1/account/register`, real |
-| `forgot-password.html` | A, flow | password reset request | nothing, preview only |
+| `forgot-password.html` | A, flow | reset request and new password | `POST /api/v1/account/reset-request` + `/reset`, real |
 | `dashboard.html` | A, flow | customer bookings overview | `GET /api/v1/account/me` + `/bookings`, real |
 | `track.html` | A, flow | look up a booking by reference | `GET /api/v1/bookings/:reference`, real |
 | `drive-with-us.html` | A, flow | driver partner application | `POST /api/v1/contacts`, real |
 | `help.html` | A, flow | FAQ, native `<details>` | — |
+| `business.html` | A, flow | enterprise enquiry | `POST /api/v1/contacts`, real |
 | `terms.html` | A, flow | terms, prose card | — |
 | `privacy.html` | A, flow | privacy policy, prose card | — |
 | `not-found.html` | A, flow | styled 404 | served by `app.js` on unknown page paths |
@@ -299,12 +300,13 @@ Every page carries the newsletter form, so every page posts to
 The nav has eight items: Home, About Us, Vehicle Models, Track, Testimonials,
 Our team, Contact Us, Login. The footer's Company column links to Rent Details
 (`vehicle-models.html`), Drive with us, Help, Terms and Conditions, and Privacy
-Policy. Both blocks are byte-identical on all 16 customer pages; the admin
+Policy. Both blocks are byte-identical on all 17 customer pages; the admin
 page uses the same nav with absolute `/` hrefs because it is not served from the
 frontend directory. Change them on every page at once or not at all.
 
-`signup.html`, `forgot-password.html`, `drive-with-us.html`, `help.html`,
-`terms.html`, `privacy.html` and `not-found.html` are deliberately not in the nav. They are reached from the login
+`signup.html`, `forgot-password.html`, `drive-with-us.html`, `business.html`,
+`help.html`, `terms.html`, `privacy.html` and `not-found.html` are deliberately not
+in the nav. They are reached from the login
 card, the footer, and the 404 handler respectively.
 
 ### Reusing a wired form on a new page
@@ -316,6 +318,29 @@ reuse `id="contact-form"` with `action="/api/v1/contacts"` and the field ids
 `drive-with-us.html` does. No JavaScript change is needed and validation, error
 display, the disabled-while-saving state and the reference message all come free.
 Only one such form can exist per page, because the lookup is `querySelector`.
+
+### Charts without a chart library
+
+The admin overview and the dashboard spend chart are SVG built through
+`document.createElementNS`, in `js/admin-charts.js` and `js/dashboard-extras.js`.
+There is no charting dependency, for two reasons: the admin CSP is
+`default-src 'none'` with `script-src 'self'`, so a CDN script is blocked outright,
+and a `style` attribute would need `style-src 'unsafe-inline'`.
+
+So: colours and sizes come from classes in the stylesheets and from SVG
+presentation attributes such as `fill`, `width` and `stroke-dasharray`, which CSP
+does not count as inline style. A horizontal bar is an SVG `rect` inside a
+`viewBox="0 0 100 10"` with `preserveAspectRatio="none"`, which scales to any
+percentage without a style attribute. Every chart has
+`role="img"` with an `aria-label`, each bar carries a `<title>` for its tooltip,
+and an empty data set renders a sentence instead of empty axes.
+
+### The nav reflects sign-in state
+
+`js/account.js` runs on all 17 pages and calls `GET /api/v1/account/me`. On a 200
+it rewrites the nav's Login link to point at the dashboard. On any failure the link
+is left exactly as the markup shipped it, so a signed-out visitor, a network error
+and a disabled script all produce the same correct result.
 
 ### The tracking flow
 
@@ -341,14 +366,14 @@ which is what the test suite asserts.
    serves only names in that set plus assets matching
    `/^(?:css|js|images)\/[a-zA-Z0-9_.-]+$/`, so an unregistered page 404s.
 2. Copy the `<head>` from `about.html`: the eight-family font link,
-   `css/styles.css?v=4`, and `<script type="module" src="js/main.js?v=esm"></script>`.
+   `css/styles.css?v=5`, and `<script type="module" src="js/main.js?v=esm"></script>`.
    The scripts are ES modules on this branch.
 3. **Bump the `?v=` token on every page when you edit a stylesheet.** Assets are
    served `Cache-Control: public, max-age=300` while HTML is `no-cache`, so without
    a new token a browser renders new markup against a stylesheet up to five minutes
    stale. That mismatch shows up as content overflowing or clipping at the bottom of
-   a canvas page, because `.page` heights are declared in CSS. All 16 pages currently
-   share `?v=4`; keep them in step.
+   a canvas page, because `.page` heights are declared in CSS. All 17 pages currently
+   share `?v=5`; keep them in step.
 4. Copy the nav verbatim, set `aria-current="page"`, keep `.nav-toggle`.
 5. Choose a layout model from section 1. Prefer the flow escape hatch for new pages.
 6. Add the hero blend and the title/crumb pair at their standard offsets.
@@ -407,9 +432,15 @@ Be precise about this when extending the UI.
   a valid account session, the controller stamps `accountEmail` onto the record
   from the session, never from the request body. Anonymous bookings stay
   unattributed and are reachable only by their reference.
-- **`forgot-password.html` is still presentation only.** A real reset needs
-  single-use expiring tokens delivered by email. The page says so and points at
-  support.
+- **Password reset is real.** `POST /api/v1/account/reset-request` creates a
+  64-hex single-use token valid for 30 minutes, held server side and delivered
+  only by email. The reply is identical whether or not the address has an account.
+  `POST /api/v1/account/reset` redeems it: it checks the token, sets a new scrypt
+  hash, deletes the token and **drops every existing session for that account**, so
+  a stolen session cannot outlive the password it was created with. A rejected
+  password leaves the token usable so the customer can retry. With no
+  `EMAILJS_RESET_TEMPLATE_ID` the request still returns 200, so the response never
+  leaks mail configuration, and the server logs a warning instead.
 
 Never trust an email address from a request body to decide what a customer may
 read. The only trustworthy source is the session cookie.

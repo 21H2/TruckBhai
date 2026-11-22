@@ -200,8 +200,22 @@ Visitors can create an account, sign in and see their own bookings.
 `signup.html`, `login.html` and `dashboard.html` drive these endpoints through
 `frontend/js/account.js`. The dashboard redirects to the login page on a 401.
 
-Password reset is not implemented. `forgot-password.html` explains that and points
-at support; a real reset needs single-use expiring tokens sent by email.
+## Password reset
+
+`POST /api/v1/account/reset-request` takes an `email` and creates a 64-hex
+single-use token that lasts 30 minutes. The token is held server side and sent out
+only as a link in the reset email, `forgot-password.html?token=...`. The reply is
+the same whether or not the address has an account, so the endpoint cannot be used
+to discover registered addresses, and requests are rate limited per email.
+
+`POST /api/v1/account/reset` takes `token` and `password`. It sets a new scrypt
+hash, deletes the token so it cannot be reused, and signs out every existing
+session for that account. A password that fails validation leaves the token usable
+so the customer can try again.
+
+Set `EMAILJS_RESET_TEMPLATE_ID` for the link to be delivered; the template receives
+`name` and `reset_link`. Without it the request still returns 200, so the response
+never reveals mail configuration, and the server logs a warning instead.
 
 ## Booking attribution
 
@@ -245,3 +259,14 @@ Set `EMAILJS_WELCOME_TEMPLATE_ID` to send a welcome message when an account is
 created. The template receives `email` and `name`. Without that variable nothing is
 sent and account creation is unaffected; a failed send is logged and never turns a
 created account into a failed response.
+
+## Admin overview
+
+`GET /api/v1/admin/summary` returns everything the admin charts need in one
+request, behind the admin session: totals for bookings, contacts, subscribers and
+accounts, estimated revenue, the split of bookings by stage, bookings per day for
+the last 14 days, and the vehicle mix. Bookings are read newest first and capped at
+2,000 so a large collection cannot be pulled into memory wholesale.
+
+The charts are SVG drawn in `frontend/js/admin-charts.js` with no charting
+dependency, because the admin CSP blocks both external scripts and inline styles.

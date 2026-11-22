@@ -19,6 +19,8 @@ export function createAccountRoutes(options) {
   router.all("/register", only("POST", controller.register));
   router.all("/login", only("POST", controller.signIn));
   router.all("/logout", only("POST", controller.signOut));
+  router.all("/reset-request", only("POST", controller.requestReset));
+  router.all("/reset", only("POST", controller.completeReset));
   router.all("/me", only("GET", controller.currentAccount));
   router.all("/bookings", only("GET", controller.myBookings));
 

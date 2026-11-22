@@ -24,7 +24,7 @@ const pages = new Set([
   "index.html", "about.html", "vehicle-models.html", "testimonials.html",
   "our-team.html", "contact.html", "login.html", "signup.html",
   "forgot-password.html", "dashboard.html", "track.html", "drive-with-us.html",
-  "help.html", "terms.html", "privacy.html", "not-found.html"
+  "help.html", "business.html", "terms.html", "privacy.html", "not-found.html"
 ]);
 const mimeTypes = {
   ".html": "text/html; charset=utf-8",

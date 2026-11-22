@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <!-- Page Metadata and SEO -->
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TruckBhai for business — freight at agreed rates</title>
+  <meta name="description" content="Move freight every week? Get agreed route rates, monthly invoicing and held capacity from TruckBhai for business." />
+  <!-- Social Sharing (Open Graph / Twitter) -->
+  <meta property="og:title" content="Help centre — TruckBhai" />
+  <meta property="og:description" content="Move freight every week? Get agreed route rates, monthly invoicing and held capacity from TruckBhai for business." />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <!-- Web Fonts and Stylesheets -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700;800&family=Lato:wght@400;600;700&family=Inter:wght@400;600&family=Cabin:wght@400;500&family=Mulish:wght@400;600&family=Work+Sans:wght@400;600;700&family=DM+Sans:wght@400;500;700&display=swap" />
+  <link rel="stylesheet" href="css/styles.css?v=5" />
+  <script type="module" src="js/main.js?v=esm"></script>
+  <script type="module" src="js/account.js?v=2"></script>
+</head>
+
+<body>
+  <!-- Navigation Bar -->
+  <nav class="nav nav--dark" aria-label="Main">
+    <a class="logo" href="index.html">
+      <p>Truck<span>Bhai</span></p>
+      <div class="underline" aria-hidden="true"></div>
+    </a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="main-nav-links">Menu</button>
+    <ul class="nav-links" id="main-nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="about.html">About Us</a></li>
+      <li><a href="vehicle-models.html">Vehicle Models</a></li>
+      <li><a href="track.html">Track</a></li>
+      <li><a href="testimonials.html">Testimonials</a></li>
+      <li><a href="our-team.html">Our team</a></li>
+      <li><a href="contact.html">Contact Us</a></li>
+      <li><a href="login.html">Login</a></li>
+    </ul>
+  </nav>
+
+  <div class="canvas">
+    <main class="page login-page">
+      <!-- Page Hero Header -->
+      <section class="login-stage">
+        <div class="page-hero">
+          <div class="shade"></div>
+          <img class="fit cover bottom" src="images/page-hero.png" alt="Row of trucks" />
+          <div class="wash"></div>
+        </div>
+        <h1 class="page-title">For business</h1>
+        <p class="page-crumb">Home / business</p>
+
+        <!-- Business Enquiry -->
+        <div class="dash-shell">
+          <div class="dash-head">
+            <div>
+              <p class="dash-welcome">Moving freight <span>every week?</span></p>
+              <p class="dash-note">Tell us the routes and volumes and we will put a rate card together.</p>
+            </div>
+          </div>
+
+          <dl class="dash-stats">
+            <div class="dash-stat glass">
+              <dt>Billing</dt>
+              <dd>Monthly<small> invoice</small></dd>
+            </div>
+            <div class="dash-stat glass">
+              <dt>Vehicles</dt>
+              <dd>6<small> types</small></dd>
+            </div>
+            <div class="dash-stat glass">
+              <dt>Account</dt>
+              <dd>Named<small> manager</small></dd>
+            </div>
+            <div class="dash-stat glass">
+              <dt>Support</dt>
+              <dd>24/7</dd>
+            </div>
+          </dl>
+
+          <div class="dash-aside">
+            <section class="dash-panel glass" aria-labelledby="business-form-heading">
+              <div class="dash-panel-head">
+                <h2 id="business-form-heading">Talk to our team</h2>
+              </div>
+              <form id="contact-form" class="login-form" action="/api/v1/contacts" method="post">
+                <label class="login-field" for="contact-name">
+                  <span class="login-label">Your name</span>
+                  <input id="contact-name" name="name" type="text" autocomplete="name" placeholder="Your name"
+                    minlength="2" maxlength="100" required />
+                </label>
+                <p class="field-error" id="contact-name-error"></p>
+                <label class="login-field" for="contact-email">
+                  <span class="login-label">Work email</span>
+                  <input id="contact-email" name="email" type="email" autocomplete="email"
+                    placeholder="you@company.com" maxlength="254" required />
+                </label>
+                <p class="field-error" id="contact-email-error"></p>
+                <label class="login-field" for="contact-message">
+                  <span class="login-label">Routes and volumes</span>
+                  <textarea id="contact-message" name="message" class="drive-message" rows="4"
+                    placeholder="Company, the routes you run, how many trips a month and a contact number."
+                    minlength="10" maxlength="5000" required></textarea>
+                </label>
+                <p class="field-error" id="contact-message-error"></p>
+                <button class="login-submit" type="submit">Request a rate card</button>
+                <p class="form-status" role="status"></p>
+              </form>
+            </section>
+
+            <section class="dash-panel glass" aria-labelledby="business-what-heading">
+              <div class="dash-panel-head">
+                <h2 id="business-what-heading">What you get</h2>
+              </div>
+              <dl>
+                <div class="dash-detail">
+                  <dt>Rates</dt>
+                  <dd>Agreed per route, not per trip</dd>
+                </div>
+                <div class="dash-detail">
+                  <dt>Invoicing</dt>
+                  <dd>One monthly invoice</dd>
+                </div>
+                <div class="dash-detail">
+                  <dt>Capacity</dt>
+                  <dd>Vehicles held for your schedule</dd>
+                </div>
+                <div class="dash-detail">
+                  <dt>Tracking</dt>
+                  <dd>A reference for every trip</dd>
+                </div>
+                <div class="dash-detail">
+                  <dt>Drivers</dt>
+                  <dd>Verified commercial licences</dd>
+                </div>
+              </dl>
+              <div class="dash-actions">
+                <a class="btn-dark" href="vehicle-models.html">See the fleet</a>
+                <a class="btn-dark" href="help.html">Read the FAQ</a>
+              </div>
+            </section>
+          </div>
+        </div>
+      </section>
+
+      <!-- Footer Section -->
+      <footer class="footer footer--inner footer--flow">
+        <div class="logo">
+          <p>Truck<span>Bhai</span></p>
+          <div class="underline"></div>
+        </div>
+        <p class="tagline">Your Trusted Truck Rental Solution</p>
+        <div class="col col--company">
+          <h4>Company</h4>
+          <ul>
+            <li><a href="vehicle-models.html">Rent Details</a></li>
+            <li><a href="drive-with-us.html">Drive with us</a></li>
+            <li><a href="business.html">For business</a></li>
+            <li><a href="help.html">Help</a></li>
+            <li><a href="terms.html">Terms and Conditions</a></li>
+            <li><a href="privacy.html">Privacy Policy</a></li>
+          </ul>
+        </div>
+        <div class="col col--contact">
+          <h4>Contact Us</h4>
+          <a href="mailto:info@truckbhai.com">info@truckbhai.com</a>
+          <p>+91 99349 49572</p>
+          <p>chennai,tamilnadu</p>
+        </div>
+        <div class="col col--news">
+          <h4>Get deals and discounts</h4>
+          <p>Subscribe to our newsletter</p>
+        </div>
+        <form id="newsletter-form" class="newsletter-form" action="/api/v1/subscribers" method="post">
+          <input id="newsletter-email" class="newsletter-input" name="email" type="email" autocomplete="email"
+            placeholder="Email" aria-label="Newsletter email" maxlength="254" required />
+          <button class="newsletter-button" type="submit">Subscribe</button>
+          <p class="field-error" id="newsletter-email-error"></p>
+          <p class="form-status" role="status"></p>
+        </form>
+        <p class="copyright">© Copyright Team Inc.</p>
+      </footer>
+    </main>
+  </div>
+</body>
+
+</html>

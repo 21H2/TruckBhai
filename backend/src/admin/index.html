@@ -8,10 +8,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700;800&family=Lato:wght@400;600;700&family=Inter:wght@400;600&family=Cabin:wght@400;500&family=Mulish:wght@400;600&family=Work+Sans:wght@400;600;700&family=DM+Sans:wght@400;500;700&display=swap" />
-  <link rel="stylesheet" href="/css/styles.css?v=4" />
-  <link rel="stylesheet" href="/css/admin.css?v=4" />
+  <link rel="stylesheet" href="/css/styles.css?v=5" />
+  <link rel="stylesheet" href="/css/admin.css?v=5" />
   <script type="module" src="/js/main.js?v=esm"></script>
-  <script type="module" src="/js/admin.js?v=api-v1"></script>
+  <script type="module" src="/js/admin.js?v=charts-1"></script>
 </head>
 <body>
   <!-- Navigation Bar -->
@@ -64,6 +64,58 @@
           <p class="admin-sub">Bookings, messages and subscribers submitted through the site.</p>
         </div>
         <button class="btn-dark" id="admin-logout" type="button">Sign out</button>
+      </div>
+
+      <div class="admin-panel">
+        <p class="form-status" id="overview-status" role="status">Loading the overview…</p>
+        <div class="admin-overview" id="admin-overview" hidden>
+          <!-- Headline Figures -->
+          <dl class="admin-figures">
+            <div class="admin-figure">
+              <dt>Bookings</dt>
+              <dd id="summary-bookings">—</dd>
+            </div>
+            <div class="admin-figure">
+              <dt>Estimated revenue</dt>
+              <dd id="summary-revenue">—</dd>
+            </div>
+            <div class="admin-figure">
+              <dt>Accounts</dt>
+              <dd id="summary-accounts">—</dd>
+            </div>
+            <div class="admin-figure">
+              <dt>Messages</dt>
+              <dd id="summary-contacts">—</dd>
+            </div>
+            <div class="admin-figure">
+              <dt>Subscribers</dt>
+              <dd id="summary-subscribers">—</dd>
+            </div>
+            <div class="admin-figure">
+              <dt>From signed-in customers</dt>
+              <dd id="summary-attributed">—</dd>
+            </div>
+          </dl>
+
+          <!-- Charts -->
+          <div class="admin-charts">
+            <section class="admin-chart admin-chart--wide" aria-labelledby="chart-daily-heading">
+              <h2 id="chart-daily-heading">Bookings per day</h2>
+              <p class="admin-chart-note">Last 14 days</p>
+              <div id="chart-daily"></div>
+            </section>
+            <section class="admin-chart" aria-labelledby="chart-stages-heading">
+              <h2 id="chart-stages-heading">By stage</h2>
+              <p class="admin-chart-note">Derived from pickup and return dates</p>
+              <div id="chart-stages"></div>
+            </section>
+            <section class="admin-chart admin-chart--wide" aria-labelledby="chart-vehicles-heading">
+              <h2 id="chart-vehicles-heading">Most booked vehicles</h2>
+              <p class="admin-chart-note">Across all saved bookings</p>
+              <div id="chart-vehicles"></div>
+            </section>
+          </div>
+        </div>
       </div>
 
       <div class="admin-panel">

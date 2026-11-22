@@ -7,6 +7,7 @@ import { requireJsonObject, sendJson } from "../http.js";
 const deriveKey = promisify(scrypt);
 const sessionDuration = 8 * 60 * 60;
 const pageSize = 25;
+const summaryLimit = 2000;
 const fields = {
   bookings: ["id", "submittedAt", "vehicle", "pickup", "dropoff", "pickupDate", "returnDate", "estimatedFareInr"],
   contacts: ["id", "submittedAt", "name", "email", "message"],
@@ -51,6 +52,82 @@ export function createAdminController({ passwordHash, secondPasswordHash, secure
     }
     return records.reverse().slice(offset, offset + pageSize + 1)
       .map(record => Object.fromEntries(columns.map(column => [column, record[column]])));
+  }
+
+  async function readCollection(collection) {
+    if (models) {
+      // Capped so a large collection cannot be pulled into memory wholesale.
+      return models[collection].find({}, { _id: 0 }).sort({ submittedAt: -1 })
+        .limit(summaryLimit).lean().exec();
+    }
+    try {
+      const records = JSON.parse(await readFile(path.join(dataDir, collection + ".json"), "utf8"));
+      return Array.isArray(records) ? records.slice(-summaryLimit).reverse() : [];
+    } catch (error) {
+      if (error.code === "ENOENT") return [];
+      throw error;
+    }
+  }
+
+  async function countCollection(collection) {
+    if (models) return models[collection].estimatedDocumentCount().exec();
+    return (await readCollection(collection)).length;
+  }
+
+  // Everything the admin charts need, in one request.
+  async function summarise() {
+    const [bookings, contacts, subscribers, accounts] = await Promise.all([
+      readCollection("bookings"),
+      countCollection("contacts"),
+      countCollection("subscribers"),
+      models?.users ? models.users.estimatedDocumentCount().exec() : countUsersFromFile()
+    ]);
+
+    const today = new Date().toISOString().slice(0, 10);
+    const stages = { upcoming: 0, active: 0, completed: 0 };
+    const vehicles = new Map();
+    const byDay = new Map();
+    let revenue = 0;
+    let attributed = 0;
+
+    // The last 14 days always appear, so the chart keeps a steady shape.
+    for (let back = 13; back >= 0; back--) {
+      const date = new Date(Date.now() - back * 86_400_000).toISOString().slice(0, 10);
+      byDay.set(date, 0);
+    }
+
+    for (const booking of bookings) {
+      const stage = booking.pickupDate > today ? "upcoming"
+        : booking.returnDate && booking.returnDate < today ? "completed" : "active";
+      stages[stage]++;
+      vehicles.set(booking.vehicle, (vehicles.get(booking.vehicle) || 0) + 1);
+      if (Number.isFinite(booking.estimatedFareInr)) revenue += booking.estimatedFareInr;
+      if (booking.accountEmail) attributed++;
+      const day = typeof booking.submittedAt === "string" ? booking.submittedAt.slice(0, 10) : null;
+      if (day && byDay.has(day)) byDay.set(day, byDay.get(day) + 1);
+    }
+
+    return {
+      totals: {
+        bookings: bookings.length, contacts, subscribers, accounts,
+        attributed, anonymous: bookings.length - attributed
+      },
+      revenue,
+      stages,
+      byDay: [...byDay].map(([date, count]) => ({ date, count })),
+      vehicles: [...vehicles].map(([vehicle, count]) => ({ vehicle, count }))
+        .sort((a, b) => b.count - a.count)
+    };
+  }
+
+  async function countUsersFromFile() {
+    try {
+      const records = JSON.parse(await readFile(path.join(dataDir, "users.json"), "utf8"));
+      return Array.isArray(records) ? records.length : 0;
+    } catch (error) {
+      if (error.code === "ENOENT") return 0;
+      throw error;
+    }
   }
 
   return async function handleAdminRequest(request, response, apiPath) {
@@ -126,6 +203,15 @@ export function createAdminController({ passwordHash, secondPasswordHash, secure
     }
 
     if (!signedIn) return sendJson(response, 401, { message: "Sign in to continue." });
+
+    if (apiPath === "/summary") {
+      if (request.method !== "GET") {
+        response.setHeader("Allow", "GET");
+        return sendJson(response, 405, { message: "Method not allowed." });
+      }
+      return sendJson(response, 200, await summarise());
+    }
+
     const collection = apiPath.slice(1);
     if (!Object.hasOwn(fields, collection)) return sendJson(response, 404, { message: "Page not found." });
     if (request.method !== "GET") {

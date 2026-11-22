@@ -39,6 +39,17 @@ export function createAccountController({ dataDir, models, mailer, secureCookie 
   const cookieName = secureCookie ? "__Host-truckbhai_account" : "truckbhai_account";
   const cookieFlags = "Path=/; HttpOnly; SameSite=Strict" + (secureCookie ? "; Secure" : "");
   const attempts = new Map();
+  // Reset tokens are single use and short lived. They are kept server side and
+  // only their raw value, delivered by email, can redeem one.
+  const resetTokens = new Map();
+  const resetDuration = 30 * 60 * 1000;
+
+  function pruneResets(now) {
+    for (const [token, entry] of resetTokens) {
+      if (entry.expiresAt <= now) resetTokens.delete(token);
+    }
+    while (resetTokens.size >= 200) resetTokens.delete(resetTokens.keys().next().value);
+  }
 
   function setCookie(response, token, maxAge) {
     response.setHeader("Set-Cookie", `${cookieName}=${token}; Max-Age=${maxAge}; ${cookieFlags}`);
@@ -197,5 +208,85 @@ export function createAccountController({ dataDir, models, mailer, secureCookie 
     });
   }
 
-  return { register, signIn, signOut, currentAccount, myBookings, sessionEmail, requestError };
+  async function requestReset(request, response) {
+    if (!sameOrigin(request)) {
+      return sendJson(response, 403, { message: "Submit this form from this website." });
+    }
+    const body = requireJsonObject(request);
+    const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
+    // Always the same answer, so this cannot be used to discover registered
+    // addresses. A missing account simply has no token created for it.
+    const answer = { message: "If that email has an account, a reset link is on its way." };
+
+    const retryAfter = rateLimit("reset:" + email);
+    if (retryAfter) {
+      response.setHeader("Retry-After", retryAfter);
+      return sendJson(response, 429, { message: "Too many reset requests. Try again in a minute." });
+    }
+
+    const record = email ? await accounts.find(email) : null;
+    if (!record) return sendJson(response, 200, answer);
+
+    const now = Date.now();
+    pruneResets(now);
+    const token = randomBytes(32).toString("hex");
+    resetTokens.set(token, { email: record.email, expiresAt: now + resetDuration });
+
+    if (mailer) {
+      const link = `${request.protocol}://${request.headers.host}/forgot-password.html?token=${token}`;
+      Promise.resolve().then(() => mailer.send("reset", { ...record, resetLink: link, resetToken: token }))
+        .catch((error) => {
+          console.error("Could not send reset email for %s: %s", record.id, error.message);
+        });
+    } else {
+      // Without a mailer the link cannot be delivered, so say so in the log
+      // rather than leaving an operator guessing why no email arrived.
+      console.warn("Password reset requested but no mailer is configured; set EMAILJS_* to deliver it.");
+    }
+    return sendJson(response, 200, answer);
+  }
+
+  async function completeReset(request, response) {
+    if (!sameOrigin(request)) {
+      return sendJson(response, 403, { message: "Submit this form from this website." });
+    }
+    const body = requireJsonObject(request);
+    const token = typeof body.token === "string" ? body.token.trim() : "";
+    const password = typeof body.password === "string" ? body.password : "";
+
+    const entry = /^[0-9a-f]{64}$/i.test(token) ? resetTokens.get(token) : null;
+    if (!entry || entry.expiresAt <= Date.now()) {
+      if (entry) resetTokens.delete(token);
+      return sendJson(response, 400, {
+        message: "That reset link has expired. Request a new one."
+      });
+    }
+    if (password.length < 8 || password.length > 128) {
+      return sendJson(response, 422, {
+        message: "Check the form details.",
+        errors: { password: "Use a password between 8 and 128 characters." }
+      });
+    }
+
+    const record = await accounts.find(entry.email);
+    if (!record) {
+      resetTokens.delete(token);
+      return sendJson(response, 400, { message: "That reset link is no longer valid." });
+    }
+
+    await accounts.updatePassword(entry.email, await hashPassword(password));
+    // Single use, and every existing session for the account is dropped so a
+    // stolen session cannot outlive the password it was created with.
+    resetTokens.delete(token);
+    for (const [sessionToken, session] of sessions) {
+      if (session.email === entry.email) sessions.delete(sessionToken);
+    }
+    attempts.delete(entry.email);
+    return sendJson(response, 200, { message: "Your password is updated. Sign in with it now." });
+  }
+
+  return {
+    register, signIn, signOut, currentAccount, myBookings,
+    requestReset, completeReset, sessionEmail, requestError
+  };
 }
