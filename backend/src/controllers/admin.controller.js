@@ -4,6 +4,7 @@ import path from "node:path";
 import { promisify } from "node:util";
 import { requireJsonObject, sendJson, sameOrigin } from "../http.js";
 import { businessToday, businessDate, recentDays } from "../today.js";
+import { selectPublicFields } from "../records.js";
 
 const deriveKey = promisify(scrypt);
 const sessionDuration = 8 * 60 * 60;
@@ -40,8 +41,9 @@ export function createAdminController({ passwordHash, secondPasswordHash, secure
     const columns = fields[collection];
     if (models) {
       const projection = Object.fromEntries(columns.map(column => [column, 1]));
-      return models[collection].find({}, { ...projection, _id: 0 })
+      const records = await models[collection].find({}, projection)
         .sort({ submittedAt: -1, _id: -1 }).skip(offset).limit(pageSize + 1).lean().exec();
+      return records.map(record => selectPublicFields(record, columns));
     }
 
     let records;
@@ -52,7 +54,7 @@ export function createAdminController({ passwordHash, secondPasswordHash, secure
       throw error;
     }
     return records.reverse().slice(offset, offset + pageSize + 1)
-      .map(record => Object.fromEntries(columns.map(column => [column, record[column]])));
+      .map(record => selectPublicFields(record, columns));
   }
 
   async function readCollection(collection) {

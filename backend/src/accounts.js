@@ -5,6 +5,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
+import { selectPublicFields } from "./records.js";
 
 function duplicateEmail() {
   const message = "An account already uses this email address.";
@@ -79,7 +80,7 @@ function createModelAccounts(models) {
     },
     async create(record) {
       try {
-        await models.users.create({ ...record, _id: record.id });
+        await models.users.create(record);
       } catch (error) {
         if (error.code === 11000) throw duplicateEmail();
         throw error;
@@ -105,8 +106,9 @@ export function createBookingReader({ dataDir, models }) {
   return async function listBookings(accountEmail, limit = 25) {
     if (models?.bookings) {
       const projection = Object.fromEntries(fields.map((field) => [field, 1]));
-      return models.bookings.find({ accountEmail }, { ...projection, _id: 0 })
+      const records = await models.bookings.find({ accountEmail }, projection)
         .sort({ submittedAt: -1 }).limit(limit).lean().exec();
+      return records.map(record => selectPublicFields(record, fields));
     }
     let records;
     try {

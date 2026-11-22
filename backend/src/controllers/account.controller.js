@@ -12,6 +12,7 @@ import * as forms from "../../../frontend/js/forms.js";
 import { requireJsonObject, requestError, sendJson, expectedOrigin, sameOrigin } from "../http.js";
 import { createAccountStore, createBookingReader } from "../accounts.js";
 import { businessToday } from "../today.js";
+import { recordReference } from "../records.js";
 
 const deriveKey = promisify(scrypt);
 const keyLength = 64;
@@ -147,7 +148,7 @@ export function createAccountController({ dataDir, models, mailer, secureCookie 
     }
 
     const record = {
-      id: randomUUID(),
+      _id: randomUUID(),
       submittedAt: new Date().toISOString(),
       email: values.email,
       name: values.name,
@@ -168,7 +169,7 @@ export function createAccountController({ dataDir, models, mailer, secureCookie 
     if (mailer) {
       // A mail failure must not turn a created account into a failed response.
       Promise.resolve().then(() => mailer.send("welcome", record)).catch((error) => {
-        console.error("Could not send welcome email for %s: %s", record.id, error.message);
+        console.error("Could not send welcome email for %s: %s", recordReference(record), error.message);
       });
     }
     return sendJson(response, 201, { message: "Your account is ready.", account: profile(record) });
@@ -266,7 +267,7 @@ export function createAccountController({ dataDir, models, mailer, secureCookie 
       const link = `${expectedOrigin(request)}/forgot-password.html?token=${token}`;
       Promise.resolve().then(() => mailer.send("reset", { ...record, resetLink: link, resetToken: token }))
         .catch((error) => {
-          console.error("Could not send reset email for %s: %s", record.id, error.message);
+          console.error("Could not send reset email for %s: %s", recordReference(record), error.message);
         });
     } else {
       // Without a mailer the link cannot be delivered, so say so in the log

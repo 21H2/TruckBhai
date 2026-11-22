@@ -67,7 +67,7 @@ test("a successful booking is normalized, saved, and persists across server inst
   const result = await response.json();
   const saved = JSON.parse(await fs.readFile(path.join(dataDir, "bookings.json"), "utf8"));
   assert.equal(saved.length, 1);
-  assert.deepEqual(saved[0], { ...validBooking, id: result.id, submittedAt: saved[0].submittedAt });
+  assert.deepEqual(saved[0], { ...validBooking, _id: result.id, submittedAt: saved[0].submittedAt });
   assert.match(result.id, /^[a-f0-9-]{36}$/);
   assert.ok(Number.isFinite(Date.parse(saved[0].submittedAt)));
 
@@ -171,7 +171,7 @@ test("simultaneous bookings all survive in a valid JSON array", async (t) => {
   assert.ok(responses.every((response) => response.status === 201));
   const records = JSON.parse(await fs.readFile(path.join(dataDir, "bookings.json"), "utf8"));
   assert.equal(records.length, 20);
-  assert.equal(new Set(records.map((record) => record.id)).size, 20);
+  assert.equal(new Set(records.map((record) => record._id)).size, 20);
   assert.equal(new Set(records.map((record) => record.pickup)).size, 20);
 });
 
@@ -300,7 +300,7 @@ test("contact submissions save to their own file and invalid requests save nothi
   assert.equal(contacts.length, 1);
   assert.equal(contacts[0].name, "Asha Kumar");
   assert.equal(contacts[0].message, "Please send rental details.");
-  assert.equal(contacts[0].id, (await response.json()).id);
+  assert.equal(contacts[0]._id, (await response.json()).id);
   await post(validBooking);
   assert.equal(JSON.parse(await fs.readFile(path.join(dataDir, "bookings.json"), "utf8")).length, 1);
   assert.equal((await request("/data/contacts.json")).status, 404);
@@ -333,7 +333,7 @@ test("newsletter saves only valid subscriptions and prevents case-insensitive du
   const subscribers = JSON.parse(await fs.readFile(path.join(dataDir, "subscribers.json"), "utf8"));
   assert.equal(subscribers.length, 1);
   assert.equal(subscribers[0].email, "asha@example.com");
-  assert.equal(subscribers[0].id, (await response.json()).id);
+  assert.equal(subscribers[0]._id, (await response.json()).id);
   assert.ok(Number.isFinite(Date.parse(subscribers[0].submittedAt)));
   assert.equal((await request("/data/subscribers.json")).status, 404);
   assert.equal(emails.length, 1);

@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import dotenv from "dotenv";
 import { connectDatabase } from "./config/database.js";
+import { recordReference } from "./records.js";
 import { DATA_DIR, ENV_FILE, DEFAULT_MONGODB_DATABASE } from "./config/constants.js";
 
 async function readRecords(name) {
@@ -21,7 +22,7 @@ async function readRecords(name) {
     throw new Error(`Invalid JSON in backend/data/${name}.json.`);
   }
   if (!Array.isArray(records) || records.some((record) =>
-    typeof record?.id !== "string" || !record.id ||
+    typeof recordReference(record) !== "string" || !recordReference(record) ||
     typeof record.submittedAt !== "string" ||
     (name === "subscribers" && (typeof record.email !== "string" || !record.email.trim()))
   )) {
@@ -33,10 +34,12 @@ async function readRecords(name) {
 async function importRecords(collection, records) {
   let inserted = 0;
   for (const record of records) {
+    const { id, ...fields } = record;
+    const reference = id ?? fields._id;
     const filter = collection.collectionName === "subscribers"
       ? { email: record.email.trim().toLowerCase() }
-      : { _id: record.id };
-    const document = { ...record, _id: record.id, ...filter };
+      : { _id: reference };
+    const document = { ...fields, _id: reference, ...filter };
     try {
       const result = await collection.updateOne(filter, { $setOnInsert: document }, { upsert: true });
       if (!result.acknowledged) throw new Error("MongoDB did not acknowledge the import.");

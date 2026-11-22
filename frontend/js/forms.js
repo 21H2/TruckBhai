@@ -79,4 +79,4 @@ function credentials(input) {
   return { values: values, errors: errors };
 }
 
-export { contact, subscriber, registration, credentials };
+export { contact, subscriber, registration, credentials, validEmail };

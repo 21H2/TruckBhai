@@ -52,7 +52,7 @@ test("contact mail still carries the name, message and reference", async () => {
   const { sent, request } = recorder();
   const mailer = createMailer(configured, request);
   await mailer.send("contact", {
-    email: "someone@example.com", name: "Someone", message: "Hello there", id: "ref-1"
+    email: "someone@example.com", name: "Someone", message: "Hello there", _id: "ref-1"
   });
 
   assert.equal(sent.length, 1);

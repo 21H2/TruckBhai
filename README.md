@@ -54,7 +54,8 @@ and existing subscriber emails. The original files remain available under `backe
   server-calculated `estimatedFareInr`. The API also accepts the original pickup-only
   request format. Vehicle IDs live in `frontend/js/booking.js`. Dates use `YYYY-MM-DD`.
 - Successful requests return HTTP 201 with a reference ID and save a record in
-  the `bookings` collection. Each record includes `id` and `submittedAt` (UTC).
+  the `bookings` collection. Each record stores `_id` and `submittedAt` (UTC).
+  The API returns that identifier as `id` for tracking.
 - The form retains entered details on an error and clears them only after saving.
 
 This records a booking request. Inventory reservations and payments are outside
