@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <!-- Page Metadata and SEO -->
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Privacy policy — TruckBhai</title>
+  <meta name="description" content="What TruckBhai collects through its booking, contact and newsletter forms, why, and who can see it." />
+  <!-- Social Sharing (Open Graph / Twitter) -->
+  <meta property="og:title" content="Privacy policy — TruckBhai" />
+  <meta property="og:description" content="What TruckBhai collects through its booking, contact and newsletter forms, why, and who can see it." />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <!-- Web Fonts and Stylesheets -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700;800&family=Lato:wght@400;600;700&family=Inter:wght@400;600&family=Cabin:wght@400;500&family=Mulish:wght@400;600&family=Work+Sans:wght@400;600;700&family=DM+Sans:wght@400;500;700&display=swap" />
+  <link rel="stylesheet" href="css/styles.css?v=2" />
+  <script type="module" src="js/main.js?v=esm"></script>
+</head>
+
+<body>
+  <!-- Navigation Bar -->
+  <nav class="nav nav--dark" aria-label="Main">
+    <a class="logo" href="index.html">
+      <p>Truck<span>Bhai</span></p>
+      <div class="underline" aria-hidden="true"></div>
+    </a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="main-nav-links">Menu</button>
+    <ul class="nav-links" id="main-nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="about.html">About Us</a></li>
+      <li><a href="vehicle-models.html">Vehicle Models</a></li>
+      <li><a href="testimonials.html">Testimonials</a></li>
+      <li><a href="our-team.html">Our team</a></li>
+      <li><a href="contact.html">Contact Us</a></li>
+      <li><a href="login.html">Login</a></li>
+    </ul>
+  </nav>
+
+  <div class="canvas">
+    <main class="page login-page">
+      <!-- Page Hero Header -->
+      <section class="login-stage">
+        <div class="page-hero">
+          <div class="shade"></div>
+          <img class="fit cover bottom" src="images/page-hero.png" alt="Row of trucks" />
+          <div class="wash"></div>
+        </div>
+        <h1 class="page-title">Privacy policy</h1>
+        <p class="page-crumb">Home / privacy</p>
+
+        <!-- Privacy Content -->
+        <article class="legal-card glass" aria-labelledby="privacy-heading">
+          <h2 class="legal-heading" id="privacy-heading">Privacy policy</h2>
+          <p class="legal-meta">Sample policy for the TruckBhai demo. Not legal advice.</p>
+
+          <h3>What we collect</h3>
+          <p>
+            Three forms on this site collect information. A booking records the vehicle, pickup and drop-off locations
+            and your rental dates. A contact message records your name, email and the message text. A newsletter
+            subscription records your email address only.
+          </p>
+
+          <h3>Why we collect it</h3>
+          <p>
+            Bookings let us arrange a vehicle and contact you about it. Messages let us answer your enquiry.
+            Subscriptions let us send offers you asked for.
+          </p>
+
+          <h3>Where it is stored</h3>
+          <p>
+            Submissions are written to the application database, or to local JSON files when no database is configured.
+            Every record carries a generated reference and a UTC timestamp.
+          </p>
+
+          <h3>Who can see it</h3>
+          <p>
+            Only staff signed in to the admin dashboard can read submissions, and that dashboard is protected by a
+            password and an expiring session. Submission files are never served over the web.
+          </p>
+
+          <h3>How long we keep it</h3>
+          <p>
+            We keep booking records for as long as needed to run the rental and meet accounting obligations, and
+            remove newsletter addresses when you unsubscribe.
+          </p>
+
+          <h3>Your choices</h3>
+          <p>
+            Ask us to correct or delete your details at any time. Unsubscribing stops newsletter email without
+            affecting a booking already in progress.
+          </p>
+
+          <p class="legal-contact">
+            Privacy questions? <a href="contact.html">Contact us</a> or email
+            <a href="mailto:info@truckbhai.com">info@truckbhai.com</a>.
+          </p>
+        </article>
+      </section>
+
+      <!-- Footer Section -->
+      <footer class="footer footer--inner footer--flow">
+        <div class="logo">
+          <p>Truck<span>Bhai</span></p>
+          <div class="underline"></div>
+        </div>
+        <p class="tagline">Your Trusted Truck Rental Solution</p>
+        <div class="col col--company">
+          <h4>Company</h4>
+          <ul>
+            <li><a href="vehicle-models.html">Rent Details</a></li>
+            <li><a href="about.html">Why Choose Us</a></li>
+            <li><a href="terms.html">Terms and Conditions</a></li>
+            <li><a href="privacy.html">Privacy Policy</a></li>
+          </ul>
+        </div>
+        <div class="col col--contact">
+          <h4>Contact Us</h4>
+          <a href="mailto:info@truckbhai.com">info@truckbhai.com</a>
+          <p>+91 99349 49572</p>
+          <p>chennai,tamilnadu</p>
+        </div>
+        <div class="col col--news">
+          <h4>Get deals and discounts</h4>
+          <p>Subscribe to our newsletter</p>
+        </div>
+        <form id="newsletter-form" class="newsletter-form" action="/api/v1/subscribers" method="post">
+          <input id="newsletter-email" class="newsletter-input" name="email" type="email" autocomplete="email"
+            placeholder="Email" aria-label="Newsletter email" maxlength="254" required />
+          <button class="newsletter-button" type="submit">Subscribe</button>
+          <p class="field-error" id="newsletter-email-error"></p>
+          <p class="form-status" role="status"></p>
+        </form>
+        <p class="copyright">© Copyright Team Inc.</p>
+      </footer>
+    </main>
+  </div>
+</body>
+
+</html>

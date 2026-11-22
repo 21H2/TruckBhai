@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <!-- Page Metadata and SEO -->
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Your dashboard — TruckBhai</title>
+  <meta name="description"
+    content="Review your TruckBhai bookings, track an active rental and manage your account details from one place." />
+  <!-- Social Sharing (Open Graph / Twitter) -->
+  <meta property="og:title" content="Your dashboard — TruckBhai" />
+  <meta property="og:description"
+    content="Review your TruckBhai bookings, track an active rental and manage your account details from one place." />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <!-- Web Fonts and Stylesheets -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700;800&family=Lato:wght@400;600;700&family=Inter:wght@400;600&family=Cabin:wght@400;500&family=Mulish:wght@400;600&family=Work+Sans:wght@400;600;700&family=DM+Sans:wght@400;500;700&display=swap" />
+  <link rel="stylesheet" href="css/styles.css?v=2" />
+  <script type="module" src="js/main.js?v=esm"></script>
+</head>
+
+<body>
+  <!-- Navigation Bar -->
+  <nav class="nav nav--dark" aria-label="Main">
+    <a class="logo" href="index.html">
+      <p>Truck<span>Bhai</span></p>
+      <div class="underline" aria-hidden="true"></div>
+    </a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="main-nav-links">Menu</button>
+    <ul class="nav-links" id="main-nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="about.html">About Us</a></li>
+      <li><a href="vehicle-models.html">Vehicle Models</a></li>
+      <li><a href="testimonials.html">Testimonials</a></li>
+      <li><a href="our-team.html">Our team</a></li>
+      <li><a href="contact.html">Contact Us</a></li>
+      <li><a href="login.html">Login</a></li>
+    </ul>
+  </nav>
+
+  <div class="canvas">
+    <main class="page login-page">
+      <!-- Page Hero Header and Dashboard Panels -->
+      <section class="login-stage">
+        <div class="page-hero">
+          <div class="shade"></div>
+          <img class="fit cover bottom" src="images/page-hero.png" alt="Row of trucks" />
+          <div class="wash"></div>
+        </div>
+        <h1 class="page-title">Dashboard</h1>
+        <p class="page-crumb">Home / dashboard</p>
+
+        <div class="dash-shell">
+          <!-- Greeting -->
+          <div class="dash-head">
+            <div>
+              <p class="dash-welcome">Welcome back, <span>Umesh</span></p>
+              <p class="dash-note">Design preview — these figures are sample data, not a signed-in account.</p>
+            </div>
+            <div class="dash-actions">
+              <a class="btn-dark" href="index.html#booking-form">Book a truck</a>
+            </div>
+          </div>
+
+          <!-- Summary Figures -->
+          <dl class="dash-stats">
+            <div class="dash-stat glass">
+              <dt>Active rental</dt>
+              <dd>1</dd>
+            </div>
+            <div class="dash-stat glass">
+              <dt>Upcoming</dt>
+              <dd>2</dd>
+            </div>
+            <div class="dash-stat glass">
+              <dt>Completed</dt>
+              <dd>7</dd>
+            </div>
+            <div class="dash-stat glass">
+              <dt>Spent this year</dt>
+              <dd>₹48,200</dd>
+            </div>
+          </dl>
+
+          <!-- Booking History -->
+          <section class="dash-panel glass" aria-labelledby="dash-bookings-heading">
+            <div class="dash-panel-head">
+              <h2 id="dash-bookings-heading">Your bookings</h2>
+              <a class="dash-link" href="index.html#booking-form">New booking</a>
+            </div>
+            <table class="dash-table">
+              <thead>
+                <tr>
+                  <th scope="col">Reference</th>
+                  <th scope="col">Vehicle</th>
+                  <th scope="col">Route</th>
+                  <th scope="col">Dates</th>
+                  <th scope="col">Fare</th>
+                  <th scope="col">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="dash-ref">TB-4817</td>
+                  <td>EICHER Pro</td>
+                  <td>Chennai → Bengaluru</td>
+                  <td>12 Nov – 14 Nov</td>
+                  <td>₹18,400</td>
+                  <td><span class="dash-pill dash-pill--confirmed">On rent</span></td>
+                </tr>
+                <tr>
+                  <td class="dash-ref">TB-4913</td>
+                  <td>TATA Ace</td>
+                  <td>Chennai → Vellore</td>
+                  <td>28 Nov – 29 Nov</td>
+                  <td>₹6,100</td>
+                  <td><span class="dash-pill dash-pill--pending">Awaiting confirmation</span></td>
+                </tr>
+                <tr>
+                  <td class="dash-ref">TB-5002</td>
+                  <td>Container 20ft</td>
+                  <td>Chennai → Hyderabad</td>
+                  <td>09 Dec – 12 Dec</td>
+                  <td>₹23,700</td>
+                  <td><span class="dash-pill dash-pill--pending">Awaiting confirmation</span></td>
+                </tr>
+                <tr>
+                  <td class="dash-ref">TB-4401</td>
+                  <td>EICHER 19</td>
+                  <td>Coimbatore → Chennai</td>
+                  <td>02 Oct – 04 Oct</td>
+                  <td>₹16,900</td>
+                  <td><span class="dash-pill dash-pill--done">Completed</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </section>
+
+          <!-- Current Rental and Account -->
+          <div class="dash-aside">
+            <section class="dash-panel glass" aria-labelledby="dash-active-heading">
+              <div class="dash-panel-head">
+                <h2 id="dash-active-heading">Active rental</h2>
+                <span class="dash-pill dash-pill--confirmed">TB-4817</span>
+              </div>
+              <dl>
+                <div class="dash-detail">
+                  <dt>Vehicle</dt>
+                  <dd>EICHER Pro · TN 09 AB 1234</dd>
+                </div>
+                <div class="dash-detail">
+                  <dt>Pickup</dt>
+                  <dd>Chennai, Tamil Nadu</dd>
+                </div>
+                <div class="dash-detail">
+                  <dt>Drop-off</dt>
+                  <dd>Bengaluru, Karnataka</dd>
+                </div>
+                <div class="dash-detail">
+                  <dt>Return by</dt>
+                  <dd>14 Nov, 6:00 pm</dd>
+                </div>
+                <div class="dash-detail">
+                  <dt>Driver contact</dt>
+                  <dd>+91 99349 49572</dd>
+                </div>
+              </dl>
+              <div class="dash-actions">
+                <a class="btn-dark" href="contact.html">Get support</a>
+              </div>
+            </section>
+
+            <section class="dash-panel glass" aria-labelledby="dash-account-heading">
+              <div class="dash-panel-head">
+                <h2 id="dash-account-heading">Account</h2>
+                <a class="dash-link" href="login.html">Sign out</a>
+              </div>
+              <dl>
+                <div class="dash-detail">
+                  <dt>Name</dt>
+                  <dd>Umesh Kumar Sharma</dd>
+                </div>
+                <div class="dash-detail">
+                  <dt>Email</dt>
+                  <dd>umesh@example.com</dd>
+                </div>
+                <div class="dash-detail">
+                  <dt>Phone</dt>
+                  <dd>+91 99349 49572</dd>
+                </div>
+                <div class="dash-detail">
+                  <dt>City</dt>
+                  <dd>Chennai, Tamil Nadu</dd>
+                </div>
+                <div class="dash-detail">
+                  <dt>Newsletter</dt>
+                  <dd>Subscribed</dd>
+                </div>
+              </dl>
+              <div class="dash-actions">
+                <a class="btn-dark" href="contact.html">Update details</a>
+              </div>
+            </section>
+          </div>
+        </div>
+      </section>
+
+      <!-- Footer Section -->
+      <footer class="footer footer--inner footer--flow">
+        <div class="logo">
+          <p>Truck<span>Bhai</span></p>
+          <div class="underline"></div>
+        </div>
+        <p class="tagline">Your Trusted Truck Rental Solution</p>
+        <div class="col col--company">
+          <h4>Company</h4>
+          <ul>
+            <li><a href="vehicle-models.html">Rent Details</a></li>
+            <li><a href="about.html">Why Choose Us</a></li>
+            <li><a href="terms.html">Terms and Conditions</a></li>
+            <li><a href="privacy.html">Privacy Policy</a></li>
+          </ul>
+        </div>
+        <div class="col col--contact">
+          <h4>Contact Us</h4>
+          <a href="mailto:info@truckbhai.com">info@truckbhai.com</a>
+          <p>+91 99349 49572</p>
+          <p>chennai,tamilnadu</p>
+        </div>
+        <div class="col col--news">
+          <h4>Get deals and discounts</h4>
+          <p>Subscribe to our newsletter</p>
+        </div>
+        <form id="newsletter-form" class="newsletter-form" action="/api/v1/subscribers" method="post">
+          <input id="newsletter-email" class="newsletter-input" name="email" type="email" autocomplete="email"
+            placeholder="Email" aria-label="Newsletter email" maxlength="254" required />
+          <button class="newsletter-button" type="submit">Subscribe</button>
+          <p class="field-error" id="newsletter-email-error"></p>
+          <p class="form-status" role="status"></p>
+        </form>
+        <p class="copyright">© Copyright Team Inc.</p>
+      </footer>
+    </main>
+  </div>
+</body>
+
+</html>

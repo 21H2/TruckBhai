@@ -21,7 +21,9 @@ const publicDependencies = new Map([
 ]);
 const pages = new Set([
   "index.html", "about.html", "vehicle-models.html", "testimonials.html",
-  "our-team.html", "contact.html"
+  "our-team.html", "contact.html", "login.html", "signup.html",
+  "forgot-password.html", "dashboard.html", "terms.html", "privacy.html",
+  "not-found.html"
 ]);
 const mimeTypes = {
   ".html": "text/html; charset=utf-8",
@@ -92,6 +94,16 @@ function createApp({ dataDir = DATA_DIR, db, models, journeys = createJourneySer
     const dependency = publicDependencies.get(file);
     const mimeType = mimeTypes[path.extname(file)];
     if ((!pages.has(file) && !publicAsset && !dependency) || !mimeType) {
+      // Browsers asking for a page get the styled 404; everything else keeps the JSON body.
+      if (request.method === "GET" && request.accepts("html") && !path.extname(file)) {
+        const notFound = await fs.readFile(path.join(FRONTEND_DIR, "not-found.html"));
+        response.writeHead(404, {
+          "Content-Type": "text/html; charset=utf-8",
+          "Content-Length": notFound.length,
+          "Cache-Control": "no-cache"
+        });
+        return response.end(notFound);
+      }
       return sendJson(response, 404, { message: "Page not found." });
     }
     response.setHeader("Cache-Control", pages.has(file) ? "no-cache" : "public, max-age=300");

@@ -8,12 +8,13 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700;800&family=Lato:wght@400;600;700&family=Inter:wght@400;600&family=Cabin:wght@400;500&family=Mulish:wght@400;600&family=Work+Sans:wght@400;600;700&family=DM+Sans:wght@400;500;700&display=swap" />
-  <link rel="stylesheet" href="/css/styles.css" />
-  <link rel="stylesheet" href="/css/admin.css" />
+  <link rel="stylesheet" href="/css/styles.css?v=2" />
+  <link rel="stylesheet" href="/css/admin.css?v=2" />
   <script type="module" src="/js/main.js?v=esm"></script>
   <script type="module" src="/js/admin.js?v=api-v1"></script>
 </head>
 <body>
+  <!-- Navigation Bar -->
   <nav class="nav nav--dark" aria-label="Main">
     <a class="logo" href="/index.html">
       <p>Truck<span>Bhai</span></p>
@@ -27,11 +28,25 @@
       <li><a href="/testimonials.html">Testimonials</a></li>
       <li><a href="/our-team.html">Our team</a></li>
       <li><a href="/contact.html">Contact Us</a></li>
+      <li><a href="/login.html">Login</a></li>
     </ul>
   </nav>
+
+  <!-- Page Hero Header -->
+  <div class="admin-hero">
+    <div class="page-hero page-hero--fluid">
+      <div class="shade"></div>
+      <img class="fit cover bottom" src="/images/page-hero.png" alt="Row of trucks" />
+      <div class="wash"></div>
+    </div>
+    <p class="admin-crumb">TruckBhai / admin</p>
+  </div>
+
   <main class="admin-main">
-    <section id="admin-login" class="admin-login" hidden>
+    <!-- Admin Sign In -->
+    <section id="admin-login" class="admin-login glass" hidden>
       <h1>Admin sign in</h1>
+      <p class="admin-sub">Enter the admin password to view site submissions.</p>
       <form id="admin-login-form" method="post">
         <label for="admin-password">Password</label>
         <input id="admin-password" type="password" name="password" autocomplete="current-password" maxlength="256" required />
@@ -39,30 +54,39 @@
         <p class="form-status" id="login-status" role="status"></p>
       </form>
     </section>
+
+    <!-- Submissions Dashboard -->
     <section id="admin-dashboard" hidden>
-      <div class="admin-heading">
-        <h1>Admin dashboard</h1>
+      <div class="admin-heading glass">
+        <div>
+          <h1>Admin dashboard</h1>
+          <p class="admin-sub">Bookings, messages and subscribers submitted through the site.</p>
+        </div>
         <button class="btn-dark" id="admin-logout" type="button">Sign out</button>
       </div>
-      <div class="admin-filters" role="group" aria-label="Submission type">
-        <button type="button" data-collection="bookings" aria-pressed="true">Bookings</button>
-        <button type="button" data-collection="contacts" aria-pressed="false">Contact messages</button>
-        <button type="button" data-collection="subscribers" aria-pressed="false">Newsletter subscribers</button>
-      </div>
-      <p class="form-status" id="admin-status" role="status"></p>
-      <div class="admin-results" id="admin-results" role="region" aria-label="Submissions" tabindex="0" hidden>
-        <table>
-          <caption id="admin-caption"></caption>
-          <thead><tr id="admin-columns"></tr></thead>
-          <tbody id="admin-rows"></tbody>
-        </table>
-      </div>
-      <div class="admin-pagination" id="admin-pagination" hidden>
-        <button class="btn-dark" id="admin-previous" type="button">Previous</button>
-        <span id="admin-page"></span>
-        <button class="btn-dark" id="admin-next" type="button">Next</button>
+
+      <div class="admin-panel">
+        <div class="admin-filters" role="group" aria-label="Submission type">
+          <button type="button" data-collection="bookings" aria-pressed="true">Bookings</button>
+          <button type="button" data-collection="contacts" aria-pressed="false">Contact messages</button>
+          <button type="button" data-collection="subscribers" aria-pressed="false">Newsletter subscribers</button>
+        </div>
+        <p class="form-status" id="admin-status" role="status"></p>
+        <div class="admin-results" id="admin-results" role="region" aria-label="Submissions" tabindex="0" hidden>
+          <table>
+            <caption id="admin-caption"></caption>
+            <thead><tr id="admin-columns"></tr></thead>
+            <tbody id="admin-rows"></tbody>
+          </table>
+        </div>
+        <div class="admin-pagination" id="admin-pagination" hidden>
+          <button class="btn-dark" id="admin-previous" type="button">Previous</button>
+          <span id="admin-page"></span>
+          <button class="btn-dark" id="admin-next" type="button">Next</button>
+        </div>
       </div>
     </section>
+
     <noscript>Enable JavaScript to use the TruckBhai admin dashboard.</noscript>
   </main>
 </body>

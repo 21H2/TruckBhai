@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <!-- Page Metadata and SEO -->
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Page not found — TruckBhai</title>
+  <meta name="description" content="That TruckBhai page could not be found. Browse our trucks or head back to the home page." />
+  <!-- Social Sharing (Open Graph / Twitter) -->
+  <meta property="og:title" content="Page not found — TruckBhai" />
+  <meta property="og:description" content="That TruckBhai page could not be found. Browse our trucks or head back to the home page." />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <!-- Web Fonts and Stylesheets -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700;800&family=Lato:wght@400;600;700&family=Inter:wght@400;600&family=Cabin:wght@400;500&family=Mulish:wght@400;600&family=Work+Sans:wght@400;600;700&family=DM+Sans:wght@400;500;700&display=swap" />
+  <link rel="stylesheet" href="css/styles.css?v=2" />
+  <script type="module" src="js/main.js?v=esm"></script>
+</head>
+
+<body>
+  <!-- Navigation Bar -->
+  <nav class="nav nav--dark" aria-label="Main">
+    <a class="logo" href="index.html">
+      <p>Truck<span>Bhai</span></p>
+      <div class="underline" aria-hidden="true"></div>
+    </a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="main-nav-links">Menu</button>
+    <ul class="nav-links" id="main-nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="about.html">About Us</a></li>
+      <li><a href="vehicle-models.html">Vehicle Models</a></li>
+      <li><a href="testimonials.html">Testimonials</a></li>
+      <li><a href="our-team.html">Our team</a></li>
+      <li><a href="contact.html">Contact Us</a></li>
+      <li><a href="login.html">Login</a></li>
+    </ul>
+  </nav>
+
+  <div class="canvas">
+    <main class="page login-page">
+      <!-- Page Hero Header -->
+      <section class="login-stage">
+        <div class="page-hero">
+          <div class="shade"></div>
+          <img class="fit cover bottom" src="images/page-hero.png" alt="Row of trucks" />
+          <div class="wash"></div>
+        </div>
+        <h1 class="page-title">Page not found</h1>
+        <p class="page-crumb">Home / 404</p>
+
+        <!-- Not Found Card -->
+        <section class="login-card glass" aria-labelledby="notfound-heading">
+          <h2 class="login-heading" id="notfound-heading">We could not find that page</h2>
+          <p class="login-sub">The link may be out of date, or the address may have a typo in it.</p>
+
+          <div class="dash-actions">
+            <a class="btn-dark" href="index.html">Back to home</a>
+            <a class="btn-dark" href="vehicle-models.html">Browse trucks</a>
+          </div>
+
+          <div class="login-divider" aria-hidden="true"><span>or</span></div>
+          <p class="login-alt">Looking for your bookings? <a href="login.html">Sign in</a></p>
+          <p class="login-alt">Need a hand? <a href="contact.html">Contact us</a></p>
+        </section>
+      </section>
+
+      <!-- Footer Section -->
+      <footer class="footer footer--inner footer--flow">
+        <div class="logo">
+          <p>Truck<span>Bhai</span></p>
+          <div class="underline"></div>
+        </div>
+        <p class="tagline">Your Trusted Truck Rental Solution</p>
+        <div class="col col--company">
+          <h4>Company</h4>
+          <ul>
+            <li><a href="vehicle-models.html">Rent Details</a></li>
+            <li><a href="about.html">Why Choose Us</a></li>
+            <li><a href="terms.html">Terms and Conditions</a></li>
+            <li><a href="privacy.html">Privacy Policy</a></li>
+          </ul>
+        </div>
+        <div class="col col--contact">
+          <h4>Contact Us</h4>
+          <a href="mailto:info@truckbhai.com">info@truckbhai.com</a>
+          <p>+91 99349 49572</p>
+          <p>chennai,tamilnadu</p>
+        </div>
+        <div class="col col--news">
+          <h4>Get deals and discounts</h4>
+          <p>Subscribe to our newsletter</p>
+        </div>
+        <form id="newsletter-form" class="newsletter-form" action="/api/v1/subscribers" method="post">
+          <input id="newsletter-email" class="newsletter-input" name="email" type="email" autocomplete="email"
+            placeholder="Email" aria-label="Newsletter email" maxlength="254" required />
+          <button class="newsletter-button" type="submit">Subscribe</button>
+          <p class="field-error" id="newsletter-email-error"></p>
+          <p class="form-status" role="status"></p>
+        </form>
+        <p class="copyright">© Copyright Team Inc.</p>
+      </footer>
+    </main>
+  </div>
+</body>
+
+</html>

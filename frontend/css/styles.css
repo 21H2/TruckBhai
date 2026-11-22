@@ -1081,6 +1081,14 @@ a {
   background: linear-gradient(to bottom, rgba(255, 255, 255, 0.32), rgba(255, 255, 255, 0.63));
 }
 
+.page-hero--fluid {
+  position: relative;
+  left: auto;
+  top: auto;
+  width: auto;
+  height: clamp(220px, 24vw, 300px);
+}
+
 .page-title {
   position: absolute;
   left: 86.62px;
@@ -1690,4 +1698,489 @@ a {
 
 .footer--home .newsletter-form {
   top: 119px;
+}
+
+/* Login and dashboard: flow-layout pages built on the hero blend */
+.login-page {
+  background: #fff;
+}
+
+.login-stage {
+  position: relative;
+  width: 1440px;
+  padding: 200px 0 96px;
+}
+
+.footer--flow {
+  position: relative;
+  left: auto;
+  top: auto;
+}
+
+.glass {
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.74);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  box-shadow: 0 20px 24px -4px rgba(16, 24, 40, 0.12), 0 8px 8px -4px rgba(16, 24, 40, 0.04);
+}
+
+.login-card {
+  position: relative;
+  z-index: 2;
+  width: 480px;
+  margin: 0 auto;
+  padding: 40px 40px 36px;
+  font-family: "DM Sans", sans-serif;
+}
+
+.login-heading {
+  font-family: "Poppins", sans-serif;
+  font-weight: 700;
+  font-size: 28px;
+  line-height: 1.35;
+  letter-spacing: -0.56px;
+  color: #0f0f0f;
+}
+
+.login-sub {
+  margin-top: 10px;
+  font-size: 15px;
+  line-height: 23px;
+  color: rgba(21, 20, 57, 0.6);
+}
+
+.login-form {
+  margin-top: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.login-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.login-label {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  color: #1e0e62;
+}
+
+.login-field input {
+  width: 100%;
+  height: 50px;
+  padding: 0 20px;
+  border: 1px solid rgba(21, 20, 57, 0.14);
+  border-radius: 100px;
+  background: rgba(255, 255, 255, 0.92);
+  font-family: "DM Sans", sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  color: #1e0e62;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.login-field input::placeholder {
+  color: rgba(21, 20, 57, 0.4);
+}
+
+.login-field input:focus {
+  outline: none;
+  border-color: #f3494a;
+  box-shadow: 0 0 0 3px rgba(243, 73, 74, 0.18);
+}
+
+.login-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.login-remember {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(21, 20, 57, 0.7);
+  cursor: pointer;
+}
+
+.login-remember input {
+  width: 16px;
+  height: 16px;
+  accent-color: #f3494a;
+  cursor: pointer;
+}
+
+.login-forgot {
+  font-weight: 500;
+  color: #007ec0;
+}
+
+.login-forgot:hover,
+.login-forgot:focus-visible {
+  text-decoration: underline;
+}
+
+.login-submit {
+  height: 52px;
+  margin-top: 4px;
+  border: 0;
+  border-radius: 100px;
+  background: #f3494a;
+  color: #fff;
+  font-family: "DM Sans", sans-serif;
+  font-weight: 700;
+  font-size: 17px;
+  line-height: 24px;
+  cursor: pointer;
+  transition: background 160ms ease, transform 160ms ease;
+}
+
+.login-submit:hover {
+  background: #d93b3c;
+}
+
+.login-submit:active {
+  transform: translateY(1px);
+}
+
+.login-note {
+  margin-top: -6px;
+  font-size: 12px;
+  line-height: 18px;
+  text-align: center;
+  color: rgba(21, 20, 57, 0.5);
+}
+
+.login-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 26px 0 20px;
+}
+
+.login-divider::before,
+.login-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(21, 20, 57, 0.14);
+}
+
+.login-divider span {
+  font-size: 13px;
+  line-height: 20px;
+  color: rgba(21, 20, 57, 0.5);
+}
+
+.login-alt {
+  text-align: center;
+  font-size: 15px;
+  line-height: 22px;
+  color: rgba(21, 20, 57, 0.7);
+}
+
+.login-alt a {
+  font-weight: 700;
+  color: #007ec0;
+}
+
+.login-alt a:hover,
+.login-alt a:focus-visible,
+.dash-link:focus-visible {
+  text-decoration: underline;
+}
+
+.login-card :focus-visible,
+.dash-shell :focus-visible {
+  outline: 3px solid #f8d254;
+  outline-offset: 3px;
+}
+
+/* Customer dashboard */
+.dash-shell {
+  position: relative;
+  z-index: 2;
+  width: 1248px;
+  margin: 0 auto;
+  font-family: "DM Sans", sans-serif;
+}
+
+.dash-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 0 4px 22px;
+}
+
+.dash-welcome {
+  font-family: "Poppins", sans-serif;
+  font-weight: 700;
+  font-size: 26px;
+  line-height: 1.3;
+  letter-spacing: -0.52px;
+  color: #0f0f0f;
+}
+
+.dash-welcome span {
+  color: #f3494a;
+}
+
+.dash-note {
+  margin-top: 6px;
+  font-size: 14px;
+  line-height: 20px;
+  color: rgba(21, 20, 57, 0.55);
+}
+
+.dash-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.dash-stat {
+  padding: 22px 24px;
+}
+
+.dash-stat dt {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
+  letter-spacing: 0.26px;
+  text-transform: uppercase;
+  color: rgba(21, 20, 57, 0.55);
+}
+
+.dash-stat dd {
+  margin-top: 10px;
+  font-family: "Poppins", sans-serif;
+  font-weight: 700;
+  font-size: 30px;
+  line-height: 1.2;
+  color: #0f0f0f;
+}
+
+.dash-stat dd small {
+  font-family: "DM Sans", sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  color: rgba(21, 20, 57, 0.55);
+}
+
+.dash-panel {
+  margin-top: 24px;
+  padding: 26px 28px 28px;
+}
+
+.dash-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.dash-panel-head h2 {
+  font-family: "Poppins", sans-serif;
+  font-weight: 700;
+  font-size: 20px;
+  line-height: 1.3;
+  color: #0f0f0f;
+}
+
+.dash-link {
+  font-size: 14px;
+  font-weight: 700;
+  color: #007ec0;
+}
+
+.dash-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.dash-table th {
+  padding: 0 16px 12px;
+  border-bottom: 2px solid rgba(243, 73, 74, 0.35);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 16px;
+  letter-spacing: 0.24px;
+  text-transform: uppercase;
+  color: rgba(21, 20, 57, 0.55);
+}
+
+.dash-table td {
+  padding: 16px;
+  border-bottom: 1px solid rgba(21, 20, 57, 0.09);
+  font-size: 15px;
+  line-height: 22px;
+  color: #1e0e62;
+  vertical-align: top;
+}
+
+.dash-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.dash-ref {
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  color: rgba(21, 20, 57, 0.6);
+}
+
+.dash-pill {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 100px;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 18px;
+}
+
+.dash-pill--confirmed {
+  background: #e4f4ea;
+  color: #146537;
+}
+
+.dash-pill--pending {
+  background: #fff3ca;
+  color: #7a5600;
+}
+
+.dash-pill--done {
+  background: #ececf3;
+  color: rgba(21, 20, 57, 0.7);
+}
+
+.dash-empty {
+  padding: 28px 16px;
+  text-align: center;
+  font-size: 15px;
+  line-height: 22px;
+  color: rgba(21, 20, 57, 0.55);
+}
+
+.dash-aside {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-top: 24px;
+}
+
+.dash-aside .dash-panel {
+  margin-top: 0;
+}
+
+.dash-detail {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(21, 20, 57, 0.09);
+  font-size: 15px;
+  line-height: 22px;
+}
+
+.dash-detail:last-of-type {
+  border-bottom: 0;
+}
+
+.dash-detail dt {
+  color: rgba(21, 20, 57, 0.55);
+}
+
+.dash-detail dd {
+  font-weight: 500;
+  color: #1e0e62;
+  text-align: right;
+}
+
+.dash-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.dash-actions .btn-dark {
+  padding: 13px 22px;
+  font-size: 15px;
+}
+
+/* Legal and prose pages */
+.legal-card {
+  position: relative;
+  z-index: 2;
+  width: 880px;
+  margin: 0 auto;
+  padding: 44px 56px 48px;
+  font-family: "DM Sans", sans-serif;
+}
+
+.legal-heading {
+  font-family: "Poppins", sans-serif;
+  font-weight: 700;
+  font-size: 30px;
+  line-height: 1.3;
+  letter-spacing: -0.6px;
+  color: #0f0f0f;
+}
+
+.legal-meta {
+  margin-top: 10px;
+  padding-bottom: 22px;
+  border-bottom: 1px solid rgba(21, 20, 57, 0.12);
+  font-size: 14px;
+  line-height: 21px;
+  color: rgba(21, 20, 57, 0.55);
+}
+
+.legal-card h3 {
+  margin-top: 30px;
+  font-family: "Poppins", sans-serif;
+  font-weight: 600;
+  font-size: 18px;
+  line-height: 1.4;
+  color: #0f0f0f;
+}
+
+.legal-card p {
+  margin-top: 10px;
+  font-size: 16px;
+  line-height: 26px;
+  color: rgba(21, 20, 57, 0.78);
+}
+
+.legal-contact {
+  margin-top: 34px;
+  padding-top: 22px;
+  border-top: 1px solid rgba(21, 20, 57, 0.12);
+}
+
+.legal-card a {
+  font-weight: 700;
+  color: #007ec0;
+}
+
+.legal-card a:hover,
+.legal-card a:focus-visible {
+  text-decoration: underline;
+}
+
+.legal-card :focus-visible {
+  outline: 3px solid #f8d254;
+  outline-offset: 3px;
 }

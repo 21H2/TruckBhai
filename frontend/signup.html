@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <!-- Page Metadata and SEO -->
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Create an account — TruckBhai</title>
+  <meta name="description" content="Create a TruckBhai account to book trucks, track rentals and keep your booking history in one place." />
+  <!-- Social Sharing (Open Graph / Twitter) -->
+  <meta property="og:title" content="Create an account — TruckBhai" />
+  <meta property="og:description" content="Create a TruckBhai account to book trucks, track rentals and keep your booking history in one place." />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <!-- Web Fonts and Stylesheets -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700;800&family=Lato:wght@400;600;700&family=Inter:wght@400;600&family=Cabin:wght@400;500&family=Mulish:wght@400;600&family=Work+Sans:wght@400;600;700&family=DM+Sans:wght@400;500;700&display=swap" />
+  <link rel="stylesheet" href="css/styles.css?v=2" />
+  <script type="module" src="js/main.js?v=esm"></script>
+</head>
+
+<body>
+  <!-- Navigation Bar -->
+  <nav class="nav nav--dark" aria-label="Main">
+    <a class="logo" href="index.html">
+      <p>Truck<span>Bhai</span></p>
+      <div class="underline" aria-hidden="true"></div>
+    </a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="main-nav-links">Menu</button>
+    <ul class="nav-links" id="main-nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="about.html">About Us</a></li>
+      <li><a href="vehicle-models.html">Vehicle Models</a></li>
+      <li><a href="testimonials.html">Testimonials</a></li>
+      <li><a href="our-team.html">Our team</a></li>
+      <li><a href="contact.html">Contact Us</a></li>
+      <li><a href="login.html" aria-current="page">Login</a></li>
+    </ul>
+  </nav>
+
+  <div class="canvas">
+    <main class="page login-page">
+      <!-- Page Hero Header -->
+      <section class="login-stage">
+        <div class="page-hero">
+          <div class="shade"></div>
+          <img class="fit cover bottom" src="images/page-hero.png" alt="Row of trucks" />
+          <div class="wash"></div>
+        </div>
+        <h1 class="page-title">Create account</h1>
+        <p class="page-crumb">Home / create account</p>
+
+        <!-- Create Account Card -->
+        <section class="login-card glass" aria-labelledby="signup-heading">
+          <h2 class="login-heading" id="signup-heading">Create your account</h2>
+          <p class="login-sub">One account for every booking, invoice and trip you make with us.</p>
+
+          <form class="login-form" novalidate>
+            <label class="login-field" for="signup-name">
+              <span class="login-label">Full name</span>
+              <input id="signup-name" name="name" type="text" autocomplete="name" placeholder="Your name"
+                maxlength="100" />
+            </label>
+            <label class="login-field" for="signup-email">
+              <span class="login-label">Email</span>
+              <input id="signup-email" name="email" type="email" autocomplete="email" placeholder="you@example.com"
+                maxlength="254" />
+            </label>
+            <label class="login-field" for="signup-phone">
+              <span class="login-label">Phone</span>
+              <input id="signup-phone" name="phone" type="tel" autocomplete="tel" placeholder="+91 98765 43210"
+                maxlength="20" />
+            </label>
+            <label class="login-field" for="signup-password">
+              <span class="login-label">Password</span>
+              <input id="signup-password" name="password" type="password" autocomplete="new-password"
+                placeholder="At least 8 characters" maxlength="128" />
+            </label>
+
+            <div class="login-row">
+              <label class="login-remember" for="signup-terms">
+                <input id="signup-terms" name="terms" type="checkbox" />
+                <span>I agree to the <a class="login-forgot" href="terms.html">terms</a></span>
+              </label>
+            </div>
+
+            <button class="login-submit" type="button">Create account</button>
+            <p class="login-note">Design preview — account creation is not connected yet.</p>
+          </form>
+
+          <div class="login-divider" aria-hidden="true"><span>or</span></div>
+          <p class="login-alt">Already registered? <a href="login.html">Sign in</a></p>
+        </section>
+      </section>
+
+      <!-- Footer Section -->
+      <footer class="footer footer--inner footer--flow">
+        <div class="logo">
+          <p>Truck<span>Bhai</span></p>
+          <div class="underline"></div>
+        </div>
+        <p class="tagline">Your Trusted Truck Rental Solution</p>
+        <div class="col col--company">
+          <h4>Company</h4>
+          <ul>
+            <li><a href="vehicle-models.html">Rent Details</a></li>
+            <li><a href="about.html">Why Choose Us</a></li>
+            <li><a href="terms.html">Terms and Conditions</a></li>
+            <li><a href="privacy.html">Privacy Policy</a></li>
+          </ul>
+        </div>
+        <div class="col col--contact">
+          <h4>Contact Us</h4>
+          <a href="mailto:info@truckbhai.com">info@truckbhai.com</a>
+          <p>+91 99349 49572</p>
+          <p>chennai,tamilnadu</p>
+        </div>
+        <div class="col col--news">
+          <h4>Get deals and discounts</h4>
+          <p>Subscribe to our newsletter</p>
+        </div>
+        <form id="newsletter-form" class="newsletter-form" action="/api/v1/subscribers" method="post">
+          <input id="newsletter-email" class="newsletter-input" name="email" type="email" autocomplete="email"
+            placeholder="Email" aria-label="Newsletter email" maxlength="254" required />
+          <button class="newsletter-button" type="submit">Subscribe</button>
+          <p class="field-error" id="newsletter-email-error"></p>
+          <p class="form-status" role="status"></p>
+        </form>
+        <p class="copyright">© Copyright Team Inc.</p>
+      </footer>
+    </main>
+  </div>
+</body>
+
+</html>
