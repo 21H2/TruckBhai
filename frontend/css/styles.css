@@ -2184,3 +2184,192 @@ a {
   outline: 3px solid #f8d254;
   outline-offset: 3px;
 }
+
+/* Track a booking */
+.track-shell {
+  position: relative;
+  z-index: 2;
+  width: 720px;
+  margin: 0 auto;
+}
+
+.track-card {
+  width: 100%;
+}
+
+.track-result {
+  margin-top: 24px;
+  padding: 28px 30px 30px;
+  font-family: "DM Sans", sans-serif;
+}
+
+.track-result:focus-visible {
+  outline: 3px solid #f8d254;
+  outline-offset: 3px;
+}
+
+.track-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(21, 20, 57, 0.1);
+}
+
+.track-route {
+  font-family: "Poppins", sans-serif;
+  font-weight: 700;
+  font-size: 20px;
+  line-height: 1.35;
+  color: #0f0f0f;
+}
+
+.track-timeline {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin: 24px 0 8px;
+  list-style: none;
+}
+
+.track-step {
+  padding-top: 18px;
+  border-top: 3px solid rgba(21, 20, 57, 0.12);
+}
+
+.track-step--done {
+  border-top-color: #f3494a;
+}
+
+.track-step-label {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 21px;
+  color: rgba(21, 20, 57, 0.45);
+}
+
+.track-step--done .track-step-label {
+  color: #0f0f0f;
+}
+
+.track-step--current .track-step-label {
+  color: #f3494a;
+}
+
+.track-step-note {
+  margin-top: 4px;
+  font-size: 13px;
+  line-height: 19px;
+  color: rgba(21, 20, 57, 0.5);
+}
+
+.track-help {
+  margin-top: 22px;
+  text-align: center;
+  font-family: "DM Sans", sans-serif;
+  font-size: 15px;
+  line-height: 22px;
+  color: rgba(21, 20, 57, 0.6);
+}
+
+.track-help a,
+.legal-meta a {
+  font-weight: 700;
+  color: #007ec0;
+}
+
+.track-help a:hover,
+.track-help a:focus-visible {
+  text-decoration: underline;
+}
+
+.track-card .form-status {
+  font-size: 14px;
+  line-height: 20px;
+  text-align: center;
+  color: rgba(21, 20, 57, 0.6);
+}
+
+.track-card .form-status:empty {
+  display: none;
+}
+
+/* Driver application form */
+.drive-message {
+  width: 100%;
+  padding: 14px 20px;
+  border: 1px solid rgba(21, 20, 57, 0.14);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.92);
+  font-family: "DM Sans", sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  color: #1e0e62;
+  resize: vertical;
+}
+
+.drive-message::placeholder {
+  color: rgba(21, 20, 57, 0.4);
+}
+
+.drive-message:focus {
+  outline: none;
+  border-color: #f3494a;
+  box-shadow: 0 0 0 3px rgba(243, 73, 74, 0.18);
+}
+
+.dash-panel .field-error {
+  margin-top: -12px;
+  font-size: 13px;
+  line-height: 18px;
+  color: #a32121;
+}
+
+.dash-panel .field-error:empty,
+.dash-panel .form-status:empty {
+  display: none;
+}
+
+.dash-panel .form-status {
+  font-size: 14px;
+  line-height: 20px;
+}
+
+/* Help centre FAQ */
+.faq {
+  margin-top: 14px;
+  padding: 16px 20px;
+  border: 1px solid rgba(21, 20, 57, 0.12);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.faq summary {
+  font-family: "Poppins", sans-serif;
+  font-weight: 600;
+  font-size: 17px;
+  line-height: 1.4;
+  color: #0f0f0f;
+  cursor: pointer;
+}
+
+.faq summary:focus-visible {
+  outline: 3px solid #f8d254;
+  outline-offset: 3px;
+}
+
+.faq[open] summary {
+  color: #f3494a;
+}
+
+.faq p {
+  margin-top: 10px;
+}
+
+.faq code {
+  font-family: "Inter", monospace;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}

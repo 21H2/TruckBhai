@@ -283,6 +283,9 @@ page. The newsletter form must keep `id="newsletter-form"`,
 | `signup.html` | A, flow | customer registration | nothing, preview only |
 | `forgot-password.html` | A, flow | password reset request | nothing, preview only |
 | `dashboard.html` | A, flow | customer bookings overview | nothing, sample data |
+| `track.html` | A, flow | look up a booking by reference | `GET /api/v1/bookings/:reference`, real |
+| `drive-with-us.html` | A, flow | driver partner application | `POST /api/v1/contacts`, real |
+| `help.html` | A, flow | FAQ, native `<details>` | — |
 | `terms.html` | A, flow | terms, prose card | — |
 | `privacy.html` | A, flow | privacy policy, prose card | — |
 | `not-found.html` | A, flow | styled 404 | served by `app.js` on unknown page paths |
@@ -293,16 +296,37 @@ Every page carries the newsletter form, so every page posts to
 
 ### Navigation and footer are global
 
-The nav has seven items: Home, About Us, Vehicle Models, Testimonials, Our team,
-Contact Us, Login. The footer's Company column links to Rent Details
-(`vehicle-models.html`), Why Choose Us (`about.html`), Terms and Conditions, and
-Privacy Policy. Both blocks are byte-identical on all 13 customer pages; the admin
+The nav has eight items: Home, About Us, Vehicle Models, Track, Testimonials,
+Our team, Contact Us, Login. The footer's Company column links to Rent Details
+(`vehicle-models.html`), Drive with us, Help, Terms and Conditions, and Privacy
+Policy. Both blocks are byte-identical on all 16 customer pages; the admin
 page uses the same nav with absolute `/` hrefs because it is not served from the
 frontend directory. Change them on every page at once or not at all.
 
-`signup.html`, `forgot-password.html`, `terms.html`, `privacy.html` and
-`not-found.html` are deliberately not in the nav. They are reached from the login
+`signup.html`, `forgot-password.html`, `drive-with-us.html`, `help.html`,
+`terms.html`, `privacy.html` and `not-found.html` are deliberately not in the nav. They are reached from the login
 card, the footer, and the 404 handler respectively.
+
+### Reusing a wired form on a new page
+
+`main.js` only wires three selectors: `#contact-form`, `#newsletter-form` and
+`#booking-form`. A new page that needs a working enquiry form should therefore
+reuse `id="contact-form"` with `action="/api/v1/contacts"` and the field ids
+`contact-name`, `contact-email`, `contact-message`, which is exactly what
+`drive-with-us.html` does. No JavaScript change is needed and validation, error
+display, the disabled-while-saving state and the reference message all come free.
+Only one such form can exist per page, because the lookup is `querySelector`.
+
+### The tracking flow
+
+`track.html` loads its own module, `js/track.js`, alongside `main.js`. It posts
+nothing: it reads `GET /api/v1/bookings/:reference` and renders a four-step
+timeline. The stage shown comes from the server, which derives it by comparing the
+stored `pickupDate` and `returnDate` against today. No status field is stored or
+invented, so the timeline can never disagree with the booking. The endpoint returns
+a whitelist of eight fields and never the stored coordinates or fare inputs, and
+the reference is a v4 UUID, which is what makes it safe to treat as the only
+credential for the lookup.
 
 ### The 404 handler
 
@@ -317,14 +341,14 @@ which is what the test suite asserts.
    serves only names in that set plus assets matching
    `/^(?:css|js|images)\/[a-zA-Z0-9_.-]+$/`, so an unregistered page 404s.
 2. Copy the `<head>` from `about.html`: the eight-family font link,
-   `css/styles.css?v=2`, and `<script type="module" src="js/main.js?v=esm"></script>`.
+   `css/styles.css?v=3`, and `<script type="module" src="js/main.js?v=esm"></script>`.
    The scripts are ES modules on this branch.
 3. **Bump the `?v=` token on every page when you edit a stylesheet.** Assets are
    served `Cache-Control: public, max-age=300` while HTML is `no-cache`, so without
    a new token a browser renders new markup against a stylesheet up to five minutes
    stale. That mismatch shows up as content overflowing or clipping at the bottom of
-   a canvas page, because `.page` heights are declared in CSS. All 13 pages currently
-   share `?v=2`; keep them in step.
+   a canvas page, because `.page` heights are declared in CSS. All 16 pages currently
+   share `?v=3`; keep them in step.
 4. Copy the nav verbatim, set `aria-current="page"`, keep `.nav-toggle`.
 5. Choose a layout model from section 1. Prefer the flow escape hatch for new pages.
 6. Add the hero blend and the title/crumb pair at their standard offsets.

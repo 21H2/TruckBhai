@@ -16,9 +16,16 @@ function createPostRouter(handler) {
 }
 
 export function createSubmissionRoutes(options) {
-  const { createBooking, createContact, createSubscriber } = createSubmissionController(options);
+  const { createBooking, createContact, createSubscriber, trackBooking } = createSubmissionController(options);
+  const bookings = createPostRouter(createBooking);
+  // A customer tracks their own booking with the reference from the confirmation.
+  bookings.get("/:reference", trackBooking);
+  bookings.all("/:reference", (request, response) => {
+    response.setHeader("Allow", "GET");
+    return sendJson(response, 405, { message: "Use GET to look up a booking." });
+  });
   return {
-    bookings: createPostRouter(createBooking),
+    bookings,
     contacts: createPostRouter(createContact),
     subscribers: createPostRouter(createSubscriber)
   };

@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <!-- Page Metadata and SEO -->
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Track your booking — TruckBhai</title>
+  <meta name="description" content="Enter your TruckBhai booking reference to see your vehicle, route, dates and the stage your rental has reached." />
+  <!-- Social Sharing (Open Graph / Twitter) -->
+  <meta property="og:title" content="Track your booking — TruckBhai" />
+  <meta property="og:description" content="Enter your TruckBhai booking reference to see your vehicle, route, dates and the stage your rental has reached." />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <!-- Web Fonts and Stylesheets -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700;800&family=Lato:wght@400;600;700&family=Inter:wght@400;600&family=Cabin:wght@400;500&family=Mulish:wght@400;600&family=Work+Sans:wght@400;600;700&family=DM+Sans:wght@400;500;700&display=swap" />
+  <link rel="stylesheet" href="css/styles.css?v=3" />
+  <script type="module" src="js/main.js?v=esm"></script>
+  <script type="module" src="js/track.js?v=1"></script>
+</head>
+
+<body>
+  <!-- Navigation Bar -->
+  <nav class="nav nav--dark" aria-label="Main">
+    <a class="logo" href="index.html">
+      <p>Truck<span>Bhai</span></p>
+      <div class="underline" aria-hidden="true"></div>
+    </a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="main-nav-links">Menu</button>
+    <ul class="nav-links" id="main-nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="about.html">About Us</a></li>
+      <li><a href="vehicle-models.html">Vehicle Models</a></li>
+      <li><a href="track.html" aria-current="page">Track</a></li>
+      <li><a href="testimonials.html">Testimonials</a></li>
+      <li><a href="our-team.html">Our team</a></li>
+      <li><a href="contact.html">Contact Us</a></li>
+      <li><a href="login.html">Login</a></li>
+    </ul>
+  </nav>
+
+  <div class="canvas">
+    <main class="page login-page">
+      <!-- Page Hero Header -->
+      <section class="login-stage">
+        <div class="page-hero">
+          <div class="shade"></div>
+          <img class="fit cover bottom" src="images/page-hero.png" alt="Row of trucks" />
+          <div class="wash"></div>
+        </div>
+        <h1 class="page-title">Track booking</h1>
+        <p class="page-crumb">Home / track</p>
+
+        <!-- Track a Booking -->
+        <section class="track-shell">
+          <section class="login-card glass track-card" aria-labelledby="track-heading">
+            <h2 class="login-heading" id="track-heading">Track your booking</h2>
+            <p class="login-sub">Paste the reference from your booking confirmation to see where it stands.</p>
+
+            <form class="login-form" id="track-form">
+              <label class="login-field" for="track-reference">
+                <span class="login-label">Booking reference</span>
+                <input id="track-reference" name="reference" type="text" autocomplete="off" spellcheck="false"
+                  placeholder="e.g. 84fbd27f-1d43-4d41-adcc-e64e7580ba09" maxlength="60" />
+              </label>
+              <button class="login-submit" type="submit">Track booking</button>
+              <p class="form-status" role="status"></p>
+            </form>
+          </section>
+
+          <section class="dash-panel glass track-result" id="track-result" tabindex="-1" aria-live="polite" hidden>
+          </section>
+
+          <p class="track-help">
+            Lost your reference? <a href="contact.html">Contact us</a> with your pickup date and phone number and we
+            will find it.
+          </p>
+        </section>
+      </section>
+
+      <!-- Footer Section -->
+      <footer class="footer footer--inner footer--flow">
+        <div class="logo">
+          <p>Truck<span>Bhai</span></p>
+          <div class="underline"></div>
+        </div>
+        <p class="tagline">Your Trusted Truck Rental Solution</p>
+        <div class="col col--company">
+          <h4>Company</h4>
+          <ul>
+            <li><a href="vehicle-models.html">Rent Details</a></li>
+            <li><a href="drive-with-us.html">Drive with us</a></li>
+            <li><a href="help.html">Help</a></li>
+            <li><a href="terms.html">Terms and Conditions</a></li>
+            <li><a href="privacy.html">Privacy Policy</a></li>
+          </ul>
+        </div>
+        <div class="col col--contact">
+          <h4>Contact Us</h4>
+          <a href="mailto:info@truckbhai.com">info@truckbhai.com</a>
+          <p>+91 99349 49572</p>
+          <p>chennai,tamilnadu</p>
+        </div>
+        <div class="col col--news">
+          <h4>Get deals and discounts</h4>
+          <p>Subscribe to our newsletter</p>
+        </div>
+        <form id="newsletter-form" class="newsletter-form" action="/api/v1/subscribers" method="post">
+          <input id="newsletter-email" class="newsletter-input" name="email" type="email" autocomplete="email"
+            placeholder="Email" aria-label="Newsletter email" maxlength="254" required />
+          <button class="newsletter-button" type="submit">Subscribe</button>
+          <p class="field-error" id="newsletter-email-error"></p>
+          <p class="form-status" role="status"></p>
+        </form>
+        <p class="copyright">© Copyright Team Inc.</p>
+      </footer>
+    </main>
+  </div>
+</body>
+
+</html>
