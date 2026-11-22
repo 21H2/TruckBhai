@@ -19,8 +19,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700;800&family=Lato:wght@400;600;700&family=Inter:wght@400;600&family=Cabin:wght@400;500&family=Mulish:wght@400;600&family=Work+Sans:wght@400;600;700&family=DM+Sans:wght@400;500;700&display=swap" />
-  <link rel="stylesheet" href="css/styles.css?v=3" />
+  <link rel="stylesheet" href="css/styles.css?v=4" />
   <script type="module" src="js/main.js?v=esm"></script>
+  <script type="module" src="js/account.js?v=1"></script>
 </head>
 
 <body>
@@ -60,33 +61,34 @@
           <h2 class="login-heading" id="login-heading">Welcome back</h2>
           <p class="login-sub">Sign in to manage your bookings and rent a truck.</p>
 
-          <form class="login-form" novalidate>
+          <form class="login-form" id="login-form" method="post">
             <label class="login-field" for="login-email">
               <span class="login-label">Email</span>
               <input id="login-email" name="email" type="email" autocomplete="email" placeholder="you@example.com"
-                maxlength="254" />
+                maxlength="254" required />
             </label>
+            <p class="field-error" id="login-email-error"></p>
             <label class="login-field" for="login-password">
               <span class="login-label">Password</span>
               <input id="login-password" name="password" type="password" autocomplete="current-password"
-                placeholder="Enter your password" maxlength="128" />
+                placeholder="Enter your password" maxlength="128" required />
             </label>
+            <p class="field-error" id="login-password-error"></p>
 
             <div class="login-row">
               <label class="login-remember" for="login-remember">
-                <input id="login-remember" name="remember" type="checkbox" />
-                <span>Remember me</span>
+                <input id="login-remember" name="remember" type="checkbox" checked />
+                <span>Keep me signed in</span>
               </label>
               <a class="login-forgot" href="forgot-password.html">Forgot password?</a>
             </div>
 
-            <button class="login-submit" type="button">Sign in</button>
-            <p class="login-note">Design preview — customer sign-in is not connected yet.</p>
+            <button class="login-submit" type="submit">Sign in</button>
+            <p class="form-status" role="status"></p>
           </form>
 
           <div class="login-divider" aria-hidden="true"><span>or</span></div>
           <p class="login-alt">New to TruckBhai? <a href="signup.html">Create an account</a></p>
-          <p class="login-alt"><a href="dashboard.html">Preview the customer dashboard</a></p>
         </section>
       </section>
 

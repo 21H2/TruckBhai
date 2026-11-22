@@ -6,6 +6,7 @@ import { createJourneyService } from "./journeys.js";
 import { createFuelLookup } from "./fuel.js";
 import { DATA_DIR, FRONTEND_DIR } from "./config/constants.js";
 import { isJsonRequest, requestError, sendJson } from "./http.js";
+import { createAccountRoutes } from "./routes/account.routes.js";
 import { createAdminRoutes } from "./routes/admin.routes.js";
 import { createJourneyRoutes } from "./routes/journey.routes.js";
 import { createSubmissionRoutes } from "./routes/submission.routes.js";
@@ -70,11 +71,15 @@ function createApp({ dataDir = DATA_DIR, db, models, journeys = createJourneySer
   }));
 
   const adminRoutes = createAdminRoutes({ ...admin, models, dataDir });
-  const { bookings, contacts, subscribers } = createSubmissionRoutes({ dataDir, models, journeys, fuel, mailer });
+  const accountRoutes = createAccountRoutes({ dataDir, models, mailer, secureCookie: admin.secureCookie });
+  const { bookings, contacts, subscribers } = createSubmissionRoutes({
+    dataDir, models, journeys, fuel, mailer, sessionEmail: accountRoutes.sessionEmail
+  });
   const journeyRoutes = createJourneyRoutes({ journeys, fuel });
 
   app.use("/admin", adminRoutes.pages);
   app.use(["/api/v1/admin", "/api/admin"], adminRoutes.api);
+  app.use(["/api/v1/account", "/api/account"], accountRoutes.router);
   app.use(["/api/v1/bookings", "/api/bookings"], bookings);
   app.use(["/api/v1/contacts", "/api/contacts"], contacts);
   app.use(["/api/v1/subscribers", "/api/subscribers"], subscribers);

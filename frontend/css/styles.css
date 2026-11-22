@@ -2373,3 +2373,47 @@ a {
   font-size: 14px;
   overflow-wrap: anywhere;
 }
+
+/* Account pages */
+.login-optional {
+  font-weight: 400;
+  color: rgba(21, 20, 57, 0.45);
+}
+
+.login-card .field-error {
+  margin-top: -14px;
+  font-size: 13px;
+  line-height: 18px;
+  color: #a32121;
+}
+
+.login-card .field-error:empty,
+.login-card .form-status:empty {
+  display: none;
+}
+
+.login-card .form-status {
+  font-size: 14px;
+  line-height: 20px;
+  text-align: center;
+}
+
+.dash-top-status {
+  position: relative;
+  z-index: 2;
+  width: 1248px;
+  margin: 0 auto 18px;
+  font-family: "DM Sans", sans-serif;
+  font-size: 15px;
+  line-height: 22px;
+  color: rgba(21, 20, 57, 0.6);
+}
+
+.dash-top-status:empty {
+  display: none;
+}
+
+.dash-empty a {
+  font-weight: 700;
+  color: #007ec0;
+}

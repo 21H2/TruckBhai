@@ -172,3 +172,76 @@ deployment, set `ADMIN_SECURE_COOKIE=true` and have the reverse proxy preserve
 the public `Host` header. Sessions expire after eight hours and are cleared on
 logout or server restart. The login rate limit applies to the single admin
 account across all visitors.
+
+## Customer accounts
+
+Visitors can create an account, sign in and see their own bookings.
+
+- `POST /api/v1/account/register` takes `name`, `email`, optional `phone` and
+  `password`. Validation is shared with the browser through `registration()` in
+  `frontend/js/forms.js`. Passwords are 8–128 characters.
+- Passwords are stored only as a scrypt `salt:key` pair with a per-account
+  16-byte salt, compared using `timingSafeEqual`. No plaintext password is written
+  anywhere, and the stored hash is never returned by any endpoint.
+- Registering or signing in sets an opaque 64-hex session token in an
+  `HttpOnly; SameSite=Strict` cookie that lasts 7 days. Set
+  `ADMIN_SECURE_COOKIE=true` when serving over HTTPS to add `Secure` and the
+  `__Host-` prefix.
+- `POST /api/v1/account/login` is limited to five attempts per email per minute,
+  then returns 429 with `Retry-After`. A wrong password and an unknown email give
+  the same 401 message, so the endpoint cannot reveal which addresses are
+  registered.
+- `GET /api/v1/account/me` returns the signed-in name, email and phone.
+  `GET /api/v1/account/bookings` returns that customer's bookings, filtered on the
+  email held in the session rather than anything in the request.
+- `POST /api/v1/account/logout` ends the session and clears the cookie.
+- Sessions are held in memory. Restarting the server signs everyone out.
+
+`signup.html`, `login.html` and `dashboard.html` drive these endpoints through
+`frontend/js/account.js`. The dashboard redirects to the login page on a 401.
+
+Password reset is not implemented. `forgot-password.html` explains that and points
+at support; a real reset needs single-use expiring tokens sent by email.
+
+## Booking attribution
+
+A booking submitted while signed in gets an `accountEmail` field, taken from the
+session on the server and never from the request body. Those bookings appear on the
+customer's dashboard. Bookings made without signing in stay unattributed and are
+reachable only through their reference.
+
+## Tracking a booking
+
+`GET /api/v1/bookings/:reference` returns one booking for the reference shown after
+a successful submission. The reference is a v4 UUID, which is what makes it safe to
+treat as the only credential for the lookup. The response carries a whitelist of
+eight fields and never the stored coordinates or fare inputs, and the stage
+(upcoming, active, completed) is derived from the stored dates rather than stored,
+so it cannot drift out of step with the booking. `track.html` renders it as a
+four-step timeline.
+
+## MongoDB
+
+With `MONGODB_URI` set the app stores everything in MongoDB through Mongoose;
+without it, the same data goes to JSON files under `backend/data/`. The startup log
+says which: `(MongoDB storage)` or `(JSON storage)`.
+
+```sh
+brew tap mongodb/brew && brew install mongodb-community
+brew services start mongodb-community
+```
+
+Then set `MONGODB_URI=mongodb://127.0.0.1:27017` and `MONGODB_DB=truckbhai` in
+`backend/.env`. Collections are `bookings`, `contacts`, `subscribers`, `users` and
+`vehicles`. Both `subscribers.email` and `users.email` carry a unique index, so
+duplicates are rejected by the database and not only by application code.
+
+Run `npm run import:json` once to copy existing `backend/data/*.json` records into
+MongoDB. It skips records already present, so it is safe to run again.
+
+## Welcome email
+
+Set `EMAILJS_WELCOME_TEMPLATE_ID` to send a welcome message when an account is
+created. The template receives `email` and `name`. Without that variable nothing is
+sent and account creation is unaffected; a failed send is logged and never turns a
+created account into a failed response.

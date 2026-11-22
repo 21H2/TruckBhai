@@ -6,7 +6,8 @@ function createMailer(env = process.env, request = fetch) {
   const privateKey = env.EMAILJS_PRIVATE_KEY?.trim();
   const templates = {
     contact: env.EMAILJS_CONTACT_TEMPLATE_ID?.trim(),
-    subscription: env.EMAILJS_NEWSLETTER_TEMPLATE_ID?.trim()
+    subscription: env.EMAILJS_NEWSLETTER_TEMPLATE_ID?.trim(),
+    welcome: env.EMAILJS_WELCOME_TEMPLATE_ID?.trim()
   };
   if (!serviceId || !publicKey || !templates.contact || !templates.subscription) return null;
 
@@ -14,6 +15,8 @@ function createMailer(env = process.env, request = fetch) {
   let nextSendAt = 0;
   return {
     send(kind, record) {
+      // Skip kinds with no template configured rather than calling EmailJS blind.
+      if (!templates[kind]) return Promise.resolve();
       const delivery = queue.then(async () => {
         const wait = nextSendAt - Date.now();
         if (wait > 0) await delay(wait);
@@ -24,6 +27,9 @@ function createMailer(env = process.env, request = fetch) {
           params.name = record.name;
           params.message = record.message;
           params.reference_id = record.id;
+        }
+        if (kind === "welcome") {
+          params.name = record.name;
         }
         const response = await request("https://api.emailjs.com/api/v1.0/email/send", {
           method: "POST",

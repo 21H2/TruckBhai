@@ -62,7 +62,7 @@ function createModelStore(models, name, { uniqueEmail = false } = {}) {
   };
 }
 
-export function createSubmissionController({ dataDir, models, journeys, fuel, mailer }) {
+export function createSubmissionController({ dataDir, models, journeys, fuel, mailer, sessionEmail }) {
   const store = models ? createModelStore.bind(null, models) : createJsonStore.bind(null, dataDir);
   // Only these fields ever leave the server for a tracking lookup.
   const trackedFields = ["id", "submittedAt", "vehicle", "pickup", "dropoff",
@@ -124,7 +124,7 @@ export function createSubmissionController({ dataDir, models, journeys, fuel, ma
     values.fareInputs = { ...rate, distanceKm };
   }
 
-  function submit({ validate, save, confirmation, prepare }) {
+  function submit({ validate, save, confirmation, prepare, attribute }) {
     return async (request, response) => {
       if (request.headers.origin && request.headers.origin !== request.protocol + "://" + request.headers.host) {
         return sendJson(response, 403, { message: "Submit this form from this website." });
@@ -136,6 +136,12 @@ export function createSubmissionController({ dataDir, models, journeys, fuel, ma
       }
       if (prepare) await prepare(values);
       const record = { id: randomUUID(), submittedAt: new Date().toISOString(), ...values };
+      // A signed-in customer's bookings appear on their dashboard; anonymous
+      // bookings stay unattributed and are only reachable by reference.
+      if (attribute && sessionEmail) {
+        const email = sessionEmail(request);
+        if (email) record.accountEmail = email;
+      }
       await save(record);
       if (mailer && confirmation) {
         // A mail failure must not turn an already-saved submission into a failed form response.
@@ -148,7 +154,10 @@ export function createSubmissionController({ dataDir, models, journeys, fuel, ma
   }
 
   return {
-    createBooking: submit({ validate: bookings.validate, save: store("bookings"), prepare: addBookingFare }),
+    createBooking: submit({
+      validate: bookings.validate, save: store("bookings"),
+      prepare: addBookingFare, attribute: true
+    }),
     trackBooking,
     createContact: submit({ validate: forms.contact, save: store("contacts"), confirmation: "contact" }),
     createSubscriber: submit({

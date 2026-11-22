@@ -16,11 +16,14 @@ const bookingSchema = new Schema({
   returnDate: { type: String, required: true },
   dropoff: String,
   pickupCity: String,
+  // Set only when the booking was submitted with a signed-in customer session.
+  accountEmail: String,
   pickupCoordinates: coordinates,
   dropoffCoordinates: coordinates,
   estimatedFareInr: Number,
   fareInputs: Schema.Types.Mixed
 }, schemaOptions);
+bookingSchema.index({ accountEmail: 1, submittedAt: -1 });
 
 export function createBookingModel(connection) {
   return connection.model("Booking", bookingSchema, "bookings");

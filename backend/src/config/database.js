@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import { createBookingModel } from "../models/booking.model.js";
 import { createContactModel } from "../models/contact.model.js";
 import { createSubscriberModel } from "../models/subscriber.model.js";
+import { createUserModel } from "../models/user.model.js";
 
 export async function connectDatabase({ uri, database }) {
   let connection;
@@ -14,9 +15,11 @@ export async function connectDatabase({ uri, database }) {
     const models = {
       bookings: createBookingModel(appConnection),
       contacts: createContactModel(appConnection),
-      subscribers: createSubscriberModel(appConnection)
+      subscribers: createSubscriberModel(appConnection),
+      users: createUserModel(appConnection)
     };
     await models.subscribers.createIndexes();
+    await models.users.createIndexes();
     return { db: appConnection.db, models, close: () => connection.destroy() };
   } catch (error) {
     await connection?.destroy().catch(() => {});

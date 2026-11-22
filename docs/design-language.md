@@ -279,10 +279,10 @@ page. The newsletter form must keep `id="newsletter-form"`,
 | `testimonials.html` | A, fixed height | reviews | — |
 | `our-team.html` | A, fixed height | team | — |
 | `contact.html` | A, fixed height | enquiry form | `POST /api/v1/contacts` |
-| `login.html` | A, flow | customer sign-in | nothing, preview only |
-| `signup.html` | A, flow | customer registration | nothing, preview only |
+| `login.html` | A, flow | customer sign-in | `POST /api/v1/account/login`, real |
+| `signup.html` | A, flow | customer registration | `POST /api/v1/account/register`, real |
 | `forgot-password.html` | A, flow | password reset request | nothing, preview only |
-| `dashboard.html` | A, flow | customer bookings overview | nothing, sample data |
+| `dashboard.html` | A, flow | customer bookings overview | `GET /api/v1/account/me` + `/bookings`, real |
 | `track.html` | A, flow | look up a booking by reference | `GET /api/v1/bookings/:reference`, real |
 | `drive-with-us.html` | A, flow | driver partner application | `POST /api/v1/contacts`, real |
 | `help.html` | A, flow | FAQ, native `<details>` | — |
@@ -341,14 +341,14 @@ which is what the test suite asserts.
    serves only names in that set plus assets matching
    `/^(?:css|js|images)\/[a-zA-Z0-9_.-]+$/`, so an unregistered page 404s.
 2. Copy the `<head>` from `about.html`: the eight-family font link,
-   `css/styles.css?v=3`, and `<script type="module" src="js/main.js?v=esm"></script>`.
+   `css/styles.css?v=4`, and `<script type="module" src="js/main.js?v=esm"></script>`.
    The scripts are ES modules on this branch.
 3. **Bump the `?v=` token on every page when you edit a stylesheet.** Assets are
    served `Cache-Control: public, max-age=300` while HTML is `no-cache`, so without
    a new token a browser renders new markup against a stylesheet up to five minutes
    stale. That mismatch shows up as content overflowing or clipping at the bottom of
    a canvas page, because `.page` heights are declared in CSS. All 16 pages currently
-   share `?v=3`; keep them in step.
+   share `?v=4`; keep them in step.
 4. Copy the nav verbatim, set `aria-current="page"`, keep `.nav-toggle`.
 5. Choose a layout model from section 1. Prefer the flow escape hatch for new pages.
 6. Add the hero blend and the title/crumb pair at their standard offsets.
@@ -393,11 +393,26 @@ Be precise about this when extending the UI.
   at 20 sessions; `HttpOnly; SameSite=Strict` cookie, `__Host-` prefixed and
   `Secure` when `ADMIN_SECURE_COOKIE=true`; five login attempts per minute then a
   429 with `Retry-After`. The listing endpoints project only whitelisted columns.
-- **Customer auth does not exist.** There is no user model, no `/api/login`, no
-  session for site visitors. `login.html`, `signup.html`,
-  `forgot-password.html` and `dashboard.html` are therefore **presentation only**: the submit button is `type="button"`, the
-  form has no `action`, and both pages carry a visible note saying so. The
-  dashboard's rows are hardcoded sample data.
+- **Customer auth is real too.** `POST /api/v1/account/register` and `/login`
+  hash with scrypt and a per-account 16-byte salt, compare with `timingSafeEqual`,
+  and set an opaque 64-hex session token in an `HttpOnly; SameSite=Strict` cookie
+  lasting 7 days. Sign-in is rate limited to five attempts per email per minute.
+  A wrong password and an unknown email return the identical 401 message, so the
+  endpoint cannot be used to discover which addresses have accounts.
+  `GET /api/v1/account/me` and `/bookings` require the session, and `/bookings`
+  filters on the session's own email so one customer can never see another's.
+  Sessions live in memory, so a restart signs everyone out: the same trade-off the
+  admin dashboard already makes.
+- **A booking is attributed server side.** When the booking form is submitted with
+  a valid account session, the controller stamps `accountEmail` onto the record
+  from the session, never from the request body. Anonymous bookings stay
+  unattributed and are reachable only by their reference.
+- **`forgot-password.html` is still presentation only.** A real reset needs
+  single-use expiring tokens delivered by email. The page says so and points at
+  support.
+
+Never trust an email address from a request body to decide what a customer may
+read. The only trustworthy source is the session cookie.
 
 Do not wire the customer pages to the admin endpoints to make them "work". Those
 endpoints are gated on the admin session on purpose, and the collections hold other

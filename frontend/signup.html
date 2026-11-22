@@ -16,8 +16,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700;800&family=Lato:wght@400;600;700&family=Inter:wght@400;600&family=Cabin:wght@400;500&family=Mulish:wght@400;600&family=Work+Sans:wght@400;600;700&family=DM+Sans:wght@400;500;700&display=swap" />
-  <link rel="stylesheet" href="css/styles.css?v=3" />
+  <link rel="stylesheet" href="css/styles.css?v=4" />
   <script type="module" src="js/main.js?v=esm"></script>
+  <script type="module" src="js/account.js?v=1"></script>
 </head>
 
 <body>
@@ -57,37 +58,36 @@
           <h2 class="login-heading" id="signup-heading">Create your account</h2>
           <p class="login-sub">One account for every booking, invoice and trip you make with us.</p>
 
-          <form class="login-form" novalidate>
+          <form class="login-form" id="signup-form" method="post">
             <label class="login-field" for="signup-name">
               <span class="login-label">Full name</span>
               <input id="signup-name" name="name" type="text" autocomplete="name" placeholder="Your name"
-                maxlength="100" />
+                minlength="2" maxlength="100" required />
             </label>
+            <p class="field-error" id="signup-name-error"></p>
             <label class="login-field" for="signup-email">
               <span class="login-label">Email</span>
               <input id="signup-email" name="email" type="email" autocomplete="email" placeholder="you@example.com"
-                maxlength="254" />
+                maxlength="254" required />
             </label>
+            <p class="field-error" id="signup-email-error"></p>
             <label class="login-field" for="signup-phone">
-              <span class="login-label">Phone</span>
+              <span class="login-label">Phone <span class="login-optional">(optional)</span></span>
               <input id="signup-phone" name="phone" type="tel" autocomplete="tel" placeholder="+91 98765 43210"
                 maxlength="20" />
             </label>
+            <p class="field-error" id="signup-phone-error"></p>
             <label class="login-field" for="signup-password">
               <span class="login-label">Password</span>
               <input id="signup-password" name="password" type="password" autocomplete="new-password"
-                placeholder="At least 8 characters" maxlength="128" />
+                placeholder="At least 8 characters" minlength="8" maxlength="128" required />
             </label>
+            <p class="field-error" id="signup-password-error"></p>
 
-            <div class="login-row">
-              <label class="login-remember" for="signup-terms">
-                <input id="signup-terms" name="terms" type="checkbox" />
-                <span>I agree to the <a class="login-forgot" href="terms.html">terms</a></span>
-              </label>
-            </div>
-
-            <button class="login-submit" type="button">Create account</button>
-            <p class="login-note">Design preview — account creation is not connected yet.</p>
+            <button class="login-submit" type="submit">Create account</button>
+            <p class="form-status" role="status"></p>
+            <p class="login-note">By creating an account you agree to our <a href="terms.html">terms</a> and
+              <a href="privacy.html">privacy policy</a>.</p>
           </form>
 
           <div class="login-divider" aria-hidden="true"><span>or</span></div>

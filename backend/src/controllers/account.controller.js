@@ -1,0 +1,201 @@
+// Customer accounts: register, sign in, sign out, read the signed-in profile and
+// list that customer's own bookings.
+//
+// Security follows the admin controller, which is the proven pattern in this
+// codebase: scrypt key derivation with a per-account salt, timingSafeEqual
+// comparison, opaque 64-hex session tokens held server side, and an HttpOnly
+// SameSite=Strict cookie. Sessions live in memory, so they end when the process
+// restarts; that is the same trade-off the admin dashboard already makes.
+import { randomBytes, randomUUID, scrypt, timingSafeEqual } from "node:crypto";
+import { promisify } from "node:util";
+import * as forms from "../../../frontend/js/forms.js";
+import { requireJsonObject, requestError, sendJson } from "../http.js";
+import { createAccountStore, createBookingReader } from "../accounts.js";
+
+const deriveKey = promisify(scrypt);
+const keyLength = 64;
+const sessionDuration = 7 * 24 * 60 * 60;
+const maxSessions = 500;
+
+async function hashPassword(password) {
+  const salt = randomBytes(16);
+  const key = await deriveKey(password, salt, keyLength);
+  return salt.toString("hex") + ":" + key.toString("hex");
+}
+
+async function passwordMatches(password, stored) {
+  const parsed = /^([0-9a-f]{32}):([0-9a-f]{128})$/i.exec(stored || "");
+  if (!parsed) return false;
+  const [, salt, key] = parsed;
+  const expected = Buffer.from(key, "hex");
+  const candidate = await deriveKey(password, Buffer.from(salt, "hex"), expected.length);
+  return timingSafeEqual(candidate, expected);
+}
+
+export function createAccountController({ dataDir, models, mailer, secureCookie = false }) {
+  const accounts = createAccountStore({ dataDir, models });
+  const listBookings = createBookingReader({ dataDir, models });
+  const sessions = new Map();
+  const cookieName = secureCookie ? "__Host-truckbhai_account" : "truckbhai_account";
+  const cookieFlags = "Path=/; HttpOnly; SameSite=Strict" + (secureCookie ? "; Secure" : "");
+  const attempts = new Map();
+
+  function setCookie(response, token, maxAge) {
+    response.setHeader("Set-Cookie", `${cookieName}=${token}; Max-Age=${maxAge}; ${cookieFlags}`);
+  }
+
+  function readToken(request) {
+    return request.headers.cookie
+      ?.match(new RegExp(`(?:^|; *)${cookieName}=([0-9a-f]{64})(?:;|$)`))?.[1];
+  }
+
+  function pruneSessions(now) {
+    for (const [token, session] of sessions) {
+      if (session.expiresAt <= now) sessions.delete(token);
+    }
+    // A bounded map keeps a flood of signups from growing memory without limit.
+    while (sessions.size >= maxSessions) sessions.delete(sessions.keys().next().value);
+  }
+
+  function startSession(response, email) {
+    const now = Date.now();
+    pruneSessions(now);
+    const token = randomBytes(32).toString("hex");
+    sessions.set(token, { email, expiresAt: now + sessionDuration * 1000 });
+    setCookie(response, token, sessionDuration);
+    return token;
+  }
+
+  // Exposed so the booking controller can attribute a submission to its customer.
+  function sessionEmail(request) {
+    const token = readToken(request);
+    if (!token) return null;
+    const session = sessions.get(token);
+    if (!session) return null;
+    if (session.expiresAt <= Date.now()) {
+      sessions.delete(token);
+      return null;
+    }
+    return session.email;
+  }
+
+  function rateLimit(email) {
+    const now = Date.now();
+    const entry = attempts.get(email);
+    if (!entry || now >= entry.resetAt) {
+      attempts.set(email, { count: 1, resetAt: now + 60_000 });
+      if (attempts.size > 1000) attempts.delete(attempts.keys().next().value);
+      return null;
+    }
+    entry.count++;
+    if (entry.count > 5) return Math.ceil((entry.resetAt - now) / 1000);
+    return null;
+  }
+
+  function sameOrigin(request) {
+    if (request.headers["sec-fetch-site"] === "cross-site") return false;
+    if (!request.headers.origin) return true;
+    return request.headers.origin === request.protocol + "://" + request.headers.host;
+  }
+
+  function profile(record) {
+    return { name: record.name, email: record.email, phone: record.phone || "" };
+  }
+
+  async function register(request, response) {
+    if (!sameOrigin(request)) {
+      return sendJson(response, 403, { message: "Submit this form from this website." });
+    }
+    const { values, errors } = forms.registration(requireJsonObject(request));
+    if (Object.keys(errors).length) {
+      return sendJson(response, 422, { message: "Check the form details.", errors });
+    }
+    if (await accounts.find(values.email)) {
+      const message = "An account already uses this email address.";
+      return sendJson(response, 409, { message, errors: { email: message } });
+    }
+
+    const record = {
+      id: randomUUID(),
+      submittedAt: new Date().toISOString(),
+      email: values.email,
+      name: values.name,
+      phone: values.phone,
+      passwordHash: await hashPassword(values.password)
+    };
+    await accounts.create(record);
+    startSession(response, record.email);
+
+    if (mailer) {
+      // A mail failure must not turn a created account into a failed response.
+      Promise.resolve().then(() => mailer.send("welcome", record)).catch((error) => {
+        console.error("Could not send welcome email for %s: %s", record.id, error.message);
+      });
+    }
+    return sendJson(response, 201, { message: "Your account is ready.", account: profile(record) });
+  }
+
+  async function signIn(request, response) {
+    if (!sameOrigin(request)) {
+      return sendJson(response, 403, { message: "Submit this form from this website." });
+    }
+    const { values, errors } = forms.credentials(requireJsonObject(request));
+    if (Object.keys(errors).length) {
+      return sendJson(response, 422, { message: "Check the form details.", errors });
+    }
+
+    const retryAfter = rateLimit(values.email);
+    if (retryAfter) {
+      response.setHeader("Retry-After", retryAfter);
+      return sendJson(response, 429, { message: "Too many sign-in attempts. Try again in a minute." });
+    }
+
+    const record = await accounts.find(values.email);
+    const matches = record ? await passwordMatches(values.password, record.passwordHash) : false;
+    if (!record || !matches) {
+      // One message for both cases, so this cannot be used to discover which
+      // email addresses have accounts.
+      return sendJson(response, 401, { message: "Email or password is incorrect." });
+    }
+
+    attempts.delete(values.email);
+    const previous = readToken(request);
+    if (previous) sessions.delete(previous);
+    startSession(response, record.email);
+    return sendJson(response, 200, { message: "Signed in.", account: profile(record) });
+  }
+
+  function signOut(request, response) {
+    if (!sameOrigin(request)) {
+      return sendJson(response, 403, { message: "Submit this request from this website." });
+    }
+    const token = readToken(request);
+    if (token) sessions.delete(token);
+    setCookie(response, "", 0);
+    return sendJson(response, 200, { message: "Signed out." });
+  }
+
+  async function currentAccount(request, response) {
+    const email = sessionEmail(request);
+    if (!email) return sendJson(response, 401, { message: "Sign in to continue." });
+    const record = await accounts.find(email);
+    if (!record) return sendJson(response, 401, { message: "Sign in to continue." });
+    return sendJson(response, 200, { account: profile(record) });
+  }
+
+  async function myBookings(request, response) {
+    const email = sessionEmail(request);
+    if (!email) return sendJson(response, 401, { message: "Sign in to continue." });
+    const bookings = await listBookings(email);
+    const today = new Date().toISOString().slice(0, 10);
+    return sendJson(response, 200, {
+      bookings: bookings.map((booking) => ({
+        ...booking,
+        stage: booking.pickupDate > today ? "upcoming"
+          : booking.returnDate && booking.returnDate < today ? "completed" : "active"
+      }))
+    });
+  }
+
+  return { register, signIn, signOut, currentAccount, myBookings, sessionEmail, requestError };
+}
