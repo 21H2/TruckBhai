@@ -2475,3 +2475,52 @@ a {
   font-size: 14px;
   color: rgba(21, 20, 57, 0.5);
 }
+
+/* Signed-in profile avatar in the nav */
+.nav-account {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nav-avatar {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  border-radius: 50%;
+  background: #f3494a;
+  color: #fff;
+  font-family: "Poppins", sans-serif;
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 1;
+  letter-spacing: 0.3px;
+  /* The nav text is capitalised; initials must not be lowercased with it. */
+  text-transform: none;
+  box-shadow: 0 0 0 2px rgba(243, 73, 74, 0.22);
+}
+
+.nav-account-label {
+  white-space: nowrap;
+}
+
+.nav-account:hover .nav-avatar,
+.nav-account:focus-visible .nav-avatar {
+  background: #d93b3c;
+}
+
+.nav-links a.nav-account:hover,
+.nav-links a.nav-account:focus-visible {
+  color: inherit;
+}
+
+@media (max-width: 760px) {
+  .nav-avatar {
+    width: 26px;
+    height: 26px;
+    flex-basis: 26px;
+    font-size: 11px;
+  }
+}

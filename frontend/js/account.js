@@ -211,16 +211,37 @@ connectDashboard().catch((error) => {
   console.error("Dashboard failed:", error);
 });
 
-// Nav state: swap the Login link for Dashboard once a session exists, so every
-// page reflects whether the visitor is signed in. Failure leaves the nav as the
-// markup shipped it.
+// Initials for the nav avatar: first letters of up to two names, falling back to
+// the email's first character so there is always something to show.
+function initials(account) {
+  const words = (account.name || "").trim().split(/\s+/).filter(Boolean);
+  const letters = words.slice(0, 2).map(word => word[0]).join("");
+  return (letters || (account.email || "?")[0]).toUpperCase();
+}
+
+// Nav state: once a session exists the Login link becomes a profile avatar that
+// opens the dashboard, so every page shows whether the visitor is signed in.
+// Failure leaves the nav exactly as the markup shipped it.
 async function markNavState() {
   const link = document.querySelector('.nav-links a[href$="login.html"]');
   if (!link) return;
   try {
     const { account } = await send("/me");
-    link.textContent = "Dashboard";
+
+    const avatar = document.createElement("span");
+    avatar.className = "nav-avatar";
+    avatar.textContent = initials(account);
+    avatar.setAttribute("aria-hidden", "true");
+
+    const label = document.createElement("span");
+    label.className = "nav-account-label";
+    label.textContent = "Dashboard";
+
+    link.replaceChildren(avatar, label);
     link.href = "dashboard.html";
+    link.classList.add("nav-account");
+    // The avatar is decorative, so the link carries the whole description.
+    link.setAttribute("aria-label", "Dashboard, signed in as " + account.email);
     link.title = "Signed in as " + account.email;
     if (window.location.pathname.endsWith("dashboard.html")) {
       link.setAttribute("aria-current", "page");
