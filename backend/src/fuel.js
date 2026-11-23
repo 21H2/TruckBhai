@@ -1,35 +1,9 @@
-import { vehicles } from "../../frontend/js/booking.js";
+import { findVehicle } from "./models/vehicle.model.js";
+
 const endpoint = "https://india-petroleum-api.vercel.app/v1/prices/latest";
 const metros = ["Delhi", "Mumbai", "Chennai", "Kolkata"];
-const tataSource = "https://smalltrucks.tatamotors.com/blogs/tata-ace-gold-petrol-cx-partner-new-beginnings";
 const delhiFallback = { petrol: 102.12, diesel: 95.2, date: "2026-11-21" };
 const dayMs = 24 * 60 * 60 * 1000;
-
-// Daily rate and mileage per vehicle class. Everything except the Ace is a diesel
-// truck, so its fare has to account for distance; a flat rate across a mini truck
-// and a 32 ft trailer priced every class identically.
-const specifications = {
-  "tata-ace": { dailyRateInr: 1200, fuelType: "petrol", mileageKmPerLitre: 13.5 },
-  "eicher-pro": { dailyRateInr: 2600, fuelType: "diesel", mileageKmPerLitre: 7.5 },
-  "eicher-19": { dailyRateInr: 3800, fuelType: "diesel", mileageKmPerLitre: 4.5 },
-  container: { dailyRateInr: 4200, fuelType: "diesel", mileageKmPerLitre: 4 },
-  trailer: { dailyRateInr: 5200, fuelType: "diesel", mileageKmPerLitre: 3.2 },
-  refrigerated: { dailyRateInr: 5800, fuelType: "diesel", mileageKmPerLitre: 3 }
-};
-
-const fleet = vehicles.map(({ id, name }) => ({
-  _id: id, name,
-  ...specifications[id],
-  ...(id === "tata-ace"
-    ? { mileageSource: tataSource, mileageBasis: "Ace Gold Petrol CX proxy, midpoint of 12–15 km/L" }
-    : { mileageBasis: "Indicative laden mileage for this vehicle class" })
-}));
-
-async function seedVehicles(db) {
-  await db.collection("vehicles").bulkWrite(fleet.map(record => ({
-    updateOne: { filter: { _id: record._id }, update: { $setOnInsert: record }, upsert: true }
-  })));
-}
 
 function createFuelLookup(db, fetcher = fetch) {
   let snapshot;
@@ -54,7 +28,7 @@ function createFuelLookup(db, fetcher = fetch) {
 
   return async function lookup(params) {
     const id = params.get("vehicle");
-    const vehicle = db ? await db.collection("vehicles").findOne({ _id: id }) : fleet.find(v => v._id === id);
+    const vehicle = await findVehicle(db, id);
     if (params.get("pricing") === "1" && vehicle?.fuelType === "electric") {
       return { dailyRateInr: vehicle.dailyRateInr, fuelType: vehicle.fuelType };
     }
@@ -80,4 +54,4 @@ function createFuelLookup(db, fetcher = fetch) {
     };
   };
 }
-export { createFuelLookup, seedVehicles };
+export { createFuelLookup };
