@@ -23,6 +23,11 @@ export function initializePage(document, window) {
   window.addEventListener("resize", fitCanvas);
   window.addEventListener("orientationchange", fitCanvas);
   window.addEventListener("load", fitCanvas);
+  if (canvases.length && window.ResizeObserver) {
+    // A scrollbar can change the canvas width without a window resize event.
+    var layoutObserver = new window.ResizeObserver(fitCanvas);
+    canvases.forEach(function (canvas) { layoutObserver.observe(canvas); });
+  }
 
   if (nav) {
     var menuButton = nav.querySelector(".nav-toggle");
@@ -234,7 +239,11 @@ export function initializePage(document, window) {
 }
 
 if (typeof document !== "undefined") {
-  document.addEventListener("DOMContentLoaded", () => initializePage(document, window));
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", () => initializePage(document, window), { once: true });
+  } else {
+    initializePage(document, window);
+  }
 }
 
 // -------- for sir reference --------

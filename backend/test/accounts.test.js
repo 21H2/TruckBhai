@@ -52,6 +52,8 @@ async function harness(t) {
 test("registration validation is shared by the browser and the server", () => {
   assert.deepEqual(registration(account).errors, {});
   assert.ok(registration({ ...account, password: "short" }).errors.password);
+  assert.deepEqual(registration({ ...account, password: "é".repeat(36) }).errors, {});
+  assert.ok(registration({ ...account, password: "é".repeat(37) }).errors.password);
   assert.ok(registration({ ...account, email: "not-an-email" }).errors.email);
   assert.ok(registration({ ...account, name: "x" }).errors.name);
   assert.ok(registration({ ...account, phone: "abc" }).errors.phone);
@@ -79,7 +81,7 @@ test("registering creates a session and never stores the password", async (t) =>
   const stored = JSON.parse(await fs.readFile(path.join(dataDir, "users.json"), "utf8"));
   assert.equal(stored.length, 1);
   assert.equal(stored[0].password, undefined, "the plaintext password must never be stored");
-  assert.match(stored[0].passwordHash, /^[0-9a-f]{32}:[0-9a-f]{128}$/);
+  assert.match(stored[0].passwordHash, /^\$2b\$12\$[./A-Za-z0-9]{53}$/);
   assert.ok(!JSON.stringify(stored).includes(account.password));
 });
 

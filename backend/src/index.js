@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 import { createApp } from "./app.js";
 import { connectDatabase } from "./config/database.js";
 import { createMailer } from "./email.js";
-import { seedVehicles } from "./fuel.js";
+import { seedVehicles } from "./models/vehicle.model.js";
 import { ENV_FILE, SERVER_HOST, DEFAULT_PORT, DEFAULT_MONGODB_DATABASE } from "./config/constants.js";
 
 async function start() {

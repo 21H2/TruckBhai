@@ -1,4 +1,5 @@
 import { setTimeout as delay } from "node:timers/promises";
+import { recordReference } from "./records.js";
 
 function createMailer(env = process.env, request = fetch) {
   const serviceId = env.EMAILJS_SERVICE_ID?.trim();
@@ -27,7 +28,7 @@ function createMailer(env = process.env, request = fetch) {
         if (kind === "contact") {
           params.name = record.name;
           params.message = record.message;
-          params.reference_id = record.id;
+          params.reference_id = recordReference(record);
         }
         if (kind === "welcome") {
           params.name = record.name;

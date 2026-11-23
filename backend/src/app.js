@@ -10,6 +10,7 @@ import { createAccountRoutes } from "./routes/account.routes.js";
 import { createAdminRoutes } from "./routes/admin.routes.js";
 import { createJourneyRoutes } from "./routes/journey.routes.js";
 import { createSubmissionRoutes } from "./routes/submission.routes.js";
+import { createVehicleModelsPage } from "./controllers/vehicle.controller.js";
 
 const publicDependencies = new Map([
   ["vendor/leaflet/leaflet.css", fileURLToPath(import.meta.resolve("leaflet/dist/leaflet.css"))],
@@ -21,7 +22,7 @@ const publicDependencies = new Map([
   ["vendor/montserrat/montserrat-latin-400-normal.woff2", fileURLToPath(import.meta.resolve("@fontsource/montserrat/files/montserrat-latin-400-normal.woff2"))]
 ]);
 const pages = new Set([
-  "index.html", "about.html", "vehicle-models.html", "testimonials.html",
+  "index.html", "about.html", "testimonials.html",
   "our-team.html", "contact.html", "login.html", "signup.html",
   "forgot-password.html", "dashboard.html", "track.html", "drive-with-us.html",
   "help.html", "business.html", "terms.html", "privacy.html", "not-found.html"
@@ -49,6 +50,8 @@ function createApp({ dataDir = DATA_DIR, db, models, journeys = createJourneySer
   const app = express();
   app.disable("x-powered-by");
   app.enable("case sensitive routing");
+  app.set("views", path.join(import.meta.dirname, "views"));
+  app.set("view engine", "ejs");
   // One proxy hop, so request.protocol reflects X-Forwarded-Proto in production
   // and the origin check below does not reject every HTTPS form post.
   app.set("trust proxy", 1);
@@ -88,6 +91,7 @@ function createApp({ dataDir = DATA_DIR, db, models, journeys = createJourneySer
     dataDir, models, journeys, fuel, mailer, sessionEmail: accountRoutes.sessionEmail
   });
   const journeyRoutes = createJourneyRoutes({ journeys, fuel });
+  const renderVehicleModels = createVehicleModelsPage(db);
 
   app.use("/admin", adminRoutes.pages);
   app.use(["/api/v1/admin", "/api/admin"], adminRoutes.api);
@@ -105,6 +109,7 @@ function createApp({ dataDir = DATA_DIR, db, models, journeys = createJourneySer
       response.setHeader("Allow", "GET, HEAD");
       return sendJson(response, 405, { message: "Method not allowed." });
     }
+    if (pathname === "/vehicle-models.html") return renderVehicleModels(request, response);
     const file = pathname === "/" ? "index.html" : pathname.slice(1);
     // Only public site files are served; submissions and server files stay private.
     const publicAsset = /^(?:css|js|images)\/[a-zA-Z0-9_.-]+$/.test(file) || rootFiles.has(file);

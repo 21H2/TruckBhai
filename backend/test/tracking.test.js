@@ -29,6 +29,7 @@ async function setup(t) {
   const app = createApp({ dataDir });
   t.after(() => fs.rm(dataDir, { recursive: true, force: true }));
   return {
+    dataDir,
     get: (url) => request(app, url),
     post: (body) => request(app, "/api/v1/bookings", {
       method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body)
@@ -66,6 +67,16 @@ test("tracking never exposes fields outside the allowed list", async (t) => {
   }
   assert.equal(booking.pickupCoordinates, undefined);
   assert.equal(booking.fareInputs, undefined);
+});
+
+test("a booking saved with the legacy id field keeps its tracking reference", async (t) => {
+  const { dataDir, get } = await setup(t);
+  const id = "11111111-2222-4333-8444-555555555555";
+  await fs.writeFile(path.join(dataDir, "bookings.json"), JSON.stringify([{ ...validBooking, id }]));
+
+  const response = await get(`/api/v1/bookings/${id}`);
+  assert.equal(response.status, 200);
+  assert.equal((await response.json()).booking.id, id);
 });
 
 test("an unknown reference is a 404 and a malformed one is a 400", async (t) => {

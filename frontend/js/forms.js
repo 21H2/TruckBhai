@@ -35,6 +35,12 @@ function subscriber(input) {
   return { values: values, errors: errors };
 }
 
+function newPasswordError(password) {
+  if (password.length < 8) return "Use at least 8 characters.";
+  if (new TextEncoder().encode(password).length > 72) return "Use a password of at most 72 UTF-8 bytes.";
+  return "";
+}
+
 // Shared by the signup form and POST /api/v1/account/register. The password is
 // returned alongside the stored values so the server can hash it; it is never
 // part of the saved record.
@@ -55,8 +61,9 @@ function registration(input) {
   if (values.phone && !/^\+?[0-9][0-9 ()-]{6,19}$/.test(values.phone)) {
     errors.phone = "Enter a phone number, or leave it blank.";
   }
-  if (values.password.length < 8 || values.password.length > 128) {
-    errors.password = "Use a password between 8 and 128 characters.";
+  var passwordError = newPasswordError(values.password);
+  if (passwordError) {
+    errors.password = passwordError;
   } else if (values.password.toLowerCase().indexOf(values.email.split("@")[0]) === 0 &&
       values.email.split("@")[0].length >= 8) {
     errors.password = "Choose a password that is not your email address.";
@@ -79,4 +86,4 @@ function credentials(input) {
   return { values: values, errors: errors };
 }
 
-export { contact, subscriber, registration, credentials };
+export { contact, subscriber, registration, credentials, newPasswordError, validEmail };

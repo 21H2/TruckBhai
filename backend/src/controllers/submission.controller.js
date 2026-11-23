@@ -5,6 +5,7 @@ import * as bookings from "../../../frontend/js/booking.js";
 import * as forms from "../../../frontend/js/forms.js";
 import { requireJsonObject, requestError, sendJson, sameOrigin } from "../http.js";
 import { businessToday } from "../today.js";
+import { recordReference, selectPublicFields } from "../records.js";
 
 function duplicateSubscription() {
   const message = "This email address is already subscribed.";
@@ -53,7 +54,7 @@ function createModelStore(models, name, { uniqueEmail = false } = {}) {
   const model = models[name];
   return async function saveRecord(record) {
     try {
-      await model.create({ ...record, _id: record.id });
+      await model.create(record);
     } catch (error) {
       if (uniqueEmail && error.code === 11000 && error.keyPattern?.email === 1) {
         throw duplicateSubscription();
@@ -72,7 +73,12 @@ export function createSubmissionController({ dataDir, models, journeys, fuel, ma
   async function findBooking(reference) {
     if (models) {
       const projection = Object.fromEntries(trackedFields.map((field) => [field, 1]));
-      return models.bookings.findOne({ id: reference }, { ...projection, _id: 0 }).lean().exec();
+      const current = await models.bookings.findById(reference, projection).lean().exec();
+      // Older records may carry a public reference that differs from their MongoDB key.
+      const record = recordReference(current) === reference ? current
+        : await models.bookings.findOne({ id: reference }, projection)
+          .setOptions({ strictQuery: false }).lean().exec();
+      return record ? selectPublicFields(record, trackedFields) : null;
     }
     let records;
     try {
@@ -82,8 +88,8 @@ export function createSubmissionController({ dataDir, models, journeys, fuel, ma
       throw error;
     }
     if (!Array.isArray(records)) return null;
-    const found = records.find((record) => record?.id === reference);
-    return found ? Object.fromEntries(trackedFields.map((field) => [field, found[field]])) : null;
+    const found = records.find(record => recordReference(record) === reference);
+    return found ? selectPublicFields(found, trackedFields) : null;
   }
 
   // Progress is derived from the stored dates; no status is invented or written.
@@ -136,7 +142,7 @@ export function createSubmissionController({ dataDir, models, journeys, fuel, ma
         return sendJson(response, 422, { message: "Check the form details.", errors });
       }
       if (prepare) await prepare(values);
-      const record = { id: randomUUID(), submittedAt: new Date().toISOString(), ...values };
+      const record = { _id: randomUUID(), submittedAt: new Date().toISOString(), ...values };
       // A signed-in customer's bookings appear on their dashboard; anonymous
       // bookings stay unattributed and are only reachable by reference.
       if (attribute && sessionEmail) {
@@ -147,10 +153,10 @@ export function createSubmissionController({ dataDir, models, journeys, fuel, ma
       if (mailer && confirmation) {
         // A mail failure must not turn an already-saved submission into a failed form response.
         Promise.resolve().then(() => mailer.send(confirmation, record)).catch((error) => {
-          console.error("Could not send %s confirmation for %s: %s", confirmation, record.id, error.message);
+          console.error("Could not send %s confirmation for %s: %s", confirmation, record._id, error.message);
         });
       }
-      return sendJson(response, 201, { message: "Your submission was saved.", id: record.id });
+      return sendJson(response, 201, { message: "Your submission was saved.", id: record._id });
     };
   }
 

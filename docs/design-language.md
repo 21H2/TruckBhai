@@ -412,14 +412,13 @@ plus the three `[data-collection]` filter buttons and the `hidden` attributes th
 
 Be precise about this when extending the UI.
 
-- **Admin auth is real.** scrypt-derived password in `ADMIN_PASSWORD_HASH` as a
-  `salt:hash` pair matching `/^([0-9a-f]{32}):([0-9a-f]{128})$/i`, compared with
-  `timingSafeEqual`; 64-hex session tokens in memory with an 8-hour expiry, capped
+- **Admin auth is real.** bcrypt hashes in `ADMIN_PASSWORD_HASH` and the optional
+  `ADMIN_SECOND_PASSWORD_HASH`; 64-hex session tokens in memory with an 8-hour expiry, capped
   at 20 sessions; `HttpOnly; SameSite=Strict` cookie, `__Host-` prefixed and
   `Secure` when `ADMIN_SECURE_COOKIE=true`; five login attempts per minute then a
   429 with `Retry-After`. The listing endpoints project only whitelisted columns.
 - **Customer auth is real too.** `POST /api/v1/account/register` and `/login`
-  hash with scrypt and a per-account 16-byte salt, compare with `timingSafeEqual`,
+  use bcrypt to hash and verify passwords,
   and set an opaque 64-hex session token in an `HttpOnly; SameSite=Strict` cookie
   lasting 7 days. Sign-in is rate limited to five attempts per email per minute.
   A wrong password and an unknown email return the identical 401 message, so the
@@ -435,7 +434,7 @@ Be precise about this when extending the UI.
 - **Password reset is real.** `POST /api/v1/account/reset-request` creates a
   64-hex single-use token valid for 30 minutes, held server side and delivered
   only by email. The reply is identical whether or not the address has an account.
-  `POST /api/v1/account/reset` redeems it: it checks the token, sets a new scrypt
+  `POST /api/v1/account/reset` redeems it: it checks the token, sets a new bcrypt
   hash, deletes the token and **drops every existing session for that account**, so
   a stolen session cannot outlive the password it was created with. A rejected
   password leaves the token usable so the customer can retry. With no

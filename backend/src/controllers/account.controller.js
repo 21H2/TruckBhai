@@ -1,50 +1,20 @@
-// Customer accounts: register, sign in, sign out, read the signed-in profile and
-// list that customer's own bookings.
-//
-// Security follows the admin controller, which is the proven pattern in this
-// codebase: scrypt key derivation with a per-account salt, timingSafeEqual
-// comparison, opaque 64-hex session tokens held server side, and an HttpOnly
-// SameSite=Strict cookie. Sessions live in memory, so they end when the process
-// restarts; that is the same trade-off the admin dashboard already makes.
-import { randomBytes, randomUUID, scrypt, timingSafeEqual } from "node:crypto";
-import { promisify } from "node:util";
+// Customer registration, sign-in, profile, bookings, and password reset.
+import { randomBytes, randomUUID } from "node:crypto";
 import * as forms from "../../../frontend/js/forms.js";
 import { requireJsonObject, requestError, sendJson, expectedOrigin, sameOrigin } from "../http.js";
 import { createAccountStore, createBookingReader } from "../accounts.js";
 import { businessToday } from "../today.js";
-
-const deriveKey = promisify(scrypt);
-const keyLength = 64;
-const sessionDuration = 7 * 24 * 60 * 60;
-const maxSessions = 500;
-
-async function hashPassword(password) {
-  const salt = randomBytes(16);
-  const key = await deriveKey(password, salt, keyLength);
-  return salt.toString("hex") + ":" + key.toString("hex");
-}
-
-async function passwordMatches(password, stored) {
-  const parsed = /^([0-9a-f]{32}):([0-9a-f]{128})$/i.exec(stored || "");
-  if (!parsed) return false;
-  const [, salt, key] = parsed;
-  const expected = Buffer.from(key, "hex");
-  const candidate = await deriveKey(password, Buffer.from(salt, "hex"), expected.length);
-  return timingSafeEqual(candidate, expected);
-}
+import { recordReference } from "../records.js";
+import { createAccountSessions } from "../account-sessions.js";
+import { hashPassword, passwordMatches } from "../passwords.js";
 
 export function createAccountController({ dataDir, models, mailer, secureCookie = false }) {
   const accounts = createAccountStore({ dataDir, models });
   const listBookings = createBookingReader({ dataDir, models });
-  const sessions = new Map();
-  const cookieName = secureCookie ? "__Host-truckbhai_account" : "truckbhai_account";
-  const cookieFlags = "Path=/; HttpOnly; SameSite=Strict" + (secureCookie ? "; Secure" : "");
-  // Separate maps so flooding one endpoint cannot evict the other's counters.
+  const { startSession, endSession, dropSessionsFor, sessionEmail } = createAccountSessions(secureCookie);
   const signInAttempts = new Map();
   const resetAttempts = new Map();
   const registerAttempts = new Map();
-  // Reset tokens are single use and short lived. They are kept server side and
-  // only their raw value, delivered by email, can redeem one.
   const resetTokens = new Map();
   const resetDuration = 30 * 60 * 1000;
 
@@ -54,56 +24,6 @@ export function createAccountController({ dataDir, models, mailer, secureCookie 
     }
     while (resetTokens.size >= 200) resetTokens.delete(resetTokens.keys().next().value);
   }
-
-  function setCookie(response, token, maxAge) {
-    response.setHeader("Set-Cookie", `${cookieName}=${token}; Max-Age=${maxAge}; ${cookieFlags}`);
-  }
-
-  function readToken(request) {
-    return request.headers.cookie
-      ?.match(new RegExp(`(?:^|; *)${cookieName}=([0-9a-f]{64})(?:;|$)`))?.[1];
-  }
-
-  function pruneSessions(now) {
-    for (const [token, session] of sessions) {
-      if (session.expiresAt <= now) sessions.delete(token);
-    }
-  }
-
-  // Returns null when the table is full. Evicting the oldest live session instead
-  // would let unauthenticated signups sign every real customer out, so a full
-  // table refuses the new session rather than destroying existing ones.
-  function startSession(response, email) {
-    const now = Date.now();
-    pruneSessions(now);
-    if (sessions.size >= maxSessions) return null;
-    const token = randomBytes(32).toString("hex");
-    sessions.set(token, { email, expiresAt: now + sessionDuration * 1000 });
-    setCookie(response, token, sessionDuration);
-    return token;
-  }
-
-  function dropSessionsFor(email) {
-    for (const [token, session] of sessions) {
-      if (session.email === email) sessions.delete(token);
-    }
-  }
-
-  // Exposed so the booking controller can attribute a submission to its customer.
-  function sessionEmail(request) {
-    const token = readToken(request);
-    if (!token) return null;
-    const session = sessions.get(token);
-    if (!session) return null;
-    if (session.expiresAt <= Date.now()) {
-      sessions.delete(token);
-      return null;
-    }
-    return session.email;
-  }
-
-  // M-1: expired entries are dropped first and a full table refuses rather than
-  // evicting a live counter, so an attacker cannot flush a victim's budget.
   function rateLimit(store, key, limit = 5) {
     const now = Date.now();
     for (const [existing, entry] of store) {
@@ -147,7 +67,7 @@ export function createAccountController({ dataDir, models, mailer, secureCookie 
     }
 
     const record = {
-      id: randomUUID(),
+      _id: randomUUID(),
       submittedAt: new Date().toISOString(),
       email: values.email,
       name: values.name,
@@ -155,11 +75,7 @@ export function createAccountController({ dataDir, models, mailer, secureCookie 
       passwordHash: await hashPassword(values.password)
     };
     await accounts.create(record);
-    // Replace any session the visitor already carried, so registering cannot be
-    // used to graft a new account onto an attacker-planted session.
-    const previous = readToken(request);
-    if (previous) sessions.delete(previous);
-    if (!startSession(response, record.email)) {
+    if (!startSession(request, response, record.email)) {
       return sendJson(response, 503, {
         message: "Your account was created, but sign-in is busy. Try signing in now."
       });
@@ -168,7 +84,7 @@ export function createAccountController({ dataDir, models, mailer, secureCookie 
     if (mailer) {
       // A mail failure must not turn a created account into a failed response.
       Promise.resolve().then(() => mailer.send("welcome", record)).catch((error) => {
-        console.error("Could not send welcome email for %s: %s", record.id, error.message);
+        console.error("Could not send welcome email for %s: %s", recordReference(record), error.message);
       });
     }
     return sendJson(response, 201, { message: "Your account is ready.", account: profile(record) });
@@ -198,9 +114,7 @@ export function createAccountController({ dataDir, models, mailer, secureCookie 
     }
 
     signInAttempts.delete(values.email);
-    const previous = readToken(request);
-    if (previous) sessions.delete(previous);
-    if (!startSession(response, record.email)) {
+    if (!startSession(request, response, record.email)) {
       return sendJson(response, 503, { message: "Sign-in is busy right now. Try again shortly." });
     }
     return sendJson(response, 200, { message: "Signed in.", account: profile(record) });
@@ -210,9 +124,7 @@ export function createAccountController({ dataDir, models, mailer, secureCookie 
     if (!sameOrigin(request)) {
       return sendJson(response, 403, { message: "Submit this request from this website." });
     }
-    const token = readToken(request);
-    if (token) sessions.delete(token);
-    setCookie(response, "", 0);
+    endSession(request, response);
     return sendJson(response, 200, { message: "Signed out." });
   }
 
@@ -266,7 +178,7 @@ export function createAccountController({ dataDir, models, mailer, secureCookie 
       const link = `${expectedOrigin(request)}/forgot-password.html?token=${token}`;
       Promise.resolve().then(() => mailer.send("reset", { ...record, resetLink: link, resetToken: token }))
         .catch((error) => {
-          console.error("Could not send reset email for %s: %s", record.id, error.message);
+          console.error("Could not send reset email for %s: %s", recordReference(record), error.message);
         });
     } else {
       // Without a mailer the link cannot be delivered, so say so in the log
@@ -291,10 +203,11 @@ export function createAccountController({ dataDir, models, mailer, secureCookie 
         message: "That reset link has expired. Request a new one."
       });
     }
-    if (password.length < 8 || password.length > 128) {
+    const passwordError = forms.newPasswordError(password);
+    if (passwordError) {
       return sendJson(response, 422, {
         message: "Check the form details.",
-        errors: { password: "Use a password between 8 and 128 characters." }
+        errors: { password: passwordError }
       });
     }
 
