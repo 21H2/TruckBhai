@@ -145,27 +145,27 @@ directories. They do not require a listening port.
 ## Admin dashboard
 
 Open `/admin` to view saved bookings, contact messages, and newsletter
-subscribers. The dashboard is disabled until you set `ADMIN_PASSWORD_HASH` in
-`backend/.env` (or set `ADMIN_SECOND_PASSWORD_HASH`). To generate a hash from a password without putting the password
-in shell history, run this from the project directory in Bash.
+subscribers. Set `ADMIN_PASSWORD_HASH` in `backend/.env` to enable the dashboard.
+Run this from the project directory to generate a bcrypt hash. The prompt works
+from fish or Bash and hides the password as you type. Enter at least 16 characters
+and at most 72 UTF-8 bytes.
 
 ```bash
-read -rsp 'New admin password: ' truckbhai_admin_password
-printf '\n'
-printf '%s' "$truckbhai_admin_password" | node --input-type=module -e '
-  import { randomBytes, scryptSync } from "node:crypto";
-  import { readFileSync } from "node:fs";
-  const password = readFileSync(0);
-  if (password.length < 16) throw new Error("Use at least 16 characters.");
-  const salt = randomBytes(16);
-  console.log("ADMIN_PASSWORD_HASH=" + salt.toString("hex") + ":" + scryptSync(password, salt, 64).toString("hex"));
-'
-unset truckbhai_admin_password
+bash -c 'IFS= read -rsp "Admin password: " truckbhai_admin_password; printf "\n" >&2; printf "%s" "$truckbhai_admin_password"' |
+  node --input-type=module -e '
+    import { readFileSync } from "node:fs";
+    import { hashPassword } from "./backend/src/passwords.js";
+    const password = readFileSync(0, "utf8");
+    if (password.length < 16 || Buffer.byteLength(password, "utf8") > 72) {
+      throw new Error("Use at least 16 characters and at most 72 UTF-8 bytes.");
+    }
+    console.log("ADMIN_PASSWORD_HASH=" + await hashPassword(password));
+  '
 ```
 
-Copy the generated line into `backend/.env`. To add a second password, generate
-another hash, use `ADMIN_SECOND_PASSWORD_HASH` for that line, and keep the first
-entry. Either password opens the same dashboard. Remove its line and restart
+Copy the generated line into `backend/.env`, replacing any old value. To add a
+second password, run the command again and use `ADMIN_SECOND_PASSWORD_HASH` for
+that line. Either password opens the same dashboard. Remove its line and restart
 the server to revoke a password and clear existing sessions.
 
 Restart the server after configuration changes. For an HTTPS
@@ -180,10 +180,11 @@ Visitors can create an account, sign in and see their own bookings.
 
 - `POST /api/v1/account/register` takes `name`, `email`, optional `phone` and
   `password`. Validation is shared with the browser through `registration()` in
-  `frontend/js/forms.js`. Passwords are 8–128 characters.
-- Passwords are stored only as a scrypt `salt:key` pair with a per-account
-  16-byte salt, compared using `timingSafeEqual`. No plaintext password is written
-  anywhere, and the stored hash is never returned by any endpoint.
+  `frontend/js/forms.js`. New passwords require at least 8 characters and can
+  contain up to 72 UTF-8 bytes.
+- Customer passwords use bcrypt with a cost of 12. Accounts created with the
+  old password format must use Forgot password before signing in. Account
+  responses omit the hash.
 - Registering or signing in sets an opaque 64-hex session token in an
   `HttpOnly; SameSite=Strict` cookie that lasts 7 days. Set
   `ADMIN_SECURE_COOKIE=true` when serving over HTTPS to add `Secure` and the
@@ -209,7 +210,7 @@ only as a link in the reset email, `forgot-password.html?token=...`. The reply i
 the same whether or not the address has an account, so the endpoint cannot be used
 to discover registered addresses, and requests are rate limited per email.
 
-`POST /api/v1/account/reset` takes `token` and `password`. It sets a new scrypt
+`POST /api/v1/account/reset` takes `token` and `password`. It sets a new bcrypt
 hash, deletes the token so it cannot be reused, and signs out every existing
 session for that account. A password that fails validation leaves the token usable
 so the customer can try again.

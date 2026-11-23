@@ -1,5 +1,6 @@
 import { Schema } from "mongoose";
 import { validEmail } from "../../../frontend/js/forms.js";
+import { bcryptHashPattern } from "../passwords.js";
 
 const userSchema = new Schema({
   _id: { type: String, required: true },
@@ -29,7 +30,7 @@ const userSchema = new Schema({
   passwordHash: {
     type: String,
     required: true,
-    match: /^[0-9a-f]{32}:[0-9a-f]{128}$/i
+    match: bcryptHashPattern
   }
 }, {
   id: false,
@@ -37,7 +38,8 @@ const userSchema = new Schema({
   autoCreate: false,
   autoIndex: false
 });
-
+// this is my notes
+// createUserModel is a function that creates the Mongoose User model on a MongoDB connection
 export function createUserModel(connection) {
   return connection.model("User", userSchema, "users");
 }

@@ -4,17 +4,16 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { once } from "node:events";
-import { scryptSync, randomBytes } from "node:crypto";
 import { createApp } from "../src/app.js";
 import { businessToday } from "../src/today.js";
+import { hashPassword } from "../src/passwords.js";
 
 const password = "admin test password";
-const salt = randomBytes(16);
-const passwordHash = salt.toString("hex") + ":" + scryptSync(password, salt, 64).toString("hex");
+const passwordHash = await hashPassword(password);
 
-async function harness(t) {
+async function harness(t, admin = { passwordHash }) {
   const dataDir = await fs.mkdtemp(path.join(os.tmpdir(), "truckbhai-summary-"));
-  const app = createApp({ dataDir, admin: { passwordHash } });
+  const app = createApp({ dataDir, admin });
   t.after(() => fs.rm(dataDir, { recursive: true, force: true }));
 
   async function call(url, { method = "GET", body, cookie } = {}) {
@@ -46,6 +45,16 @@ async function harness(t) {
 
   return { call, signIn };
 }
+
+test("either admin bcrypt password signs in without truncating the input", async (t) => {
+  const secondPassword = "é".repeat(36);
+  const secondPasswordHash = await hashPassword(secondPassword);
+  const { call } = await harness(t, { passwordHash, secondPasswordHash });
+  for (const [input, status] of [[password, 200], [secondPassword, 200], [secondPassword + "x", 401]]) {
+    const response = await call("/api/v1/admin/login", { method: "POST", body: { password: input } });
+    assert.equal(response.status, status);
+  }
+});
 
 test("the admin summary needs a signed-in admin", async (t) => {
   const { call } = await harness(t);

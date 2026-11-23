@@ -1,12 +1,11 @@
-import { randomBytes, scrypt, timingSafeEqual } from "node:crypto";
+import { randomBytes } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { promisify } from "node:util";
 import { requireJsonObject, sendJson, sameOrigin } from "../http.js";
 import { businessToday, businessDate, recentDays } from "../today.js";
 import { selectPublicFields } from "../records.js";
+import { bcryptHashPattern, passwordMatches } from "../passwords.js";
 
-const deriveKey = promisify(scrypt);
 const sessionDuration = 8 * 60 * 60;
 const pageSize = 25;
 const summaryLimit = 2000;
@@ -18,9 +17,7 @@ const fields = {
 
 export function createAdminController({ passwordHash, secondPasswordHash, secureCookie = false, models, dataDir }) {
   const credentials = [passwordHash, secondPasswordHash]
-    .map(hash => /^([0-9a-f]{32}):([0-9a-f]{128})$/i.exec(hash || ""))
-    .filter(Boolean)
-    .map(([, salt, key]) => ({ salt: Buffer.from(salt, "hex"), key: Buffer.from(key, "hex") }));
+    .filter(hash => bcryptHashPattern.test(hash));
   const sessions = new Map();
   const cookieName = secureCookie ? "__Host-truckbhai_admin" : "truckbhai_admin";
   const cookieFlags = "Path=/; HttpOnly; SameSite=Strict" + (secureCookie ? "; Secure" : "");
@@ -179,10 +176,7 @@ export function createAdminController({ passwordHash, secondPasswordHash, secure
           return sendJson(response, 429, { message: "Too many login attempts. Try again in a minute." });
         }
         attempts++;
-        const matches = await Promise.all(credentials.map(async ({ salt, key }) => {
-          const candidate = await deriveKey(password, salt, key.length);
-          return timingSafeEqual(candidate, key);
-        }));
+        const matches = await Promise.all(credentials.map(hash => passwordMatches(password, hash)));
         if (!matches.includes(true)) {
           return sendJson(response, 401, { message: "Incorrect password." });
         }
